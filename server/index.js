@@ -1,0 +1,67 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const { initializeDatabase } = require('./db');
+
+const authRoutes = require('./routes/auth');
+const { router: kioskRoutes } = require('./routes/kiosk');
+const attendanceRoutes = require('./routes/attendance');
+const wfhRoutes = require('./routes/wfh');
+const adminRoutes = require('./routes/admin');
+const { router: wfoRoutes } = require('./routes/wfo');
+
+// Ensure DB is set up
+initializeDatabase();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/kiosk', kioskRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/wfh', wfhRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/wfo', wfoRoutes);
+
+// Direct APK Download Endpoint
+app.get(['/api/download/apk', '/downloads/VorldX-Attendance.apk'], (req, res) => {
+  const apkPath = path.join(__dirname, 'downloads', 'VorldX-Attendance.apk');
+  const fs = require('fs');
+  if (fs.existsSync(apkPath)) {
+    res.download(apkPath, 'VorldX-Attendance.apk');
+  } else {
+    res.status(404).json({ error: 'APK file not found' });
+  }
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'VorldX Employee Attendance API',
+    cin: 'U62099UP2026PTC245598'
+  });
+});
+
+// Serve frontend in production build if built
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+if (require('fs').existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.use((req, res) => {
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`=================================================`);
+  console.log(`🚀 VorldX Attendance Server running on 0.0.0.0:${PORT}`);
+  console.log(`📍 Headquarters: Lucknow, U.P., India (CIN: U62099UP2026PTC245598)`);
+  console.log(`🌐 Local API Health Check: http://localhost:${PORT}/api/health`);
+  console.log(`🌐 Network LAN API: http://192.168.1.141:${PORT}/api/health`);
+  console.log(`=================================================`);
+});

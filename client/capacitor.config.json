@@ -1,0 +1,10 @@
+{
+  "appId": "com.vorldx.attendance",
+  "appName": "VorldX Attendance",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
+}
