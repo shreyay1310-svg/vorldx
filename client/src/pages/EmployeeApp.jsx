@@ -942,12 +942,65 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
               </div>
             )}
 
+            {/* Quick 1-Tap Presets */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <button
+                type="button"
+                onClick={() => setServerUrlInput('http://192.168.1.141:5000')}
+                style={{
+                  flex: 1,
+                  padding: '7px 8px',
+                  borderRadius: '8px',
+                  background: serverUrlInput === 'http://192.168.1.141:5000' ? 'rgba(56, 189, 248, 0.2)' : '#111c34',
+                  border: serverUrlInput === 'http://192.168.1.141:5000' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.08)',
+                  color: serverUrlInput === 'http://192.168.1.141:5000' ? '#38bdf8' : '#cbd5e1',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🏠 Same Wi-Fi
+              </button>
+              <button
+                type="button"
+                onClick={() => setServerUrlInput('https://easy-doors-exist.loca.lt')}
+                style={{
+                  flex: 1,
+                  padding: '7px 8px',
+                  borderRadius: '8px',
+                  background: serverUrlInput === 'https://easy-doors-exist.loca.lt' ? 'rgba(16, 185, 129, 0.2)' : '#111c34',
+                  border: serverUrlInput === 'https://easy-doors-exist.loca.lt' ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.08)',
+                  color: serverUrlInput === 'https://easy-doors-exist.loca.lt' ? '#34d399' : '#cbd5e1',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🌐 Cloud 5G
+              </button>
+            </div>
+
+            <div style={{
+              padding: '10px 12px',
+              borderRadius: '8px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              fontSize: '0.72rem',
+              color: '#94a3b8',
+              lineHeight: 1.45,
+              marginBottom: '14px'
+            }}>
+              💡 <strong>Network Guide:</strong><br />
+              • Agar phone <strong>5G Mobile Data</strong> par hai: <strong>Cloud 5G</strong> select karein.<br />
+              • Agar phone <strong>Wi-Fi</strong> par hai: phone ko computer wale same Wi-Fi se connect karein.
+            </div>
+
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
               <button
-                onClick={handleResetServerUrl}
+                onClick={() => setShowServerModal(false)}
                 className="btn btn-secondary btn-sm"
               >
-                Reset LAN
+                Close
               </button>
               <button
                 onClick={handleSaveServerUrl}
