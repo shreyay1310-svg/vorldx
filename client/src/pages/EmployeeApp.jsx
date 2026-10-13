@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Html5Qrcode } from 'html5-qrcode';
 import { 
@@ -35,7 +35,13 @@ import {
   Lock,
   Mail,
   Phone,
-  Shield
+  Shield,
+  Upload,
+  BarChart2,
+  PieChart,
+  Coffee,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 import { api, getServerUrl, setCustomServerUrl } from '../api';
 
@@ -117,6 +123,117 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
   const [editSaving, setEditSaving] = useState(false);
   const [editSuccessMsg, setEditSuccessMsg] = useState('');
   const [editErrorMsg, setEditErrorMsg] = useState('');
+
+  // Gallery photo upload ref (Screen 17)
+  const fileInputRef = useRef(null);
+
+  // Screen 18: Monthly Attendance Statistics Data & State
+  const MONTHS_STATS_DATA = [
+    {
+      key: '2026-10',
+      name: 'October 2026',
+      short: 'Oct 2026',
+      totalWorkingDays: 22,
+      present: 16,
+      wfh: 4,
+      absent: 1,
+      leaves: 1,
+      attendanceRate: '95.5%',
+      weeks: [
+        { label: 'Week 1 (Oct 1-5)', present: 4, wfh: 1, absent: 0, leaves: 0 },
+        { label: 'Week 2 (Oct 6-10)', present: 4, wfh: 1, absent: 0, leaves: 0 },
+        { label: 'Week 3 (Oct 11-15)', present: 3, wfh: 1, absent: 1, leaves: 0 },
+        { label: 'Week 4 (Oct 16-20)', present: 5, wfh: 1, absent: 0, leaves: 1 },
+      ]
+    },
+    {
+      key: '2026-09',
+      name: 'September 2026',
+      short: 'Sep 2026',
+      totalWorkingDays: 22,
+      present: 17,
+      wfh: 3,
+      absent: 0,
+      leaves: 2,
+      attendanceRate: '100%',
+      weeks: [
+        { label: 'Week 1', present: 5, wfh: 0, absent: 0, leaves: 0 },
+        { label: 'Week 2', present: 4, wfh: 1, absent: 0, leaves: 0 },
+        { label: 'Week 3', present: 4, wfh: 1, absent: 0, leaves: 1 },
+        { label: 'Week 4', present: 4, wfh: 1, absent: 0, leaves: 1 },
+      ]
+    },
+    {
+      key: '2026-08',
+      name: 'August 2026',
+      short: 'Aug 2026',
+      totalWorkingDays: 21,
+      present: 15,
+      wfh: 4,
+      absent: 1,
+      leaves: 1,
+      attendanceRate: '95.2%',
+      weeks: [
+        { label: 'Week 1', present: 4, wfh: 1, absent: 0, leaves: 0 },
+        { label: 'Week 2', present: 3, wfh: 1, absent: 1, leaves: 0 },
+        { label: 'Week 3', present: 4, wfh: 1, absent: 0, leaves: 1 },
+        { label: 'Week 4', present: 4, wfh: 1, absent: 0, leaves: 0 },
+      ]
+    },
+    {
+      key: '2026-07',
+      name: 'July 2026',
+      short: 'Jul 2026',
+      totalWorkingDays: 23,
+      present: 18,
+      wfh: 3,
+      absent: 1,
+      leaves: 1,
+      attendanceRate: '95.7%',
+      weeks: [
+        { label: 'Week 1', present: 5, wfh: 0, absent: 0, leaves: 0 },
+        { label: 'Week 2', present: 4, wfh: 1, absent: 0, leaves: 0 },
+        { label: 'Week 3', present: 4, wfh: 1, absent: 0, leaves: 1 },
+        { label: 'Week 4', present: 5, wfh: 1, absent: 0, leaves: 0 },
+      ]
+    },
+    {
+      key: '2026-06',
+      name: 'June 2026',
+      short: 'Jun 2026',
+      totalWorkingDays: 22,
+      present: 16,
+      wfh: 5,
+      absent: 0,
+      leaves: 1,
+      attendanceRate: '100%',
+      weeks: [
+        { label: 'Week 1', present: 4, wfh: 1, absent: 0, leaves: 0 },
+        { label: 'Week 2', present: 3, wfh: 2, absent: 0, leaves: 0 },
+        { label: 'Week 3', present: 4, wfh: 1, absent: 0, leaves: 1 },
+        { label: 'Week 4', present: 5, wfh: 1, absent: 0, leaves: 0 },
+      ]
+    },
+    {
+      key: '2026-05',
+      name: 'May 2026',
+      short: 'May 2026',
+      totalWorkingDays: 21,
+      present: 17,
+      wfh: 2,
+      absent: 1,
+      leaves: 1,
+      attendanceRate: '95.2%',
+      weeks: [
+        { label: 'Week 1', present: 5, wfh: 0, absent: 0, leaves: 0 },
+        { label: 'Week 2', present: 4, wfh: 1, absent: 1, leaves: 0 },
+        { label: 'Week 3', present: 4, wfh: 1, absent: 0, leaves: 1 },
+        { label: 'Week 4', present: 4, wfh: 0, absent: 0, leaves: 0 },
+      ]
+    }
+  ];
+
+  const [selectedMonthKey, setSelectedMonthKey] = useState('2026-10');
 
   // OTP inputs (Screen 12)
   const [otpDigits, setOtpDigits] = useState(['1', '2', '3', '4', '5', '6']);
@@ -267,6 +384,52 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     } catch (err) {
       alert('Verification failed');
     }
+  };
+
+  // Screen 17: Handle Gallery Photo Upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (JPEG, PNG, WEBP)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        // Compress/resize on canvas to max 256x256 for fast native/web storage
+        const canvas = document.createElement('canvas');
+        const maxDim = 256;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+        setEditForm(prev => ({
+          ...prev,
+          avatar: compressedDataUrl
+        }));
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   // Screen 17: Open Profile Edit Modal
@@ -1129,7 +1292,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
               </div>
 
               <div
-                onClick={() => setMobileScreen('history')}
+                onClick={() => setMobileScreen('stats')}
                 style={{ background: '#111c34', padding: '12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer', border: '1px solid var(--border-subtle)' }}
               >
                 <TrendingUp size={20} color="#34d399" style={{ margin: '0 auto 6px' }} />
@@ -1379,6 +1542,476 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
             </div>
           </div>
         )}
+
+        {/* ===============================================================
+            SCREEN 18: ATTENDANCE STATISTICS & MONTHLY GRAPH
+           =============================================================== */}
+        {mobileScreen === 'stats' && (() => {
+          const currentStats = MONTHS_STATS_DATA.find(m => m.key === selectedMonthKey) || MONTHS_STATS_DATA[0];
+          const totalDays = currentStats.totalWorkingDays || 22;
+
+          return (
+            <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button 
+                    onClick={() => setMobileScreen('home')} 
+                    style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <BarChart2 size={18} color="#38bdf8" /> Attendance Statistics
+                    </h3>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                      Monthly breakdown & graphical analysis
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#34d399' }}>{currentStats.attendanceRate}</span>
+                </div>
+              </div>
+
+              {/* Month Selector Carousel (Click to switch month data) */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Select Month</span>
+                  <span style={{ color: '#38bdf8' }}>Tap to view breakdown</span>
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '8px', 
+                  overflowX: 'auto', 
+                  paddingBottom: '4px',
+                  scrollbarWidth: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}>
+                  {MONTHS_STATS_DATA.map(m => {
+                    const isSelected = selectedMonthKey === m.key;
+                    return (
+                      <button
+                        key={m.key}
+                        type="button"
+                        onClick={() => setSelectedMonthKey(m.key)}
+                        style={{
+                          flexShrink: 0,
+                          padding: '8px 14px',
+                          borderRadius: '10px',
+                          border: isSelected ? '1.5px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.08)',
+                          background: isSelected 
+                            ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.35) 0%, rgba(56, 189, 248, 0.2) 100%)' 
+                            : '#111c34',
+                          color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                          fontWeight: isSelected ? 700 : 500,
+                          fontSize: '0.76rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: isSelected ? '0 0 14px rgba(56, 189, 248, 0.35)' : 'none',
+                          transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <Calendar size={13} color={isSelected ? '#38bdf8' : 'var(--text-dim)'} />
+                        {m.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Selected Month Summary Card with Multi-Segment Progress */}
+              <div style={{
+                background: 'linear-gradient(145deg, #111c34 0%, #0d1527 100%)',
+                border: '1px solid rgba(56, 189, 248, 0.2)',
+                borderRadius: '14px',
+                padding: '14px',
+                marginBottom: '14px',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Active Overview
+                    </div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#ffffff' }}>
+                      {currentStats.name}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>Total Working Days</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#38bdf8' }}>{totalDays} Days</div>
+                  </div>
+                </div>
+
+                {/* Stacked Multi-Segment Progress Bar */}
+                <div style={{
+                  height: '10px',
+                  borderRadius: '6px',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  marginBottom: '8px'
+                }}>
+                  <div 
+                    title={`Present: ${currentStats.present}d`}
+                    style={{ 
+                      width: `${(currentStats.present / totalDays) * 100}%`, 
+                      background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)', 
+                      transition: 'width 0.4s ease' 
+                    }} 
+                  />
+                  <div 
+                    title={`WFH: ${currentStats.wfh}d`}
+                    style={{ 
+                      width: `${(currentStats.wfh / totalDays) * 100}%`, 
+                      background: 'linear-gradient(90deg, #2563eb 0%, #38bdf8 100%)', 
+                      transition: 'width 0.4s ease' 
+                    }} 
+                  />
+                  <div 
+                    title={`Leaves: ${currentStats.leaves}d`}
+                    style={{ 
+                      width: `${(currentStats.leaves / totalDays) * 100}%`, 
+                      background: 'linear-gradient(90deg, #d97706 0%, #fbbf24 100%)', 
+                      transition: 'width 0.4s ease' 
+                    }} 
+                  />
+                  <div 
+                    title={`Absent: ${currentStats.absent}d`}
+                    style={{ 
+                      width: `${(currentStats.absent / totalDays) * 100}%`, 
+                      background: 'linear-gradient(90deg, #dc2626 0%, #f87171 100%)', 
+                      transition: 'width 0.4s ease' 
+                    }} 
+                  />
+                </div>
+
+                {/* Legend tags */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '0.68rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#34d399' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#10b981' }}></div>
+                    <span>Present: {currentStats.present}d</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#38bdf8' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#38bdf8' }}></div>
+                    <span>WFH: {currentStats.wfh}d</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#fbbf24' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#f59e0b' }}></div>
+                    <span>Leaves: {currentStats.leaves}d</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f87171' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#ef4444' }}></div>
+                    <span>Absent: {currentStats.absent}d</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4 Key Metric Cards (Present, WFH, Absent, Leaves) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                {/* 1. Present Card */}
+                <div style={{
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Present (Office)</span>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <UserCheck size={14} color="#10b981" />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#34d399' }}>
+                    {currentStats.present} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8' }}>Days</span>
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>
+                    {Math.round((currentStats.present / totalDays) * 100)}% of working days
+                  </div>
+                </div>
+
+                {/* 2. WFH Card */}
+                <div style={{
+                  background: 'rgba(56, 189, 248, 0.08)',
+                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>WFH (Remote)</span>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: 'rgba(56, 189, 248, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Home size={14} color="#38bdf8" />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#38bdf8' }}>
+                    {currentStats.wfh} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8' }}>Days</span>
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>
+                    {Math.round((currentStats.wfh / totalDays) * 100)}% of working days
+                  </div>
+                </div>
+
+                {/* 3. Absent Card */}
+                <div style={{
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Absent</span>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <UserX size={14} color="#ef4444" />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f87171' }}>
+                    {currentStats.absent} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8' }}>Day{currentStats.absent !== 1 ? 's' : ''}</span>
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>
+                    {Math.round((currentStats.absent / totalDays) * 100)}% of working days
+                  </div>
+                </div>
+
+                {/* 4. Leaves Card */}
+                <div style={{
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Leaves Taken</span>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Coffee size={14} color="#f59e0b" />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fbbf24' }}>
+                    {currentStats.leaves} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8' }}>Day{currentStats.leaves !== 1 ? 's' : ''}</span>
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>
+                    {Math.round((currentStats.leaves / totalDays) * 100)}% of working days
+                  </div>
+                </div>
+              </div>
+
+              {/* Graphical Visualization: Vertical Comparative Bar Chart */}
+              <div style={{
+                background: '#111c34',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '14px',
+                padding: '16px',
+                marginBottom: '14px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <BarChart2 size={16} color="#38bdf8" />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>Attendance Comparison Graph</span>
+                  </div>
+                  <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{currentStats.short}</span>
+                </div>
+
+                {/* Graph Area with gridlines and vertical pillars */}
+                <div style={{
+                  height: '160px',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'space-around',
+                  paddingBottom: '24px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  {/* Subtle horizontal grid lines */}
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, borderTop: '1px dashed rgba(255, 255, 255, 0.05)' }}></div>
+                  <div style={{ position: 'absolute', top: '35%', left: 0, right: 0, borderTop: '1px dashed rgba(255, 255, 255, 0.05)' }}></div>
+                  <div style={{ position: 'absolute', top: '70%', left: 0, right: 0, borderTop: '1px dashed rgba(255, 255, 255, 0.05)' }}></div>
+
+                  {/* 1. Present Bar */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '56px', zIndex: 2 }}>
+                    <div style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      color: '#34d399',
+                      marginBottom: '4px',
+                      background: 'rgba(16, 185, 129, 0.2)',
+                      padding: '1px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      {currentStats.present}d
+                    </div>
+                    <div style={{
+                      width: '38px',
+                      height: `${Math.max(16, (currentStats.present / totalDays) * 120)}px`,
+                      background: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                      borderRadius: '6px 6px 0 0',
+                      boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)',
+                      transition: 'height 0.4s ease'
+                    }}></div>
+                    <span style={{ position: 'absolute', bottom: 2, fontSize: '0.68rem', fontWeight: 600, color: '#34d399' }}>
+                      Present
+                    </span>
+                  </div>
+
+                  {/* 2. WFH Bar */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '56px', zIndex: 2 }}>
+                    <div style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      color: '#38bdf8',
+                      marginBottom: '4px',
+                      background: 'rgba(56, 189, 248, 0.2)',
+                      padding: '1px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      {currentStats.wfh}d
+                    </div>
+                    <div style={{
+                      width: '38px',
+                      height: `${Math.max(16, (currentStats.wfh / totalDays) * 120)}px`,
+                      background: 'linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%)',
+                      borderRadius: '6px 6px 0 0',
+                      boxShadow: '0 0 12px rgba(56, 189, 248, 0.4)',
+                      transition: 'height 0.4s ease'
+                    }}></div>
+                    <span style={{ position: 'absolute', bottom: 2, fontSize: '0.68rem', fontWeight: 600, color: '#38bdf8' }}>
+                      WFH
+                    </span>
+                  </div>
+
+                  {/* 3. Absent Bar */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '56px', zIndex: 2 }}>
+                    <div style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      color: '#f87171',
+                      marginBottom: '4px',
+                      background: 'rgba(239, 68, 68, 0.2)',
+                      padding: '1px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      {currentStats.absent}d
+                    </div>
+                    <div style={{
+                      width: '38px',
+                      height: `${Math.max(16, (currentStats.absent / totalDays) * 120)}px`,
+                      background: 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)',
+                      borderRadius: '6px 6px 0 0',
+                      boxShadow: '0 0 12px rgba(239, 68, 68, 0.4)',
+                      transition: 'height 0.4s ease'
+                    }}></div>
+                    <span style={{ position: 'absolute', bottom: 2, fontSize: '0.68rem', fontWeight: 600, color: '#f87171' }}>
+                      Absent
+                    </span>
+                  </div>
+
+                  {/* 4. Leaves Bar */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '56px', zIndex: 2 }}>
+                    <div style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      color: '#fbbf24',
+                      marginBottom: '4px',
+                      background: 'rgba(245, 158, 11, 0.2)',
+                      padding: '1px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      {currentStats.leaves}d
+                    </div>
+                    <div style={{
+                      width: '38px',
+                      height: `${Math.max(16, (currentStats.leaves / totalDays) * 120)}px`,
+                      background: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)',
+                      borderRadius: '6px 6px 0 0',
+                      boxShadow: '0 0 12px rgba(245, 158, 11, 0.4)',
+                      transition: 'height 0.4s ease'
+                    }}></div>
+                    <span style={{ position: 'absolute', bottom: 2, fontSize: '0.68rem', fontWeight: 600, color: '#fbbf24' }}>
+                      Leaves
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                  Interactive live chart • Scaled to {totalDays} monthly working days
+                </div>
+              </div>
+
+              {/* Weekly Performance Breakdown */}
+              <div style={{
+                background: '#111c34',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '14px',
+                padding: '14px',
+                marginBottom: '10px'
+              }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#ffffff', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <TrendingUp size={15} color="#34d399" /> Weekly Breakdown ({currentStats.short})
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {currentStats.weeks.map((wk, idx) => (
+                    <div key={idx} style={{
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{ fontSize: '0.74rem', fontWeight: 600, color: '#e2e8f0' }}>
+                        {wk.label}
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', fontSize: '0.68rem' }}>
+                        <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', padding: '2px 6px', borderRadius: '4px' }}>
+                          P: {wk.present}
+                        </span>
+                        <span style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px' }}>
+                          WFH: {wk.wfh}
+                        </span>
+                        {wk.leaves > 0 && (
+                          <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', padding: '2px 6px', borderRadius: '4px' }}>
+                            L: {wk.leaves}
+                          </span>
+                        )}
+                        {wk.absent > 0 && (
+                          <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '2px 6px', borderRadius: '4px' }}>
+                            A: {wk.absent}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ===============================================================
             SCREEN 17: PROFILE VIEW & EDIT ACCOUNT
@@ -1694,9 +2327,96 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   <form onSubmit={handleSaveProfile}>
                     {editActiveTab === 'info' ? (
                       <>
-                        {/* Avatar Preset Selector */}
-                        <div style={{ marginBottom: '14px' }}>
-                          <label className="input-label" style={{ fontSize: '0.75rem', marginBottom: '6px' }}>Choose Profile Avatar</label>
+                        {/* Avatar Picker: Phone Gallery / Camera Upload & Presets */}
+                        <div style={{ marginBottom: '16px' }}>
+                          <label className="input-label" style={{ fontSize: '0.75rem', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>Profile Picture</span>
+                            <span style={{ color: '#38bdf8', fontSize: '0.7rem' }}>Gallery or Presets</span>
+                          </label>
+
+                          {/* Hidden File Input for Native Gallery / File Sheet */}
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={handleImageUpload}
+                          />
+
+                          {/* Gallery Upload Card */}
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px',
+                            background: 'rgba(56, 189, 248, 0.08)',
+                            border: '1.5px dashed rgba(56, 189, 248, 0.4)',
+                            borderRadius: '12px',
+                            marginBottom: '10px'
+                          }}>
+                            <div style={{ position: 'relative' }}>
+                              <img
+                                src={editForm.avatar || activeEmployee.avatar}
+                                alt="Avatar Preview"
+                                style={{
+                                  width: '52px',
+                                  height: '52px',
+                                  borderRadius: '50%',
+                                  objectFit: 'cover',
+                                  border: '2px solid #38bdf8',
+                                  boxShadow: '0 0 12px rgba(56, 189, 248, 0.35)'
+                                }}
+                              />
+                              <div style={{
+                                position: 'absolute',
+                                bottom: -2,
+                                right: -2,
+                                background: '#10b981',
+                                border: '2px solid #0e1726',
+                                borderRadius: '50%',
+                                width: '16px',
+                                height: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}>
+                                <Check size={10} color="#fff" />
+                              </div>
+                            </div>
+
+                            <div style={{ flex: 1 }}>
+                              <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  width: '100%',
+                                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                                  color: '#ffffff',
+                                  border: 'none',
+                                  padding: '8px 12px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+                                }}
+                              >
+                                <Upload size={14} /> Upload from Gallery / Camera
+                              </button>
+                              <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '4px', textAlign: 'center' }}>
+                                Tap to pick any photo from your phone
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Avatar Presets */}
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                            Or choose from corporate presets:
+                          </div>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '8px' }}>
                             {AVATAR_PRESETS.map((avatarUrl, idx) => (
                               <img
@@ -1705,8 +2425,8 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                                 alt={`Preset ${idx + 1}`}
                                 onClick={() => setEditForm(prev => ({ ...prev, avatar: avatarUrl }))}
                                 style={{
-                                  width: '38px',
-                                  height: '38px',
+                                  width: '36px',
+                                  height: '36px',
                                   borderRadius: '50%',
                                   cursor: 'pointer',
                                   objectFit: 'cover',
@@ -1872,6 +2592,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
             {[
               { id: 'home', label: 'Home', icon: Home },
               { id: 'wfh', label: 'Requests', icon: FileCheck },
+              { id: 'stats', label: 'Stats', icon: BarChart2 },
               { id: 'history', label: 'History', icon: Calendar },
               { id: 'profile', label: 'Profile', icon: User }
             ].map(tab => {
