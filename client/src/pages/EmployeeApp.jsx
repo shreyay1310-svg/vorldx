@@ -41,7 +41,9 @@ import {
   PieChart,
   Coffee,
   UserCheck,
-  UserX
+  UserX,
+  FileText,
+  MapPin
 } from 'lucide-react';
 import { api, getServerUrl, setCustomServerUrl } from '../api';
 
@@ -259,16 +261,294 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     { id: 2, date: '5 Oct 2026', status: 'Rejected', reason: 'Family event' }
   ]);
 
-  // Attendance History state (Screen 16)
-  const [historyList, setHistoryList] = useState([
-    { date: '15 Oct', status: 'Present', time: '09:05 AM' },
-    { date: '14 Oct', status: 'Present', time: '09:04 AM' },
-    { date: '13 Oct', status: 'Late', time: '09:45 AM' },
-    { date: '12 Oct', status: 'Absent', time: '--:--' },
-    { date: '11 Oct', status: 'Present', time: '09:00 AM' },
-    { date: '10 Oct', status: 'Present', time: '09:00 AM' },
-    { date: '09 Oct', status: 'WFH', time: '--:--' }
-  ]);
+  // Attendance History state with Clickable DD/MM/YYYY dates and Reasons (Screen 16)
+  const HISTORY_MONTHS = [
+    {
+      key: '2026-10',
+      label: 'October 2026',
+      records: [
+        {
+          date: '15/10/2026',
+          dayName: 'Thursday',
+          status: 'Present',
+          check_in: '09:05 AM',
+          check_out: '06:02 PM',
+          duration: '8h 57m',
+          location: 'Lucknow HQ - 4th Floor Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'In-office biometric QR punch at Terminal 01 • Regular shift completed'
+        },
+        {
+          date: '14/10/2026',
+          dayName: 'Wednesday',
+          status: 'Present',
+          check_in: '09:04 AM',
+          check_out: '06:05 PM',
+          duration: '9h 01m',
+          location: 'Lucknow HQ - 4th Floor Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Full-day sprint deployment & code review completed on-site'
+        },
+        {
+          date: '13/10/2026',
+          dayName: 'Tuesday',
+          status: 'Late',
+          check_in: '09:45 AM',
+          check_out: '06:30 PM',
+          duration: '8h 45m',
+          location: 'Lucknow HQ - Main Reception',
+          mode: 'Mobile QR Punch',
+          reason: 'Heavy traffic congestion on Shaheed Path • Compensated extra 30m in evening'
+        },
+        {
+          date: '12/10/2026',
+          dayName: 'Monday',
+          status: 'Absent',
+          check_in: '--:--',
+          check_out: '--:--',
+          duration: '0h 00m',
+          location: 'N/A',
+          mode: 'Leave Regularization',
+          reason: 'Sudden viral illness & high fever • Medical prescription regularized by HR Sneha'
+        },
+        {
+          date: '11/10/2026',
+          dayName: 'Sunday',
+          status: 'Holiday',
+          check_in: '--:--',
+          check_out: '--:--',
+          duration: 'Weekly Off',
+          location: 'N/A',
+          mode: 'Calendar Policy',
+          reason: 'Weekly Sunday Corporate Off Day'
+        },
+        {
+          date: '10/10/2026',
+          dayName: 'Saturday',
+          status: 'Present',
+          check_in: '09:00 AM',
+          check_out: '02:15 PM',
+          duration: '5h 15m',
+          location: 'Lucknow HQ - 4th Floor Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Sprint demo presentation & client release deployment'
+        },
+        {
+          date: '09/10/2026',
+          dayName: 'Friday',
+          status: 'WFH',
+          check_in: '09:15 AM',
+          check_out: '06:10 PM',
+          duration: '8h 55m',
+          location: 'Remote Work (Home)',
+          mode: 'WFH Portal Approval',
+          reason: 'WFH Approved by Project Lead • High-focus core algorithm optimization'
+        },
+        {
+          date: '08/10/2026',
+          dayName: 'Thursday',
+          status: 'Present',
+          check_in: '09:02 AM',
+          check_out: '06:00 PM',
+          duration: '8h 58m',
+          location: 'Lucknow HQ - 4th Floor Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Standard on-site attendance recorded via kiosk terminal'
+        },
+        {
+          date: '07/10/2026',
+          dayName: 'Wednesday',
+          status: 'Leave',
+          check_in: '--:--',
+          check_out: '--:--',
+          duration: '0h 00m',
+          location: 'N/A',
+          mode: 'Approved Casual Leave',
+          reason: 'Casual Leave (CL) for family wedding ceremony • Prior approval from HR'
+        },
+        {
+          date: '06/10/2026',
+          dayName: 'Tuesday',
+          status: 'Present',
+          check_in: '09:08 AM',
+          check_out: '06:08 PM',
+          duration: '9h 00m',
+          location: 'Lucknow HQ - 4th Floor Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Regular shift attendance • Database optimization work'
+        },
+        {
+          date: '05/10/2026',
+          dayName: 'Monday',
+          status: 'Present',
+          check_in: '08:58 AM',
+          check_out: '06:03 PM',
+          duration: '9h 05m',
+          location: 'Lucknow HQ - 4th Floor Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Weekly sprint kickoff meeting at 4th floor conference room'
+        }
+      ]
+    },
+    {
+      key: '2026-09',
+      label: 'September 2026',
+      records: [
+        {
+          date: '30/09/2026',
+          dayName: 'Wednesday',
+          status: 'Present',
+          check_in: '09:02 AM',
+          check_out: '06:01 PM',
+          duration: '8h 59m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Month-end sprint review and deliverable milestone completion'
+        },
+        {
+          date: '29/09/2026',
+          dayName: 'Tuesday',
+          status: 'Present',
+          check_in: '09:00 AM',
+          check_out: '06:00 PM',
+          duration: '9h 00m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Regular general shift attendance verified'
+        },
+        {
+          date: '28/09/2026',
+          dayName: 'Monday',
+          status: 'WFH',
+          check_in: '09:12 AM',
+          check_out: '06:15 PM',
+          duration: '9h 03m',
+          location: 'Remote Work (Home)',
+          mode: 'WFH Portal Approval',
+          reason: 'Approved WFH for architectural restructuring documentation'
+        },
+        {
+          date: '25/09/2026',
+          dayName: 'Friday',
+          status: 'Present',
+          check_in: '09:05 AM',
+          check_out: '06:00 PM',
+          duration: '8h 55m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Team sprint retro meeting & code commit verification'
+        },
+        {
+          date: '24/09/2026',
+          dayName: 'Thursday',
+          status: 'Late',
+          check_in: '09:35 AM',
+          check_out: '06:25 PM',
+          duration: '8h 50m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Mobile QR Punch',
+          reason: 'Monsoon heavy rain delay • Informed manager via slack'
+        },
+        {
+          date: '23/09/2026',
+          dayName: 'Wednesday',
+          status: 'Present',
+          check_in: '08:55 AM',
+          check_out: '06:00 PM',
+          duration: '9h 05m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Client presentation & product walkthrough at boardroom'
+        },
+        {
+          date: '22/09/2026',
+          dayName: 'Tuesday',
+          status: 'Leave',
+          check_in: '--:--',
+          check_out: '--:--',
+          duration: '0h 00m',
+          location: 'N/A',
+          mode: 'Sick Leave',
+          reason: 'Doctor prescribed rest for eye allergy • Approved by HR'
+        },
+        {
+          date: '21/09/2026',
+          dayName: 'Monday',
+          status: 'Present',
+          check_in: '09:04 AM',
+          check_out: '06:02 PM',
+          duration: '8h 58m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Standard weekly planning on-site attendance'
+        }
+      ]
+    },
+    {
+      key: '2026-08',
+      label: 'August 2026',
+      records: [
+        {
+          date: '31/08/2026',
+          dayName: 'Monday',
+          status: 'Present',
+          check_in: '09:01 AM',
+          check_out: '06:00 PM',
+          duration: '8h 59m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'End of month corporate all-hands meeting'
+        },
+        {
+          date: '28/08/2026',
+          dayName: 'Friday',
+          status: 'Present',
+          check_in: '09:06 AM',
+          check_out: '06:05 PM',
+          duration: '8h 59m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Sprint release deployment verification'
+        },
+        {
+          date: '27/08/2026',
+          dayName: 'Thursday',
+          status: 'WFH',
+          check_in: '09:10 AM',
+          check_out: '06:00 PM',
+          duration: '8h 50m',
+          location: 'Remote Work (Home)',
+          mode: 'WFH Portal Approval',
+          reason: 'Remote dev setup maintenance and server migration'
+        },
+        {
+          date: '26/08/2026',
+          dayName: 'Wednesday',
+          status: 'Absent',
+          check_in: '--:--',
+          check_out: '--:--',
+          duration: '0h 00m',
+          location: 'N/A',
+          mode: 'Emergency Absence',
+          reason: 'Urgent municipal work and personal leave regularization'
+        },
+        {
+          date: '25/08/2026',
+          dayName: 'Tuesday',
+          status: 'Present',
+          check_in: '09:00 AM',
+          check_out: '06:02 PM',
+          duration: '9h 02m',
+          location: 'Lucknow HQ Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Normal shift in-office work'
+        }
+      ]
+    }
+  ];
+
+  const [historyMonthIdx, setHistoryMonthIdx] = useState(0);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
 
   const [wfoAutoSuccessMsg, setWfoAutoSuccessMsg] = useState('');
 
@@ -1564,37 +1844,374 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
         )}
 
         {/* ===============================================================
-            SCREEN 16: ATTENDANCE HISTORY
+            SCREEN 16: ATTENDANCE HISTORY (Clickable DD/MM/YYYY with Reasons)
            =============================================================== */}
-        {mobileScreen === 'history' && (
-          <div style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-              <button onClick={() => setMobileScreen('home')} style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer' }}>
-                <ChevronLeft size={20} />
-              </button>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>Attendance History</h3>
-            </div>
+        {mobileScreen === 'history' && (() => {
+          const currentMonth = HISTORY_MONTHS[historyMonthIdx] || HISTORY_MONTHS[0];
 
-            {/* Month Selector matching Screen 16 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111c34', padding: '10px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.85rem' }}>
-              <span style={{ cursor: 'pointer' }}>&lt;</span>
-              <strong>October 2026</strong>
-              <span style={{ cursor: 'pointer' }}>&gt;</span>
-            </div>
+          const handlePrevMonth = () => {
+            if (historyMonthIdx < HISTORY_MONTHS.length - 1) {
+              setHistoryMonthIdx(prev => prev + 1);
+            }
+          };
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {historyList.map((item, idx) => (
-                <div key={idx} style={{ background: '#111c34', padding: '12px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff' }}>{item.date}</span>
-                    <span className={`badge badge-${item.status.toLowerCase()}`}>{item.status}</span>
+          const handleNextMonth = () => {
+            if (historyMonthIdx > 0) {
+              setHistoryMonthIdx(prev => prev - 1);
+            }
+          };
+
+          return (
+            <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button onClick={() => setMobileScreen('home')} style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', padding: '4px' }}>
+                    <ChevronLeft size={22} />
+                  </button>
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Calendar size={18} color="#38bdf8" /> Attendance History
+                    </h3>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                      Click any date to view detailed punch & reason
+                    </div>
                   </div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{item.time}</span>
                 </div>
-              ))}
+
+                <div style={{
+                  padding: '3px 8px',
+                  borderRadius: '12px',
+                  background: 'rgba(56, 189, 248, 0.12)',
+                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                  color: '#38bdf8',
+                  fontSize: '0.68rem',
+                  fontWeight: 600
+                }}>
+                  DD/MM/YYYY
+                </div>
+              </div>
+
+              {/* Interactive Month Switcher (< Month Year >) */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'linear-gradient(135deg, #111c34 0%, #0d1527 100%)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                marginBottom: '14px',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)'
+              }}>
+                <button
+                  type="button"
+                  onClick={handlePrevMonth}
+                  disabled={historyMonthIdx >= HISTORY_MONTHS.length - 1}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: 'none',
+                    color: historyMonthIdx >= HISTORY_MONTHS.length - 1 ? 'rgba(255, 255, 255, 0.2)' : '#38bdf8',
+                    cursor: historyMonthIdx >= HISTORY_MONTHS.length - 1 ? 'not-allowed' : 'pointer',
+                    padding: '6px 10px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                  title="Previous Month"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.01em' }}>
+                    {currentMonth.label}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    {currentMonth.records.length} Recorded Days
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleNextMonth}
+                  disabled={historyMonthIdx <= 0}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: 'none',
+                    color: historyMonthIdx <= 0 ? 'rgba(255, 255, 255, 0.2)' : '#38bdf8',
+                    cursor: historyMonthIdx <= 0 ? 'not-allowed' : 'pointer',
+                    padding: '6px 10px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                  title="Next Month"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+
+              {/* Clickable Attendance Records List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '20px' }}>
+                {currentMonth.records.map((item, idx) => {
+                  const isPresent = item.status === 'Present';
+                  const isLate = item.status === 'Late';
+                  const isAbsent = item.status === 'Absent';
+                  const isWfh = item.status === 'WFH';
+                  const isLeave = item.status === 'Leave';
+
+                  const badgeColor = isPresent ? '#34d399' : isLate ? '#fbbf24' : isAbsent ? '#f87171' : isWfh ? '#38bdf8' : '#c084fc';
+                  const badgeBg = isPresent ? 'rgba(16, 185, 129, 0.15)' : isLate ? 'rgba(245, 158, 11, 0.15)' : isAbsent ? 'rgba(239, 68, 68, 0.15)' : isWfh ? 'rgba(56, 189, 248, 0.15)' : 'rgba(192, 132, 252, 0.15)';
+                  const badgeBorder = isPresent ? 'rgba(16, 185, 129, 0.3)' : isLate ? 'rgba(245, 158, 11, 0.3)' : isAbsent ? 'rgba(239, 68, 68, 0.3)' : isWfh ? 'rgba(56, 189, 248, 0.3)' : 'rgba(192, 132, 252, 0.3)';
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedHistoryItem(item)}
+                      style={{
+                        background: '#111c34',
+                        borderRadius: '12px',
+                        padding: '12px 14px',
+                        border: '1px solid rgba(255, 255, 255, 0.07)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                      }}
+                    >
+                      {/* Top Header Row: DD/MM/YYYY + Day + Status Badge + Chevron */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '8px',
+                            background: 'rgba(56, 189, 248, 0.12)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <Calendar size={14} color="#38bdf8" />
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em' }}>
+                              {item.date}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500, marginLeft: '6px' }}>
+                              ({item.dayName.slice(0, 3)})
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background: badgeBg,
+                            color: badgeColor,
+                            border: `1px solid ${badgeBorder}`
+                          }}>
+                            {item.status}
+                          </span>
+                          <ChevronRight size={15} color="var(--text-dim)" />
+                        </div>
+                      </div>
+
+                      {/* Prominent Reason & Remarks Box */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '8px',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        borderLeft: `3px solid ${badgeColor}`
+                      }}>
+                        <FileText size={13} color={badgeColor} style={{ marginTop: '2px', flexShrink: 0 }} />
+                        <div style={{ fontSize: '0.73rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                          <strong style={{ color: '#ffffff' }}>Reason: </strong>{item.reason}
+                        </div>
+                      </div>
+
+                      {/* Bottom Check-in & Punch Method Details */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.68rem', color: 'var(--text-dim)', paddingTop: '2px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Clock size={11} color="#94a3b8" />
+                          <span>Check-in: <strong style={{ color: '#e2e8f0' }}>{item.check_in}</strong></span>
+                          {item.check_out && item.check_out !== '--:--' && (
+                            <span> • Out: <strong style={{ color: '#e2e8f0' }}>{item.check_out}</strong></span>
+                          )}
+                        </div>
+                        <span style={{ color: '#38bdf8', fontSize: '0.68rem', fontWeight: 600 }}>
+                          Tap details ›
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Attendance Record Detail Popup Modal */}
+              {selectedHistoryItem && (
+                <div style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'rgba(0, 0, 0, 0.8)',
+                  backdropFilter: 'blur(6px)',
+                  zIndex: 9999,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '16px'
+                }}>
+                  <div style={{
+                    background: '#0e1726',
+                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                    borderRadius: '18px',
+                    width: '100%',
+                    maxWidth: '360px',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    padding: '20px',
+                    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.7)'
+                  }}>
+                    {/* Modal Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Calendar size={16} color="#38bdf8" />
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                            Punch Record Details
+                          </h4>
+                          <div style={{ fontSize: '0.68rem', color: '#38bdf8', fontWeight: 600 }}>
+                            {selectedHistoryItem.date} ({selectedHistoryItem.dayName})
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedHistoryItem(null)}
+                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Status Banner */}
+                    <div style={{
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '14px'
+                    }}>
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Attendance Status</span>
+                      <span className={`badge badge-${selectedHistoryItem.status.toLowerCase()}`}>
+                        {selectedHistoryItem.status}
+                      </span>
+                    </div>
+
+                    {/* 2x2 Punch Metrics */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
+                      <div style={{ background: '#111c34', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Punch In</div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#34d399', marginTop: '2px' }}>
+                          {selectedHistoryItem.check_in}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#111c34', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Punch Out</div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#38bdf8', marginTop: '2px' }}>
+                          {selectedHistoryItem.check_out}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#111c34', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Total Duration</div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>
+                          {selectedHistoryItem.duration}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#111c34', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Punch Mode</div>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>
+                          {selectedHistoryItem.mode}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Location Card */}
+                    <div style={{
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      background: '#111c34',
+                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '14px',
+                      fontSize: '0.75rem',
+                      color: '#cbd5e1'
+                    }}>
+                      <MapPin size={15} color="#38bdf8" />
+                      <span>Location: <strong style={{ color: '#ffffff' }}>{selectedHistoryItem.location}</strong></span>
+                    </div>
+
+                    {/* Full Reason Box */}
+                    <div style={{
+                      padding: '12px',
+                      borderRadius: '10px',
+                      background: 'rgba(56, 189, 248, 0.08)',
+                      border: '1px solid rgba(56, 189, 248, 0.25)',
+                      marginBottom: '16px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#38bdf8', fontWeight: 700, fontSize: '0.75rem', marginBottom: '4px' }}>
+                        <FileText size={14} /> Reason & Remarks
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#e2e8f0', lineHeight: 1.45 }}>
+                        {selectedHistoryItem.reason}
+                      </div>
+                    </div>
+
+                    {/* Corporate Verification Footer */}
+                    <div style={{
+                      fontSize: '0.65rem',
+                      color: '#64748b',
+                      textAlign: 'center',
+                      marginBottom: '14px',
+                      lineHeight: 1.3
+                    }}>
+                      🛡️ Verified Attendance Record • VorldX Industries Pvt Ltd (CIN: U62099UP2026PTC245598)
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedHistoryItem(null)}
+                      className="btn btn-primary"
+                      style={{ width: '100%', padding: '10px', fontSize: '0.85rem', fontWeight: 700 }}
+                    >
+                      Close Details
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ===============================================================
             SCREEN 18: ATTENDANCE STATISTICS & MONTHLY GRAPH
