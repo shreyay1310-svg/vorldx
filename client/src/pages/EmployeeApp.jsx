@@ -30,7 +30,12 @@ import {
   Settings,
   Building2,
   RefreshCw,
-  Zap
+  Zap,
+  Edit3,
+  Lock,
+  Mail,
+  Phone,
+  Shield
 } from 'lucide-react';
 import { api, getServerUrl, setCustomServerUrl } from '../api';
 
@@ -54,6 +59,15 @@ function playPunchChime() {
     osc.stop(ctx.currentTime + 0.36);
   } catch (e) {}
 }
+
+const AVATAR_PRESETS = [
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=128&q=80',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=128&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=128&q=80',
+  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=128&q=80',
+  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=128&q=80'
+];
 
 export default function EmployeeApp({ isEmbedded = false, isNativeApp = false }) {
   const [showServerModal, setShowServerModal] = useState(false);
@@ -86,9 +100,23 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     verified: 1
   });
 
-  // Login / Register inputs (Screen 11)
-  const [loginTab, setLoginTab] = useState('login'); // 'login', 'register'
+  // Screen 11: Employee ID Input (HR creates accounts, Employee logs in)
   const [inputEmpId, setInputEmpId] = useState('VX001');
+
+  // Screen 17: Employee Profile Edit State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editActiveTab, setEditActiveTab] = useState('info'); // 'info', 'password'
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    avatar: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editSuccessMsg, setEditSuccessMsg] = useState('');
+  const [editErrorMsg, setEditErrorMsg] = useState('');
 
   // OTP inputs (Screen 12)
   const [otpDigits, setOtpDigits] = useState(['1', '2', '3', '4', '5', '6']);
@@ -238,6 +266,70 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
       }
     } catch (err) {
       alert('Verification failed');
+    }
+  };
+
+  // Screen 17: Open Profile Edit Modal
+  const openEditProfile = (tab = 'info') => {
+    setEditActiveTab(tab);
+    setEditForm({
+      name: activeEmployee.name || '',
+      email: activeEmployee.email || '',
+      phone: activeEmployee.phone || '',
+      avatar: activeEmployee.avatar || '',
+      password: '',
+      confirmPassword: ''
+    });
+    setEditSuccessMsg('');
+    setEditErrorMsg('');
+    setShowEditModal(true);
+  };
+
+  // Screen 17: Save Profile Changes (Updates Employee details in SQLite)
+  const handleSaveProfile = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (editActiveTab === 'password') {
+      if (!editForm.password || editForm.password.length < 4) {
+        setEditErrorMsg('Password must be at least 4 characters');
+        return;
+      }
+      if (editForm.password !== editForm.confirmPassword) {
+        setEditErrorMsg('Passwords do not match');
+        return;
+      }
+    }
+
+    setEditSaving(true);
+    setEditErrorMsg('');
+    setEditSuccessMsg('');
+
+    try {
+      const payload = {
+        name: editForm.name,
+        email: editForm.email,
+        phone: editForm.phone,
+        avatar: editForm.avatar
+      };
+      if (editForm.password) {
+        payload.password = editForm.password;
+      }
+
+      const res = await api.updateEmployeeProfile(activeEmployee.id, payload);
+      if (res && res.success && res.user) {
+        setActiveEmployee(res.user);
+        setEditSuccessMsg('Profile updated successfully! 🎉');
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        setTimeout(() => {
+          setShowEditModal(false);
+          setEditSuccessMsg('');
+        }, 1200);
+      } else {
+        setEditErrorMsg(res?.error || 'Failed to update profile');
+      }
+    } catch (err) {
+      setEditErrorMsg('Network error while saving profile');
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -850,51 +942,12 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
               Employee App
             </div>
 
-            {/* Tabs: Login, Register */}
-            <div style={{
-              display: 'flex',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '10px',
-              padding: '4px',
-              marginBottom: '24px'
-            }}>
-              <button
-                onClick={() => setLoginTab('login')}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: loginTab === 'login' ? '#2563eb' : 'transparent',
-                  color: loginTab === 'login' ? '#ffffff' : 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Login
-              </button>
-              <button
-                onClick={() => setLoginTab('register')}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: loginTab === 'register' ? '#2563eb' : 'transparent',
-                  color: loginTab === 'register' ? '#ffffff' : 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Register
-              </button>
-            </div>
-
             <form onSubmit={handleLoginContinue}>
-              <div style={{ textAlign: 'left', marginBottom: '20px' }}>
-                <label className="input-label">Enter Employee ID</label>
+              <div style={{ textAlign: 'left', marginBottom: '18px' }}>
+                <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Employee ID</span>
+                  <span style={{ color: '#38bdf8', fontSize: '0.72rem' }}>e.g. VX001, VX002</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -902,17 +955,30 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   onChange={(e) => setInputEmpId(e.target.value.toUpperCase())}
                   placeholder="VX001"
                   className="input-control"
-                  style={{ textAlign: 'center', fontSize: '1.1rem', letterSpacing: '0.1em', fontWeight: 700 }}
+                  style={{ textAlign: 'center', fontSize: '1.2rem', letterSpacing: '0.12em', fontWeight: 800, padding: '12px' }}
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px' }}>
-                Continue
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '13px', fontSize: '0.92rem', fontWeight: 700 }}>
+                Sign In to Workspace
               </button>
             </form>
 
-            <div style={{ marginTop: '20px', fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-              New here? <span onClick={() => setLoginTab('register')} style={{ color: '#38bdf8', cursor: 'pointer' }}>Register</span>
+            <div style={{
+              marginTop: '22px',
+              padding: '12px 14px',
+              borderRadius: '12px',
+              background: 'rgba(37, 99, 235, 0.08)',
+              border: '1px solid rgba(56, 189, 248, 0.22)',
+              fontSize: '0.74rem',
+              color: '#94a3b8',
+              lineHeight: 1.5,
+              textAlign: 'left'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#38bdf8', fontWeight: 700, marginBottom: '4px' }}>
+                <Shield size={14} /> Corporate Account Policy
+              </div>
+              Employee profiles are registered and managed exclusively by HR / Company Admins. Once logged in, you can freely edit your personal contact details, photo, and password from your Profile tab.
             </div>
           </div>
         )}
@@ -1315,42 +1381,171 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
         )}
 
         {/* ===============================================================
-            SCREEN 17: PROFILE VIEW
+            SCREEN 17: PROFILE VIEW & EDIT ACCOUNT
            =============================================================== */}
         {mobileScreen === 'profile' && (
           <div style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-              <button onClick={() => setMobileScreen('home')} style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer' }}>
-                <ChevronLeft size={20} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button onClick={() => setMobileScreen('home')} style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer' }}>
+                  <ChevronLeft size={20} />
+                </button>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>My Profile</h3>
+              </div>
+              <button
+                onClick={() => openEditProfile('info')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: 'rgba(56, 189, 248, 0.15)',
+                  border: '1px solid rgba(56, 189, 248, 0.35)',
+                  borderRadius: '8px',
+                  color: '#38bdf8',
+                  padding: '6px 12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                <Edit3 size={13} /> Edit Account
               </button>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>My Profile</h3>
             </div>
 
-            {/* Avatar & Info matching Screen 17 */}
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <img
-                src={activeEmployee.avatar}
-                alt={activeEmployee.name}
-                style={{ width: '68px', height: '68px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #38bdf8', marginBottom: '8px' }}
-              />
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>{activeEmployee.name}</div>
-              <div style={{ fontSize: '0.75rem', color: '#38bdf8' }}>{activeEmployee.id}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{activeEmployee.department} - {activeEmployee.designation}</div>
+            {/* Avatar & Info */}
+            <div style={{ textAlign: 'center', marginBottom: '20px', position: 'relative' }}>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <img
+                  src={activeEmployee.avatar}
+                  alt={activeEmployee.name}
+                  style={{ width: '74px', height: '74px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #38bdf8', marginBottom: '8px', boxShadow: '0 0 16px rgba(56, 189, 248, 0.3)' }}
+                />
+                <button
+                  onClick={() => openEditProfile('info')}
+                  style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    right: '-4px',
+                    background: '#2563eb',
+                    border: '2px solid #0f172a',
+                    borderRadius: '50%',
+                    width: '26px',
+                    height: '26px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    cursor: 'pointer'
+                  }}
+                  title="Change Avatar"
+                >
+                  <Edit3 size={12} />
+                </button>
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff' }}>{activeEmployee.name}</div>
+              <div style={{ display: 'inline-block', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.25)', color: '#38bdf8', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 700, margin: '4px 0' }}>
+                ID: {activeEmployee.id}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{activeEmployee.department} • {activeEmployee.designation}</div>
             </div>
 
-            {/* List options matching Screen 17 */}
+            {/* Quick Profile Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-              <div style={{ background: '#111c34', padding: '12px 16px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#ffffff' }}>
-                <span>Personal Information</span>
+              <div
+                onClick={() => openEditProfile('info')}
+                style={{
+                  background: '#111c34',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  transition: 'background 0.2s'
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <User size={15} color="#38bdf8" /> Personal Information
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    {activeEmployee.email || 'No email'} • {activeEmployee.phone || 'No phone'}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#38bdf8', fontSize: '0.75rem', fontWeight: 600 }}>
+                  <span>Edit</span>
+                  <ChevronRight size={16} />
+                </div>
+              </div>
+
+              <div
+                onClick={() => openEditProfile('password')}
+                style={{
+                  background: '#111c34',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <KeyRound size={15} color="#a855f7" /> Security & Password
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    Update your account login password
+                  </div>
+                </div>
                 <ChevronRight size={16} color="var(--text-dim)" />
               </div>
-              <div style={{ background: '#111c34', padding: '12px 16px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#ffffff' }}>
-                <span>Attendance Information</span>
+
+              <div
+                onClick={() => setMobileScreen('history')}
+                style={{
+                  background: '#111c34',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={15} color="#34d399" /> Attendance Logs & Shift
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    Shift: {activeEmployee.shift || 'General (9:00 AM - 6:00 PM)'}
+                  </div>
+                </div>
                 <ChevronRight size={16} color="var(--text-dim)" />
               </div>
-              <div style={{ background: '#111c34', padding: '12px 16px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#ffffff' }}>
-                <span>Change Password</span>
-                <ChevronRight size={16} color="var(--text-dim)" />
+            </div>
+
+            {/* Read-only HR Employment Info Banner */}
+            <div style={{
+              padding: '12px 14px',
+              borderRadius: '12px',
+              background: 'rgba(15, 23, 42, 0.7)',
+              border: '1px dashed rgba(255, 255, 255, 0.12)',
+              marginBottom: '20px',
+              fontSize: '0.72rem',
+              color: '#94a3b8'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e2e8f0', fontWeight: 700, marginBottom: '6px' }}>
+                <ShieldCheck size={14} color="#38bdf8" /> Corporate Profile Details
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                <div>ID: <strong style={{ color: '#fff' }}>{activeEmployee.id}</strong> (Locked)</div>
+                <div>Dept: <strong style={{ color: '#fff' }}>{activeEmployee.department}</strong></div>
+                <div>Role: <strong style={{ color: '#fff' }}>{activeEmployee.designation}</strong></div>
+                <div>Work: <strong style={{ color: '#fff' }}>{activeEmployee.work_type || 'Office'}</strong></div>
               </div>
             </div>
 
@@ -1374,6 +1569,292 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
             >
               <LogOut size={16} /> Logout
             </button>
+
+            {/* EDIT PROFILE MODAL */}
+            {showEditModal && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.8)',
+                backdropFilter: 'blur(5px)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '16px'
+              }}>
+                <div style={{
+                  background: '#0e1726',
+                  border: '1px solid #1e293b',
+                  borderRadius: '16px',
+                  width: '100%',
+                  maxWidth: '380px',
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                  padding: '20px',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
+                }}>
+                  {/* Modal Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Edit3 size={16} color="#38bdf8" />
+                      </div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                        Edit Account Details
+                      </h3>
+                    </div>
+                    <button
+                      onClick={() => setShowEditModal(false)}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  {/* Tabs */}
+                  <div style={{
+                    display: 'flex',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '8px',
+                    padding: '3px',
+                    marginBottom: '16px'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditActiveTab('info')}
+                      style={{
+                        flex: 1,
+                        padding: '6px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: editActiveTab === 'info' ? '#2563eb' : 'transparent',
+                        color: editActiveTab === 'info' ? '#ffffff' : 'var(--text-muted)',
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Personal Info
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditActiveTab('password')}
+                      style={{
+                        flex: 1,
+                        padding: '6px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: editActiveTab === 'password' ? '#2563eb' : 'transparent',
+                        color: editActiveTab === 'password' ? '#ffffff' : 'var(--text-muted)',
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Password & Security
+                    </button>
+                  </div>
+
+                  {editSuccessMsg && (
+                    <div style={{
+                      padding: '10px',
+                      borderRadius: '8px',
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      color: '#34d399',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      marginBottom: '14px',
+                      textAlign: 'center'
+                    }}>
+                      {editSuccessMsg}
+                    </div>
+                  )}
+
+                  {editErrorMsg && (
+                    <div style={{
+                      padding: '10px',
+                      borderRadius: '8px',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#f87171',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      marginBottom: '14px',
+                      textAlign: 'center'
+                    }}>
+                      {editErrorMsg}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSaveProfile}>
+                    {editActiveTab === 'info' ? (
+                      <>
+                        {/* Avatar Preset Selector */}
+                        <div style={{ marginBottom: '14px' }}>
+                          <label className="input-label" style={{ fontSize: '0.75rem', marginBottom: '6px' }}>Choose Profile Avatar</label>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '8px' }}>
+                            {AVATAR_PRESETS.map((avatarUrl, idx) => (
+                              <img
+                                key={idx}
+                                src={avatarUrl}
+                                alt={`Preset ${idx + 1}`}
+                                onClick={() => setEditForm(prev => ({ ...prev, avatar: avatarUrl }))}
+                                style={{
+                                  width: '38px',
+                                  height: '38px',
+                                  borderRadius: '50%',
+                                  cursor: 'pointer',
+                                  objectFit: 'cover',
+                                  border: editForm.avatar === avatarUrl ? '2px solid #38bdf8' : '2px solid transparent',
+                                  boxShadow: editForm.avatar === avatarUrl ? '0 0 10px rgba(56, 189, 248, 0.6)' : 'none',
+                                  transform: editForm.avatar === avatarUrl ? 'scale(1.1)' : 'scale(1)',
+                                  transition: 'all 0.2s'
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Or paste custom image URL"
+                            value={editForm.avatar}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, avatar: e.target.value }))}
+                            className="input-control"
+                            style={{ fontSize: '0.75rem', padding: '6px 10px' }}
+                          />
+                        </div>
+
+                        {/* Name Input */}
+                        <div style={{ marginBottom: '12px' }}>
+                          <label className="input-label" style={{ fontSize: '0.75rem' }}>Full Name</label>
+                          <input
+                            type="text"
+                            required
+                            value={editForm.name}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                            className="input-control"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+
+                        {/* Email Input */}
+                        <div style={{ marginBottom: '12px' }}>
+                          <label className="input-label" style={{ fontSize: '0.75rem' }}>Email Address</label>
+                          <input
+                            type="email"
+                            required
+                            value={editForm.email}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                            className="input-control"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+
+                        {/* Phone Input */}
+                        <div style={{ marginBottom: '12px' }}>
+                          <label className="input-label" style={{ fontSize: '0.75rem' }}>Phone Number</label>
+                          <input
+                            type="tel"
+                            required
+                            value={editForm.phone}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                            className="input-control"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+
+                        {/* Locked HR Fields */}
+                        <div style={{
+                          padding: '10px',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(255, 255, 255, 0.06)',
+                          marginBottom: '16px',
+                          fontSize: '0.72rem',
+                          color: 'var(--text-dim)'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span>Employee ID:</span>
+                            <strong style={{ color: '#ffffff' }}>{activeEmployee.id} 🔒</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span>Department:</span>
+                            <span style={{ color: '#ffffff' }}>{activeEmployee.department} (HR Managed)</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Designation:</span>
+                            <span style={{ color: '#ffffff' }}>{activeEmployee.designation} (HR Managed)</span>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Password Section */}
+                        <div style={{ marginBottom: '14px' }}>
+                          <label className="input-label" style={{ fontSize: '0.75rem' }}>New Password / PIN</label>
+                          <input
+                            type="password"
+                            placeholder="Enter new password"
+                            value={editForm.password}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, password: e.target.value }))}
+                            className="input-control"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+
+                        <div style={{ marginBottom: '16px' }}>
+                          <label className="input-label" style={{ fontSize: '0.75rem' }}>Confirm New Password</label>
+                          <input
+                            type="password"
+                            placeholder="Repeat new password"
+                            value={editForm.confirmPassword}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            className="input-control"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+
+                        <div style={{
+                          padding: '10px',
+                          borderRadius: '8px',
+                          background: 'rgba(56, 189, 248, 0.08)',
+                          fontSize: '0.72rem',
+                          color: '#94a3b8',
+                          lineHeight: 1.4,
+                          marginBottom: '16px'
+                        }}>
+                          🔒 Keep your password secure. This password can be used to authenticate your session or web sign-ins.
+                        </div>
+                      </>
+                    )}
+
+                    {/* Action buttons */}
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowEditModal(false)}
+                        className="btn btn-secondary"
+                        style={{ flex: 1, padding: '10px', fontSize: '0.82rem' }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={editSaving}
+                        className="btn btn-primary"
+                        style={{ flex: 1, padding: '10px', fontSize: '0.82rem', fontWeight: 700 }}
+                      >
+                        {editSaving ? 'Saving...' : 'Save Changes'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

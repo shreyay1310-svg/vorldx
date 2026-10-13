@@ -72,6 +72,14 @@ export const api = {
     return request(`/auth/employee/${id}`);
   },
 
+  async updateEmployeeProfile(id, data) {
+    return request(`/auth/employee/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  },
+
   async login(credentials) {
     return request('/auth/login', {
       method: 'POST',

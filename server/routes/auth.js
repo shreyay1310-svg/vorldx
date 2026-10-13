@@ -186,4 +186,54 @@ router.post('/verify-otp', (req, res) => {
   }
 });
 
+// PUT /api/auth/employee/:id - Employee updates their own profile details (Screen 17)
+router.put('/employee/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, phone, avatar, password } = req.body;
+    const cleanId = id.trim().toUpperCase();
+
+    const emp = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
+    if (!emp) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    const updatedName = name && name.trim() ? name.trim() : emp.name;
+    const updatedEmail = email && email.trim() ? email.trim() : emp.email;
+    const updatedPhone = phone && phone.trim() ? phone.trim() : emp.phone;
+    const updatedAvatar = avatar && avatar.trim() ? avatar.trim() : emp.avatar;
+
+    if (password && password.trim()) {
+      db.prepare(`
+        UPDATE employees 
+        SET name = ?, email = ?, phone = ?, avatar = ?, password = ?
+        WHERE id = ?
+      `).run(updatedName, updatedEmail, updatedPhone, updatedAvatar, password.trim(), cleanId);
+    } else {
+      db.prepare(`
+        UPDATE employees 
+        SET name = ?, email = ?, phone = ?, avatar = ?
+        WHERE id = ?
+      `).run(updatedName, updatedEmail, updatedPhone, updatedAvatar, cleanId);
+    }
+
+    db.prepare(`
+      INSERT INTO audit_logs (actor, action, details)
+      VALUES (?, 'PROFILE_UPDATED', ?)
+    `).run(updatedName, `Employee ${cleanId} updated personal profile`);
+
+    const updatedUser = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
+    const { password: _, ...userClean } = updatedUser;
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully!',
+      user: userClean
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
 module.exports = router;
+
