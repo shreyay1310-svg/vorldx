@@ -1,61 +1,62 @@
-# VorldX Employee Attendance System
-**Full-Stack Solution for VORLDX INDUSTRIES PRIVATE LIMITED**  
-*CIN: U62099UP2026PTC245598 | Lucknow, U.P., India*
+# VorldX Enterprise Attendance 360 System
+**Corporate Solution for VORLDX INDUSTRIES PRIVATE LIMITED**  
+*CIN: U62099UP2026PTC245598 | Lucknow HQ, U.P., India*
 
 ---
 
-## 🌟 Quick Start Guide
+## 🌐 Live Cloud Deployment Links
 
-### 1. Start Both Backend & Frontend in One Command
-Run the following command in the project root:
+* 🚀 **Live HR & Admin Web Portal (Vercel):**  
+  [https://client-mauve-eight-72.vercel.app](https://client-mauve-eight-72.vercel.app)
+
+* 📦 **GitHub Repository:**  
+  [https://github.com/shreyay1310-svg/vorldx](https://github.com/shreyay1310-svg/vorldx)
+
+* ⚡ **1-Click Render Backend Blueprint:**  
+  [Deploy to Render Blueprint](https://dashboard.render.com/blueprint/new?repo=https%3A%2F%2Fgithub.com%2Fshreyay1310-svg%2Fvorldx)
+
+* 📱 **Employee Android APK:**  
+  Direct APK build: [`VorldX-Attendance.apk`](./VorldX-Attendance.apk) (Ready to install on Android devices)
+
+---
+
+## 🌟 Key Architecture & Scope
+
+1. **HR & Admin Management Website (`client/`):**
+   - Clean, dedicated enterprise dashboard without employee app or demo tabs.
+   - Comprehensive employee management (add new employees, assign departments, shifts, and credentials).
+   - Real-time attendance monitoring, regularization approval, WFH requests manager, policies configuration, and audit logs.
+
+2. **Employee Mobile App (Native Android APK):**
+   - **No account creation on mobile:** Accounts are provisioned and managed securely by HR administrators.
+   - **Direct Employee ID Login:** Fast login using HR-assigned ID (`VX001` - `VX006`).
+   - **Self-Account Editing (Screen 17 Profile):**
+     - Full Name, Email, Phone number editing.
+     - 6 stylish preset avatar pickers or custom photo URL.
+     - Login password change.
+     - Locked organizational badges (Employee ID, Department, Designation, Shift).
+   - Real-time QR scanner for office attendance, WFH applications, and attendance calendar logs.
+
+---
+
+## 🛠️ Local Development
+
+### Start Both Backend & Frontend
 ```bash
 npm run dev
 ```
+* **Express Backend:** `http://localhost:5000`
+* **Vite React Frontend:** `http://localhost:5173`
 
-This will concurrently launch:
-- 🚀 **Express Backend API Server**: `http://localhost:5000`
-- 💻 **Vite React Frontend**: `http://localhost:5173`
-
-Open your browser to: **`http://localhost:5173`**
-
----
-
-## 📱 Features Included
-
-1. **Interactive Demo (Split View)**:
-   - Live **Office Dynamic QR Display Kiosk** on the left screen with real-time rotating QR codes and countdown timer.
-   - **VorldX Employee Mobile App** on the right screen with instant QR check-in/out, time simulation selector, and audio/confetti celebration!
-2. **HR / Admin Website (`/admin`)**:
-   - Executive metrics & department attendance breakdown.
-   - Attendance records table with search, status filters, and date filters.
-   - **Attendance Regularization**: HR can correct times and statuses with auditable reasons.
-   - **WFH Approvals**: Review, approve, or reject employee Work From Home requests.
-   - **Policy Engine**: Configure work start time (09:30 AM), grace period (15m), WFH monthly quotas, and QR rotation intervals.
-   - **Audit Logs**: Immutable system history log.
-   - **CSV Export**: One-click download of attendance logs.
-3. **VorldX Employee App (`/employee`)**:
-   - Employee account switcher (test as Aarav, Priya, Rohan, or unverified Sanya).
-   - **Simulated OTP Verification**: Test new employee registration without real SMS/email credentials.
-   - Today's attendance status card (Present, Late, WFH, Not Checked In).
-   - Dynamic QR scanner (scan camera or 1-click kiosk simulator).
-   - WFH requests submission with quota tracking.
-   - Personal attendance statistics and history logs.
-4. **Office QR Display Kiosk (`/kiosk`)**:
-   - Dedicated kiosk screen with live Lucknow HQ clock and rotating cryptographic tokens every 20 seconds.
-   - Real-time attendance ticker showing incoming check-ins.
-5. **Project Report (`/report` & `PROJECT_REPORT.md`)**:
-   - Full documentation adhering to Section 7 of the project brief, with print/PDF support.
+### Build Android APK
+```bash
+npm --prefix client run build
+cd client
+npx cap sync android
+cd android
+./gradlew.bat assembleDebug
+```
 
 ---
 
-## 🛠️ Individual Commands
-
-- `npm run server` — Start Express API server only (`http://localhost:5000`)
-- `npm run client` — Start Vite React client only (`http://localhost:5173`)
-- `npm run seed` — Reset and seed the SQLite database with realistic sample data
-- `npm run build` — Build production bundle for the client
-
----
-
-*VORLDX INDUSTRIES PRIVATE LIMITED*  
-*Building Virtual World with Simplicity*
+*VORLDX INDUSTRIES PRIVATE LIMITED — Lucknow HQ, Uttar Pradesh, India*

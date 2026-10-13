@@ -131,121 +131,21 @@ export default function Navbar({ activeTab, setActiveTab, onResetDemo }) {
         </div>
       </div>
 
-      {/* Navigation App Switcher */}
-      <nav style={{
+      {/* HR / Admin Portal Navigation Badge */}
+      <div style={{
         display: 'flex',
         alignItems: 'center',
         background: 'rgba(14, 21, 38, 0.85)',
-        padding: '4px',
+        padding: '6px 16px',
         borderRadius: '12px',
         border: '1px solid var(--border-subtle)',
-        gap: '4px'
+        gap: '8px'
       }}>
-        <button
-          onClick={() => setActiveTab('admin')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            borderRadius: '8px',
-            border: 'none',
-            fontSize: '0.825rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            background: activeTab === 'admin' ? 'var(--grad-primary)' : 'transparent',
-            color: activeTab === 'admin' ? '#ffffff' : 'var(--text-muted)'
-          }}
-        >
-          <Building2 size={15} />
-          <span>HR / Admin Portal</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('kiosk')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            borderRadius: '8px',
-            border: 'none',
-            fontSize: '0.825rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            background: activeTab === 'kiosk' ? 'var(--grad-primary)' : 'transparent',
-            color: activeTab === 'kiosk' ? '#ffffff' : 'var(--text-muted)'
-          }}
-        >
-          <QrCode size={15} />
-          <span>Office QR Display</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('split')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            borderRadius: '8px',
-            border: 'none',
-            fontSize: '0.825rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            background: activeTab === 'split' ? 'var(--grad-primary)' : 'transparent',
-            color: activeTab === 'split' ? '#ffffff' : 'var(--text-muted)'
-          }}
-        >
-          <Columns size={15} />
-          <span>Interactive Demo (Split)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('employee')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            borderRadius: '8px',
-            border: 'none',
-            fontSize: '0.825rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            background: activeTab === 'employee' ? 'var(--grad-primary)' : 'transparent',
-            color: activeTab === 'employee' ? '#ffffff' : 'var(--text-muted)'
-          }}
-        >
-          <Smartphone size={15} />
-          <span>Employee App</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('report')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            borderRadius: '8px',
-            border: 'none',
-            fontSize: '0.825rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            background: activeTab === 'report' ? 'var(--grad-primary)' : 'transparent',
-            color: activeTab === 'report' ? '#ffffff' : 'var(--text-muted)'
-          }}
-        >
-          <FileText size={15} />
-          <span>Project Report</span>
-        </button>
-      </nav>
+        <Building2 size={16} color="#38bdf8" />
+        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', letterSpacing: '0.01em' }}>
+          HR & Admin Management Portal
+        </span>
+      </div>
 
       {/* Right Action Tools */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

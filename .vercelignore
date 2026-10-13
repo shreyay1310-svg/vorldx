@@ -1,0 +1,10 @@
+client/android/
+node_modules/
+client/node_modules/
+server/node_modules/
+dist/
+client/dist/
+*.apk
+client/public/*.apk
+server/downloads/*.apk
+.gradle/
