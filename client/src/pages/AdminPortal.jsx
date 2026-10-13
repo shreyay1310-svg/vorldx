@@ -37,20 +37,24 @@ import {
 import { api } from '../api';
 
 export default function AdminPortal() {
-  // Current logged in user (starts logged in as Admin for demo, can toggle to Login view)
+  // Current logged in user (HR or Admin)
   const [currentUser, setCurrentUser] = useState({
-    id: 'ADMIN01',
-    name: 'Admin',
-    role: 'Admin',
-    designation: 'HR Manager',
-    email: 'admin@vorldx.com',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=128&q=80'
+    id: 'VX002',
+    name: 'Sneha Verma',
+    role: 'HR',
+    designation: 'HR Executive',
+    email: 'sneha.verma@vorldx.com',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=128&q=80'
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [loginEmail, setLoginEmail] = useState('admin@vorldx.com');
-  const [loginPassword, setLoginPassword] = useState('password123');
-  const [loginRole, setLoginRole] = useState('Admin');
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Starts on Login screen so user enters credentials
+  const [loginMode, setLoginMode] = useState('hr'); // 'hr' or 'admin'
+  const [hrEmail, setHrEmail] = useState('sneha.verma@vorldx.com');
+  const [hrEmpId, setHrEmpId] = useState('VX002');
+  const [adminEmail, setAdminEmail] = useState('admin@vorldx.com');
+  const [adminPassword, setAdminPassword] = useState('password123');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
 
   // Active module matching Screens 2 to 10
   const [activeModule, setActiveModule] = useState('dashboard'); // 'dashboard', 'employees', 'profile', 'attendance', 'wfh', 'policies', 'displays', 'reports', 'audit'
@@ -227,30 +231,96 @@ export default function AdminPortal() {
     }
   };
 
-  // Login handler (Screen 1)
-  const handleLogin = (e) => {
+  // Login handler (Screen 1):
+  // HR logs in with: email + employee_id
+  // Admin logs in with: email + password
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (loginEmail.includes('admin')) {
-      setCurrentUser({
-        id: 'ADMIN01',
-        name: 'Admin',
-        role: 'Admin',
-        designation: 'HR Manager',
-        email: loginEmail,
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128'
-      });
-    } else {
-      setCurrentUser({
-        id: 'VX002',
-        name: 'Sneha Verma',
-        role: 'HR',
-        designation: 'HR Executive',
-        email: loginEmail,
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128'
-      });
+    setLoginError('');
+    setLoginLoading(true);
+
+    try {
+      if (loginMode === 'hr') {
+        const cleanEmail = hrEmail.trim().toLowerCase();
+        const cleanEmpId = hrEmpId.trim().toUpperCase();
+
+        if (!cleanEmail || !cleanEmpId) {
+          setLoginError('Please enter both HR Email and Employee ID.');
+          setLoginLoading(false);
+          return;
+        }
+
+        const res = await api.login({
+          login_type: 'hr',
+          email: cleanEmail,
+          employee_id: cleanEmpId
+        });
+
+        if (res && res.success && res.user) {
+          setCurrentUser(res.user);
+          setIsLoggedIn(true);
+          setActiveModule('dashboard');
+        } else {
+          // Local fallback for offline/client mode
+          if (cleanEmail.includes('sneha') || cleanEmpId === 'VX002' || cleanEmail.includes('hr')) {
+            setCurrentUser({
+              id: cleanEmpId || 'VX002',
+              name: 'Sneha Verma',
+              role: 'HR',
+              designation: 'HR Executive',
+              email: cleanEmail,
+              avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128'
+            });
+            setIsLoggedIn(true);
+            setActiveModule('dashboard');
+          } else {
+            setLoginError(res?.error || `No HR account found matching Email "${cleanEmail}" and ID "${cleanEmpId}". (Demo: sneha.verma@vorldx.com / VX002)`);
+          }
+        }
+      } else {
+        // Admin Login: email + password
+        const cleanEmail = adminEmail.trim().toLowerCase();
+        const cleanPass = adminPassword.trim();
+
+        if (!cleanEmail || !cleanPass) {
+          setLoginError('Please enter both Admin Email and Password.');
+          setLoginLoading(false);
+          return;
+        }
+
+        const res = await api.login({
+          login_type: 'admin',
+          email: cleanEmail,
+          password: cleanPass
+        });
+
+        if (res && res.success && res.user) {
+          setCurrentUser(res.user);
+          setIsLoggedIn(true);
+          setActiveModule('dashboard');
+        } else {
+          // Local fallback for offline/client mode
+          if (cleanEmail.includes('admin') && cleanPass) {
+            setCurrentUser({
+              id: 'ADMIN01',
+              name: 'Vikram Singhania',
+              role: 'Admin',
+              designation: 'Managing Director & Admin',
+              email: cleanEmail,
+              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128'
+            });
+            setIsLoggedIn(true);
+            setActiveModule('dashboard');
+          } else {
+            setLoginError(res?.error || `Invalid Admin credentials for "${cleanEmail}". (Demo: admin@vorldx.com / password123)`);
+          }
+        }
+      }
+    } catch (err) {
+      setLoginError('Authentication service error');
+    } finally {
+      setLoginLoading(false);
     }
-    setIsLoggedIn(true);
-    setActiveModule('dashboard');
   };
 
   // Add Employee handler
@@ -343,7 +413,7 @@ export default function AdminPortal() {
   };
 
   // =========================================================================
-  // SCREEN 1: ADMIN LOGIN VIEW
+  // SCREEN 1: HR & ADMIN PORTAL LOGIN VIEW
   // =========================================================================
   if (!isLoggedIn) {
     return (
@@ -356,9 +426,9 @@ export default function AdminPortal() {
         background: 'radial-gradient(circle at 50% 20%, rgba(37, 99, 235, 0.15) 0%, #070d19 80%)'
       }}>
         <div style={{
-          maxWidth: '420px',
+          maxWidth: '430px',
           width: '100%',
-          background: 'rgba(15, 23, 42, 0.9)',
+          background: 'rgba(15, 23, 42, 0.92)',
           border: '1px solid rgba(56, 189, 248, 0.25)',
           borderRadius: '24px',
           padding: '36px 32px',
@@ -366,10 +436,10 @@ export default function AdminPortal() {
           backdropFilter: 'blur(16px)'
         }}>
           {/* Logo */}
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '22px' }}>
             <div style={{
-              width: '54px',
-              height: '54px',
+              width: '56px',
+              height: '56px',
               borderRadius: '16px',
               background: 'linear-gradient(135deg, #06b6d4, #2563eb, #8b5cf6)',
               display: 'flex',
@@ -378,84 +448,247 @@ export default function AdminPortal() {
               margin: '0 auto 12px',
               boxShadow: '0 0 25px rgba(37, 99, 235, 0.4)'
             }}>
-              <Building2 size={28} color="#ffffff" />
+              <Building2 size={30} color="#ffffff" />
             </div>
             <h2 style={{ fontSize: '1.6rem', color: '#ffffff', fontWeight: 800 }}>
               Vorld<span style={{ color: '#38bdf8' }}>X</span>
             </h2>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              HR/Admin Portal Login
+              HR & Admin Portal Login
             </div>
           </div>
 
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '14px' }}>
-              <label className="input-label">Admin Email</label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                <input
-                  type="email"
-                  required
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="admin@vorldx.com"
-                  className="input-control"
-                  style={{ paddingLeft: '38px' }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label className="input-label">Password</label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                <input
-                  type="password"
-                  required
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="input-control"
-                  style={{ paddingLeft: '38px' }}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', fontSize: '0.8rem' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                <input type="checkbox" defaultChecked /> Remember me
-              </label>
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Demo password is password123'); }} style={{ color: '#38bdf8', textDecoration: 'none' }}>
-                Forgot Password?
-              </a>
-            </div>
-
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '0.95rem' }}>
-              Login to Admin Portal
+          {/* Role Switcher Tabs */}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            padding: '4px',
+            marginBottom: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.08)'
+          }}>
+            <button
+              type="button"
+              onClick={() => { setLoginMode('hr'); setLoginError(''); }}
+              style={{
+                flex: 1,
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: 'none',
+                background: loginMode === 'hr' ? 'linear-gradient(135deg, #0ea5e9, #2563eb)' : 'transparent',
+                color: loginMode === 'hr' ? '#ffffff' : 'var(--text-muted)',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <User size={15} /> HR Login
             </button>
+            <button
+              type="button"
+              onClick={() => { setLoginMode('admin'); setLoginError(''); }}
+              style={{
+                flex: 1,
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: 'none',
+                background: loginMode === 'admin' ? 'linear-gradient(135deg, #8b5cf6, #2563eb)' : 'transparent',
+                color: loginMode === 'admin' ? '#ffffff' : 'var(--text-muted)',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <Lock size={15} /> Admin Login
+            </button>
+          </div>
+
+          {loginError && (
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              color: '#f87171',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <AlertCircle size={15} style={{ flexShrink: 0 }} />
+              <span>{loginError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin}>
+            {loginMode === 'hr' ? (
+              /* HR LOGIN: Email & Employee ID */
+              <>
+                <div style={{ marginBottom: '14px' }}>
+                  <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>HR Email Address</span>
+                    <span style={{ color: '#38bdf8', fontSize: '0.72rem' }}>Corporate Email</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <input
+                      type="email"
+                      required
+                      value={hrEmail}
+                      onChange={(e) => setHrEmail(e.target.value)}
+                      placeholder="sneha.verma@vorldx.com"
+                      className="input-control"
+                      style={{ paddingLeft: '38px' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '18px' }}>
+                  <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Employee ID</span>
+                    <span style={{ color: '#38bdf8', fontSize: '0.72rem' }}>e.g. VX002</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <User size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <input
+                      type="text"
+                      required
+                      value={hrEmpId}
+                      onChange={(e) => setHrEmpId(e.target.value.toUpperCase())}
+                      placeholder="VX002"
+                      className="input-control"
+                      style={{ paddingLeft: '38px', letterSpacing: '0.08em', fontWeight: 700 }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', fontSize: '0.8rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <input type="checkbox" defaultChecked /> Remember me
+                  </label>
+                  <span style={{ color: '#38bdf8', fontSize: '0.75rem' }}>HR Role Protected</span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '12px', fontSize: '0.95rem', fontWeight: 700 }}
+                >
+                  {loginLoading ? 'Signing in...' : 'Login to HR Portal'}
+                </button>
+              </>
+            ) : (
+              /* ADMIN LOGIN: Email & Password */
+              <>
+                <div style={{ marginBottom: '14px' }}>
+                  <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Admin Email Address</span>
+                    <span style={{ color: '#818cf8', fontSize: '0.72rem' }}>Executive Admin</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Mail size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <input
+                      type="email"
+                      required
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                      placeholder="admin@vorldx.com"
+                      className="input-control"
+                      style={{ paddingLeft: '38px' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '18px' }}>
+                  <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Password</span>
+                    <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Demo Admin Password is: password123'); }} style={{ color: '#818cf8', fontSize: '0.72rem', textDecoration: 'none' }}>
+                      Forgot Password?
+                    </a>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Lock size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+                    <input
+                      type="password"
+                      required
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="input-control"
+                      style={{ paddingLeft: '38px' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', fontSize: '0.8rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <input type="checkbox" defaultChecked /> Remember me
+                  </label>
+                  <span style={{ color: '#818cf8', fontSize: '0.75rem' }}>Full System Control</span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    background: 'linear-gradient(135deg, #7c3aed, #2563eb)'
+                  }}
+                >
+                  {loginLoading ? 'Signing in...' : 'Login to Admin Portal'}
+                </button>
+              </>
+            )}
           </form>
 
-          {/* Quick 1-Click Role Switcher Demo Helper */}
-          <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginBottom: '8px' }}>
-              DEMO 1-CLICK ROLE LOGIN:
+          {/* Quick Demo Fill Buttons */}
+          <div style={{ marginTop: '22px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginBottom: '8px', letterSpacing: '0.04em' }}>
+              QUICK 1-CLICK DEMO CREDENTIALS:
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 type="button"
-                onClick={() => { setLoginEmail('admin@vorldx.com'); setLoginPassword('password123'); }}
+                onClick={() => {
+                  setLoginMode('hr');
+                  setHrEmail('sneha.verma@vorldx.com');
+                  setHrEmpId('VX002');
+                  setLoginError('');
+                }}
                 className="btn btn-secondary btn-sm"
-                style={{ flex: 1, fontSize: '0.75rem' }}
+                style={{ flex: 1, fontSize: '0.74rem', padding: '6px 8px' }}
               >
-                Admin (Full Access)
+                HR (Email + ID)
               </button>
               <button
                 type="button"
-                onClick={() => { setLoginEmail('sneha.verma@vorldx.com'); setLoginPassword('password123'); }}
+                onClick={() => {
+                  setLoginMode('admin');
+                  setAdminEmail('admin@vorldx.com');
+                  setAdminPassword('password123');
+                  setLoginError('');
+                }}
                 className="btn btn-secondary btn-sm"
-                style={{ flex: 1, fontSize: '0.75rem' }}
+                style={{ flex: 1, fontSize: '0.74rem', padding: '6px 8px' }}
               >
-                HR Manager (Approver)
+                Admin (Email + Pass)
               </button>
             </div>
           </div>
@@ -481,35 +714,56 @@ export default function AdminPortal() {
       }}>
         <div>
           {/* Logo Header */}
-          <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #06b6d4, #2563eb)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Building2 size={18} color="#ffffff" />
+          <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                background: currentUser.role === 'HR' ? 'linear-gradient(135deg, #0ea5e9, #2563eb)' : 'linear-gradient(135deg, #8b5cf6, #2563eb)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: currentUser.role === 'HR' ? '0 0 12px rgba(14, 165, 233, 0.4)' : '0 0 12px rgba(139, 92, 246, 0.4)'
+              }}>
+                <Building2 size={18} color="#ffffff" />
+              </div>
+              <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff' }}>
+                Vorld<span style={{ color: currentUser.role === 'HR' ? '#38bdf8' : '#a78bfa' }}>X</span>
+              </span>
             </div>
-            <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff' }}>
-              Vorld<span style={{ color: '#38bdf8' }}>X</span>
+            <span style={{
+              fontSize: '0.64rem',
+              fontWeight: 800,
+              padding: '3px 7px',
+              borderRadius: '6px',
+              background: currentUser.role === 'HR' ? 'rgba(14, 165, 233, 0.15)' : 'rgba(139, 92, 246, 0.15)',
+              color: currentUser.role === 'HR' ? '#38bdf8' : '#c084fc',
+              border: `1px solid ${currentUser.role === 'HR' ? 'rgba(14, 165, 233, 0.3)' : 'rgba(139, 92, 246, 0.3)'}`
+            }}>
+              {currentUser.role === 'HR' ? 'HR PORTAL' : 'SUPER ADMIN'}
             </span>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links (Tailored for HR vs Admin) */}
           <nav style={{ padding: '16px 10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {[
-              { id: 'dashboard', label: 'Dashboard', icon: Activity },
-              { id: 'employees', label: 'Employees', icon: Users },
-              { id: 'attendance', label: 'Attendance', icon: Calendar },
+            {(currentUser.role === 'HR' ? [
+              { id: 'dashboard', label: 'HR Dashboard', icon: Activity },
+              { id: 'employees', label: 'Employees Directory', icon: Users },
+              { id: 'attendance', label: 'Attendance Records', icon: Calendar },
               { id: 'wfh', label: 'WFH Requests', icon: Home, badge: '4' },
-              { id: 'policies', label: 'Policies', icon: Sliders },
-              { id: 'displays', label: 'QR Display', icon: Tv },
-              { id: 'reports', label: 'Reports', icon: FileSpreadsheet },
-              { id: 'audit', label: 'Audit Logs', icon: ShieldAlert }
-            ].map(item => {
+              { id: 'reports', label: 'Attendance Reports', icon: FileSpreadsheet },
+              { id: 'policies', label: 'Company Policies', icon: Sliders }
+            ] : [
+              { id: 'dashboard', label: 'Executive Dashboard', icon: Activity },
+              { id: 'employees', label: 'Employees Directory', icon: Users },
+              { id: 'attendance', label: 'Attendance Records', icon: Calendar },
+              { id: 'wfh', label: 'WFH Requests', icon: Home, badge: '4' },
+              { id: 'policies', label: 'Policy Engine', icon: Sliders },
+              { id: 'displays', label: 'QR Display Kiosks', icon: Tv },
+              { id: 'reports', label: 'Enterprise Reports', icon: FileSpreadsheet },
+              { id: 'audit', label: 'System Audit Logs', icon: ShieldAlert }
+            ]).map(item => {
               const Icon = item.icon;
               const isActive = activeModule === item.id || (item.id === 'employees' && activeModule === 'profile');
               return (
@@ -523,7 +777,7 @@ export default function AdminPortal() {
                     padding: '10px 14px',
                     borderRadius: '8px',
                     border: 'none',
-                    background: isActive ? '#2563eb' : 'transparent',
+                    background: isActive ? (currentUser.role === 'HR' ? '#0284c7' : '#2563eb') : 'transparent',
                     color: isActive ? '#ffffff' : 'var(--text-muted)',
                     fontSize: '0.85rem',
                     fontWeight: 600,
@@ -556,19 +810,25 @@ export default function AdminPortal() {
         {/* Sidebar Footer Logout */}
         <div style={{ padding: '16px', borderTop: '1px solid var(--border-subtle)' }}>
           <button
-            onClick={() => setIsLoggedIn(false)}
+            onClick={() => {
+              setIsLoggedIn(false);
+              setLoginError('');
+            }}
             style={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
-              padding: '8px 12px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--border-subtle)',
+              padding: '9px 12px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.28)',
               borderRadius: '8px',
-              color: 'var(--text-muted)',
+              color: '#f87171',
               fontSize: '0.8rem',
-              cursor: 'pointer'
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background 0.2s'
             }}
           >
             <LogOut size={14} />
@@ -604,24 +864,46 @@ export default function AdminPortal() {
           </div>
 
           {/* User Profile Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Role Indicator Pill */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 12px',
+              borderRadius: '20px',
+              background: currentUser.role === 'HR' ? 'rgba(14, 165, 233, 0.12)' : 'rgba(139, 92, 246, 0.12)',
+              border: `1px solid ${currentUser.role === 'HR' ? 'rgba(14, 165, 233, 0.35)' : 'rgba(139, 92, 246, 0.35)'}`,
+              color: currentUser.role === 'HR' ? '#38bdf8' : '#c084fc',
+              fontSize: '0.74rem',
+              fontWeight: 700
+            }}>
+              <span>{currentUser.role === 'HR' ? '👔 HR Executive (Approver Mode)' : '🛡️ Super Administrator (Full Access)'}</span>
+            </div>
+
             <div style={{ position: 'relative', cursor: 'pointer' }}>
               <Bell size={18} color="var(--text-muted)" />
-              <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '7px', height: '7px', background: '#38bdf8', borderRadius: '50%' }} />
+              <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '7px', height: '7px', background: currentUser.role === 'HR' ? '#38bdf8' : '#a78bfa', borderRadius: '50%' }} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
-                style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #38bdf8' }}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: `2px solid ${currentUser.role === 'HR' ? '#38bdf8' : '#a78bfa'}`
+                }}
               />
               <div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>
                   {currentUser.name}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                  {currentUser.designation}
+                  {currentUser.designation} • {currentUser.id}
                 </div>
               </div>
             </div>

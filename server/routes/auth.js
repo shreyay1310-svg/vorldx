@@ -37,22 +37,74 @@ router.get('/employee/:id', (req, res) => {
   }
 });
 
-// POST /api/auth/login - Role-aware login (Admin, HR, Employee)
+// POST /api/auth/login - Role-aware login:
+// 1) HR Login: email + employee_id
+// 2) Admin Login: email + password
 router.post('/login', (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { login_type, email, employee_id, password, role } = req.body;
 
     let user;
-    if (email) {
+
+    // A) HR Login Flow (Email + Employee ID)
+    if (login_type === 'hr' || (employee_id && !password)) {
+      if (!email || !employee_id) {
+        return res.status(400).json({ error: 'HR Email and Employee ID are required for HR login' });
+      }
+      user = db.prepare(`
+        SELECT * FROM employees 
+        WHERE LOWER(email) = LOWER(?) AND UPPER(id) = UPPER(?)
+      `).get(email.trim(), employee_id.trim());
+
+      if (!user) {
+        return res.status(401).json({ 
+          error: `No employee record found matching Email "${email}" and ID "${employee_id}". Try sneha.verma@vorldx.com with ID VX002.` 
+        });
+      }
+
+      if (user.role !== 'HR' && user.role !== 'Admin') {
+        return res.status(403).json({
+          error: `Access Denied: ${user.name} (${user.id}) is registered as "${user.role}". Only HR personnel can access the HR Portal.`
+        });
+      }
+    }
+    // B) Admin Login Flow (Email + Password)
+    else if (login_type === 'admin' || password) {
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Admin Email and Password are required' });
+      }
       user = db.prepare('SELECT * FROM employees WHERE LOWER(email) = LOWER(?)').get(email.trim());
-    } else if (role) {
-      // Demo quick login by role
+
+      if (!user) {
+        return res.status(401).json({ error: `Admin user not found for "${email}". Try admin@vorldx.com with password password123.` });
+      }
+
+      if (user.role !== 'Admin') {
+        return res.status(403).json({
+          error: `Access Denied: User "${user.email}" does not have Administrator privileges. Please use HR login.`
+        });
+      }
+
+      if (user.password && user.password !== password.trim()) {
+        return res.status(401).json({ error: 'Incorrect password for Administrator account.' });
+      }
+    }
+    // C) Quick Role login fallback
+    else if (role) {
       user = db.prepare('SELECT * FROM employees WHERE role = ? LIMIT 1').get(role);
+    } else if (email) {
+      user = db.prepare('SELECT * FROM employees WHERE LOWER(email) = LOWER(?)').get(email.trim());
     }
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials. Try admin@vorldx.com or sneha.verma@vorldx.com' });
+      return res.status(401).json({ error: 'Invalid login credentials' });
     }
+
+    // Log the successful login
+    db.prepare(`
+      INSERT INTO audit_logs (actor, action, details)
+      VALUES (?, 'PORTAL_LOGIN', ?)
+    `).run(user.name, `${user.role} login via web portal (${user.email})`);
 
     // Omit password from response
     const { password: _, ...userWithoutPassword } = user;
@@ -62,7 +114,7 @@ router.post('/login', (req, res) => {
       token: `demo-jwt-token-${user.id}-${Date.now()}`
     });
   } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ error: 'Login failed: ' + error.message });
   }
 });
 
