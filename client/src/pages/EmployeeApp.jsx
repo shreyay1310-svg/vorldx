@@ -488,7 +488,22 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     {
       key: '2026-10',
       label: 'October 2026',
+      year: 2026,
+      month: 10,
+      daysInMonth: 31,
+      startDayOfWeek: 4, // 0 = Sun, 4 = Thursday
       records: [
+        {
+          date: '16/10/2026',
+          dayName: 'Friday',
+          status: 'WFH',
+          check_in: '09:12 AM',
+          check_out: '06:05 PM',
+          duration: '8h 53m',
+          location: 'Remote Work (Home Office)',
+          mode: 'Approved WFH Request',
+          reason: 'High-focus backend API development & offline sync verification • HR Approved'
+        },
         {
           date: '15/10/2026',
           dayName: 'Thursday',
@@ -609,12 +624,60 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
           location: 'Lucknow HQ - 4th Floor Terminal 01',
           mode: 'Biometric QR Punch',
           reason: 'Weekly sprint kickoff meeting at 4th floor conference room'
+        },
+        {
+          date: '04/10/2026',
+          dayName: 'Sunday',
+          status: 'Holiday',
+          check_in: '--:--',
+          check_out: '--:--',
+          duration: 'Weekly Off',
+          location: 'N/A',
+          mode: 'Corporate Policy',
+          reason: 'Weekly Sunday Corporate Off Day'
+        },
+        {
+          date: '03/10/2026',
+          dayName: 'Saturday',
+          status: 'Present',
+          check_in: '09:10 AM',
+          check_out: '02:00 PM',
+          duration: '4h 50m',
+          location: 'Lucknow HQ - 4th Floor Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Weekend sprint demo presentation & client release deployment'
+        },
+        {
+          date: '02/10/2026',
+          dayName: 'Friday',
+          status: 'Holiday',
+          check_in: '--:--',
+          check_out: '--:--',
+          duration: 'National Holiday',
+          location: 'N/A',
+          mode: 'Gazetted Holiday',
+          reason: 'Gandhi Jayanti • National Corporate Holiday'
+        },
+        {
+          date: '01/10/2026',
+          dayName: 'Thursday',
+          status: 'Present',
+          check_in: '09:00 AM',
+          check_out: '06:00 PM',
+          duration: '9h 00m',
+          location: 'Lucknow HQ - 4th Floor Terminal 01',
+          mode: 'Biometric QR Punch',
+          reason: 'Q4 kickoff meeting & core attendance module roadmap discussion'
         }
       ]
     },
     {
       key: '2026-09',
       label: 'September 2026',
+      year: 2026,
+      month: 9,
+      daysInMonth: 30,
+      startDayOfWeek: 2, // Tuesday
       records: [
         {
           date: '30/09/2026',
@@ -709,6 +772,10 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     {
       key: '2026-08',
       label: 'August 2026',
+      year: 2026,
+      month: 8,
+      daysInMonth: 31,
+      startDayOfWeek: 6, // Saturday
       records: [
         {
           date: '31/08/2026',
@@ -771,6 +838,113 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
 
   const [historyMonthIdx, setHistoryMonthIdx] = useState(0);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+  const [historyViewMode, setHistoryViewMode] = useState('calendar'); // 'calendar' (Material Image 1 style) or 'list'
+  const [selectedCalDay, setSelectedCalDay] = useState(16); // Default 16 Oct (matching Image 1!)
+  const [datePickerModal, setDatePickerModal] = useState({
+    isOpen: false,
+    targetField: null, // 'leaveFrom', 'leaveTo', 'wfhFrom', 'wfhTo'
+    year: 2026,
+    month: 10,
+    day: 16
+  });
+
+  // Helper to dynamically resolve detailed attendance record for any calendar date
+  const getSelectedDayAttendance = (monthObj, dayNumber) => {
+    if (!monthObj) return null;
+    const year = monthObj.year || 2026;
+    const month = monthObj.month || 10;
+    const dateFormatted = `${String(dayNumber).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+    const isoDate = `${year}-${String(month).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+    
+    // 1. Check if there's an explicit record in HISTORY_MONTHS
+    const directRecord = (monthObj.records || []).find(r => r.date === dateFormatted);
+    if (directRecord) {
+      const matchingWfh = wfhRequests.find(w => w.from_date <= isoDate && isoDate <= w.to_date);
+      const matchingLeave = leaveRequests.find(l => l.from_date <= isoDate && isoDate <= l.to_date);
+      return {
+        ...directRecord,
+        hrApproval: matchingWfh || matchingLeave || null
+      };
+    }
+
+    // 2. Check if employee has an active/approved WFH or Leave on this date
+    const matchingWfh = wfhRequests.find(w => w.from_date <= isoDate && isoDate <= w.to_date);
+    if (matchingWfh) {
+      const isAppr = matchingWfh.status === 'Approved';
+      return {
+        date: dateFormatted,
+        dayName: new Date(year, month - 1, dayNumber).toLocaleDateString('en-US', { weekday: 'long' }),
+        status: isAppr ? 'WFH' : (matchingWfh.status === 'Rejected' ? 'Absent' : 'Pending'),
+        check_in: isAppr ? '09:12 AM' : '--:--',
+        check_out: isAppr ? '06:05 PM' : '--:--',
+        duration: isAppr ? '8h 53m' : '0h 00m',
+        location: isAppr ? 'Remote Work (Home Office)' : 'N/A',
+        mode: `WFH Request (${matchingWfh.status})`,
+        reason: `WFH: "${matchingWfh.reason}"`,
+        hrApproval: matchingWfh
+      };
+    }
+
+    const matchingLeave = leaveRequests.find(l => l.from_date <= isoDate && isoDate <= l.to_date);
+    if (matchingLeave) {
+      const isAppr = matchingLeave.status === 'Approved';
+      return {
+        date: dateFormatted,
+        dayName: new Date(year, month - 1, dayNumber).toLocaleDateString('en-US', { weekday: 'long' }),
+        status: isAppr ? 'Leave' : (matchingLeave.status === 'Rejected' ? 'Absent' : 'Pending'),
+        check_in: '--:--',
+        check_out: '--:--',
+        duration: isAppr ? 'Approved Leave' : '0h 00m',
+        location: 'N/A',
+        mode: `${matchingLeave.leave_type || 'Leave'} (${matchingLeave.status})`,
+        reason: `${matchingLeave.leave_type}: "${matchingLeave.reason}"`,
+        hrApproval: matchingLeave
+      };
+    }
+
+    // 3. Fallback based on day of week
+    const dateObj = new Date(year, month - 1, dayNumber);
+    const dayOfWeek = dateObj.getDay();
+    const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+
+    if (dayOfWeek === 0) {
+      return {
+        date: dateFormatted,
+        dayName,
+        status: 'Holiday',
+        check_in: '--:--',
+        check_out: '--:--',
+        duration: 'Weekly Off',
+        location: 'N/A',
+        mode: 'Corporate Policy',
+        reason: 'Weekly Sunday Corporate Off Day • No attendance punch required'
+      };
+    } else if (dayOfWeek === 6) {
+      return {
+        date: dateFormatted,
+        dayName,
+        status: 'Scheduled',
+        check_in: '09:00 AM',
+        check_out: '02:00 PM',
+        duration: '5h 00m Shift',
+        location: 'Lucknow HQ - 4th Floor Terminal 01',
+        mode: 'Scheduled Corporate Shift',
+        reason: 'Weekend Half-Day Shift • Sprint demo & code review presentation'
+      };
+    } else {
+      return {
+        date: dateFormatted,
+        dayName,
+        status: 'Scheduled',
+        check_in: '09:00 AM',
+        check_out: '06:00 PM',
+        duration: '9h 00m Shift',
+        location: 'Lucknow HQ - 4th Floor Terminal 01',
+        mode: 'Scheduled General Shift',
+        reason: 'Regular Corporate Workday • Biometric QR Terminal opens at 08:30 AM'
+      };
+    }
+  };
 
   const [wfoAutoSuccessMsg, setWfoAutoSuccessMsg] = useState('');
 
@@ -2680,7 +2854,32 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   {/* Calendar Pickers: From Date & To Date */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                     <div>
-                      <label className="input-label" style={{ fontSize: '0.72rem' }}>From Date (Calendar)</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <label className="input-label" style={{ fontSize: '0.72rem', margin: 0 }}>From Date</label>
+                        <button
+                          type="button"
+                          onClick={() => setDatePickerModal({
+                            isOpen: true,
+                            targetField: 'leaveFrom',
+                            year: 2026,
+                            month: 10,
+                            day: parseInt(leaveFromDate.split('-')[2]) || 15
+                          })}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#00897b',
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}
+                        >
+                          <Calendar size={11} /> <span>Calendar</span>
+                        </button>
+                      </div>
                       <input
                         type="date"
                         required
@@ -2691,7 +2890,32 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                       />
                     </div>
                     <div>
-                      <label className="input-label" style={{ fontSize: '0.72rem' }}>To Date (Calendar)</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <label className="input-label" style={{ fontSize: '0.72rem', margin: 0 }}>To Date</label>
+                        <button
+                          type="button"
+                          onClick={() => setDatePickerModal({
+                            isOpen: true,
+                            targetField: 'leaveTo',
+                            year: 2026,
+                            month: 10,
+                            day: parseInt(leaveToDate.split('-')[2]) || 16
+                          })}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#00897b',
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}
+                        >
+                          <Calendar size={11} /> <span>Calendar</span>
+                        </button>
+                      </div>
                       <input
                         type="date"
                         required
@@ -2786,7 +3010,32 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   {/* Calendar Pickers: From Date & To Date */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                     <div>
-                      <label className="input-label" style={{ fontSize: '0.72rem' }}>From Date (Calendar)</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <label className="input-label" style={{ fontSize: '0.72rem', margin: 0 }}>From Date</label>
+                        <button
+                          type="button"
+                          onClick={() => setDatePickerModal({
+                            isOpen: true,
+                            targetField: 'wfhFrom',
+                            year: 2026,
+                            month: 10,
+                            day: parseInt(wfhFromDate.split('-')[2]) || 15
+                          })}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#00897b',
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}
+                        >
+                          <Calendar size={11} /> <span>Calendar</span>
+                        </button>
+                      </div>
                       <input
                         type="date"
                         required
@@ -2797,7 +3046,32 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                       />
                     </div>
                     <div>
-                      <label className="input-label" style={{ fontSize: '0.72rem' }}>To Date (Calendar)</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <label className="input-label" style={{ fontSize: '0.72rem', margin: 0 }}>To Date</label>
+                        <button
+                          type="button"
+                          onClick={() => setDatePickerModal({
+                            isOpen: true,
+                            targetField: 'wfhTo',
+                            year: 2026,
+                            month: 10,
+                            day: parseInt(wfhToDate.split('-')[2]) || 16
+                          })}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#00897b',
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}
+                        >
+                          <Calendar size={11} /> <span>Calendar</span>
+                        </button>
+                      </div>
                       <input
                         type="date"
                         required
@@ -3086,7 +3360,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
 
           return (
             <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-              {/* Header */}
+              {/* Header with View Toggle (Calendar / List) */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button onClick={() => setMobileScreen('home')} style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', padding: '4px' }}>
@@ -3094,190 +3368,704 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   </button>
                   <div>
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Calendar size={18} color="#38bdf8" /> Attendance History
+                      <Calendar size={18} color="#00897b" /> Attendance Calendar
                     </h3>
                     <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-                      Click any date to view detailed punch & reason
+                      {historyViewMode === 'calendar' ? 'Material calendar view • Click any date to view data' : 'Monthly list view • Click card for details'}
                     </div>
                   </div>
                 </div>
 
+                {/* View Switcher Pill: Calendar vs List */}
                 <div style={{
-                  padding: '3px 8px',
-                  borderRadius: '12px',
-                  background: 'rgba(56, 189, 248, 0.12)',
-                  border: '1px solid rgba(56, 189, 248, 0.3)',
-                  color: '#38bdf8',
-                  fontSize: '0.68rem',
-                  fontWeight: 600
+                  display: 'flex',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  padding: '3px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}>
-                  DD/MM/YYYY
+                  <button
+                    onClick={() => setHistoryViewMode('calendar')}
+                    style={{
+                      background: historyViewMode === 'calendar' ? '#00897b' : 'transparent',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '4px 8px',
+                      borderRadius: '7px',
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: historyViewMode === 'calendar' ? '0 2px 6px rgba(0, 137, 123, 0.4)' : 'none'
+                    }}
+                  >
+                    <Calendar size={12} />
+                    <span>Calendar</span>
+                  </button>
+                  <button
+                    onClick={() => setHistoryViewMode('list')}
+                    style={{
+                      background: historyViewMode === 'list' ? '#00897b' : 'transparent',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '4px 8px',
+                      borderRadius: '7px',
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: historyViewMode === 'list' ? '0 2px 6px rgba(0, 137, 123, 0.4)' : 'none'
+                    }}
+                  >
+                    <FileText size={12} />
+                    <span>List</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Interactive Month Switcher (< Month Year >) */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: 'linear-gradient(135deg, #111c34 0%, #0d1527 100%)',
-                border: '1px solid rgba(56, 189, 248, 0.25)',
-                padding: '10px 16px',
-                borderRadius: '12px',
-                marginBottom: '14px',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)'
-              }}>
-                <button
-                  type="button"
-                  onClick={handlePrevMonth}
-                  disabled={historyMonthIdx >= HISTORY_MONTHS.length - 1}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    border: 'none',
-                    color: historyMonthIdx >= HISTORY_MONTHS.length - 1 ? 'rgba(255, 255, 255, 0.2)' : '#38bdf8',
-                    cursor: historyMonthIdx >= HISTORY_MONTHS.length - 1 ? 'not-allowed' : 'pointer',
-                    padding: '6px 10px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                  title="Previous Month"
-                >
-                  <ChevronLeft size={16} />
-                </button>
+              {/* ==============================================================
+                  MODE 1: 📅 MATERIAL CALENDAR VIEW (EXACTLY LIKE IMAGE 1)
+                 ============================================================== */}
+              {historyViewMode === 'calendar' && (() => {
+                const activeYear = currentMonth.year || 2026;
+                const activeMonthNum = currentMonth.month || 10;
+                const totalDays = currentMonth.daysInMonth || 31;
+                const startDayOfWeek = currentMonth.startDayOfWeek !== undefined ? currentMonth.startDayOfWeek : 4;
+                const isCurrentMonth = historyMonthIdx === 0;
 
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.01em' }}>
-                    {currentMonth.label}
-                  </div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-                    {currentMonth.records.length} Recorded Days
-                  </div>
-                </div>
+                const selectedDateObj = new Date(activeYear, activeMonthNum - 1, selectedCalDay);
+                const dayNameShort = selectedDateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                const monthShort = selectedDateObj.toLocaleDateString('en-US', { month: 'short' });
+                const activeAttendance = getSelectedDayAttendance(currentMonth, selectedCalDay);
 
-                <button
-                  type="button"
-                  onClick={handleNextMonth}
-                  disabled={historyMonthIdx <= 0}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    border: 'none',
-                    color: historyMonthIdx <= 0 ? 'rgba(255, 255, 255, 0.2)' : '#38bdf8',
-                    cursor: historyMonthIdx <= 0 ? 'not-allowed' : 'pointer',
-                    padding: '6px 10px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                  title="Next Month"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
+                const isPresent = activeAttendance?.status === 'Present';
+                const isLate = activeAttendance?.status === 'Late';
+                const isAbsent = activeAttendance?.status === 'Absent';
+                const isWfh = activeAttendance?.status === 'WFH';
+                const isLeave = activeAttendance?.status === 'Leave';
 
-              {/* Clickable Attendance Records List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '20px' }}>
-                {currentMonth.records.map((item, idx) => {
-                  const isPresent = item.status === 'Present';
-                  const isLate = item.status === 'Late';
-                  const isAbsent = item.status === 'Absent';
-                  const isWfh = item.status === 'WFH';
-                  const isLeave = item.status === 'Leave';
+                const badgeColor = isPresent ? '#10b981' : isLate ? '#f59e0b' : isAbsent ? '#ef4444' : isWfh ? '#0284c7' : isLeave ? '#fbbf24' : '#94a3b8';
+                const badgeBg = isPresent ? 'rgba(16, 185, 129, 0.15)' : isLate ? 'rgba(245, 158, 11, 0.15)' : isAbsent ? 'rgba(239, 68, 68, 0.15)' : isWfh ? 'rgba(2, 132, 199, 0.15)' : isLeave ? 'rgba(251, 191, 36, 0.15)' : 'rgba(148, 163, 184, 0.15)';
+                const badgeBorder = isPresent ? 'rgba(16, 185, 129, 0.35)' : isLate ? 'rgba(245, 158, 11, 0.35)' : isAbsent ? 'rgba(239, 68, 68, 0.35)' : isWfh ? 'rgba(2, 132, 199, 0.35)' : isLeave ? 'rgba(251, 191, 36, 0.35)' : 'rgba(148, 163, 184, 0.35)';
 
-                  const badgeColor = isPresent ? '#34d399' : isLate ? '#fbbf24' : isAbsent ? '#f87171' : isWfh ? '#38bdf8' : '#c084fc';
-                  const badgeBg = isPresent ? 'rgba(16, 185, 129, 0.15)' : isLate ? 'rgba(245, 158, 11, 0.15)' : isAbsent ? 'rgba(239, 68, 68, 0.15)' : isWfh ? 'rgba(56, 189, 248, 0.15)' : 'rgba(192, 132, 252, 0.15)';
-                  const badgeBorder = isPresent ? 'rgba(16, 185, 129, 0.3)' : isLate ? 'rgba(245, 158, 11, 0.3)' : isAbsent ? 'rgba(239, 68, 68, 0.3)' : isWfh ? 'rgba(56, 189, 248, 0.3)' : 'rgba(192, 132, 252, 0.3)';
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingBottom: '20px' }}>
+                    {/* Material Calendar Card - Exact Replica of Image 1 */}
+                    <div style={{
+                      background: '#ffffff',
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      boxShadow: '0 12px 36px rgba(0, 0, 0, 0.5)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#1f2937'
+                    }}>
+                      {/* Teal Header Banner */}
+                      <div style={{
+                        background: '#00897b',
+                        padding: '16px 20px',
+                        color: '#ffffff'
+                      }}>
+                        <div style={{
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                          opacity: 0.92,
+                          letterSpacing: '0.04em'
+                        }}>
+                          {activeYear}
+                        </div>
+                        <div style={{
+                          fontSize: '1.75rem',
+                          fontWeight: 700,
+                          marginTop: '3px',
+                          letterSpacing: '-0.01em',
+                          lineHeight: 1.2
+                        }}>
+                          {dayNameShort}, {selectedCalDay} {monthShort}
+                        </div>
+                      </div>
 
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => setSelectedHistoryItem(item)}
-                      style={{
-                        background: '#111c34',
-                        borderRadius: '12px',
-                        padding: '12px 14px',
-                        border: '1px solid rgba(255, 255, 255, 0.07)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
-                      }}
-                    >
-                      {/* Top Header Row: DD/MM/YYYY + Day + Status Badge + Chevron */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '8px',
-                            background: 'rgba(56, 189, 248, 0.12)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            <Calendar size={14} color="#38bdf8" />
-                          </div>
-                          <div>
-                            <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em' }}>
-                              {item.date}
-                            </span>
-                            <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500, marginLeft: '6px' }}>
-                              ({item.dayName.slice(0, 3)})
+                      {/* Calendar Body */}
+                      <div style={{ padding: '14px 16px 12px 16px' }}>
+                        {/* Month Switcher Row */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: '14px'
+                        }}>
+                          <button
+                            type="button"
+                            onClick={handlePrevMonth}
+                            disabled={historyMonthIdx >= HISTORY_MONTHS.length - 1}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: historyMonthIdx >= HISTORY_MONTHS.length - 1 ? 'not-allowed' : 'pointer',
+                              padding: '6px',
+                              color: historyMonthIdx >= HISTORY_MONTHS.length - 1 ? '#cbd5e1' : '#374151',
+                              display: 'flex',
+                              alignItems: 'center',
+                              borderRadius: '50%'
+                            }}
+                            title="Previous Month"
+                          >
+                            <ChevronLeft size={20} />
+                          </button>
+
+                          <div style={{ textAlign: 'center' }}>
+                            <span style={{ fontSize: '0.94rem', fontWeight: 700, color: '#111827' }}>
+                              {currentMonth.label}
                             </span>
                           </div>
+
+                          <button
+                            type="button"
+                            onClick={handleNextMonth}
+                            disabled={historyMonthIdx <= 0}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: historyMonthIdx <= 0 ? 'not-allowed' : 'pointer',
+                              padding: '6px',
+                              color: historyMonthIdx <= 0 ? '#cbd5e1' : '#374151',
+                              display: 'flex',
+                              alignItems: 'center',
+                              borderRadius: '50%'
+                            }}
+                            title="Next Month"
+                          >
+                            <ChevronRight size={20} />
+                          </button>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {/* Weekday Row (S M T W T F S) */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(7, 1fr)',
+                          textAlign: 'center',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          color: '#6b7280',
+                          marginBottom: '8px'
+                        }}>
+                          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((dayChar, i) => (
+                            <div key={i}>{dayChar}</div>
+                          ))}
+                        </div>
+
+                        {/* 7-Column Days Grid */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(7, 1fr)',
+                          rowGap: '6px',
+                          textAlign: 'center'
+                        }}>
+                          {/* Blank cells */}
+                          {Array.from({ length: startDayOfWeek }).map((_, i) => (
+                            <div key={`blank-${i}`} style={{ height: '36px' }} />
+                          ))}
+
+                          {/* Day numbers 1 to totalDays */}
+                          {Array.from({ length: totalDays }).map((_, i) => {
+                            const dayNum = i + 1;
+                            const isSelected = selectedCalDay === dayNum;
+                            const isToday = isCurrentMonth && dayNum === 14;
+                            const dayRecord = getSelectedDayAttendance(currentMonth, dayNum);
+
+                            const dStatus = dayRecord?.status;
+                            const dotColor = 
+                              dStatus === 'Present' ? '#10b981' :
+                              dStatus === 'WFH' ? '#0284c7' :
+                              dStatus === 'Leave' ? '#fbbf24' :
+                              dStatus === 'Late' ? '#f59e0b' :
+                              dStatus === 'Absent' ? '#ef4444' :
+                              dStatus === 'Holiday' ? '#94a3b8' :
+                              '#cbd5e1';
+
+                            return (
+                              <div
+                                key={dayNum}
+                                onClick={() => setSelectedCalDay(dayNum)}
+                                style={{
+                                  height: '38px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  position: 'relative',
+                                  userSelect: 'none'
+                                }}
+                              >
+                                <div style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.86rem',
+                                  fontWeight: isSelected ? 700 : (isToday ? 700 : 500),
+                                  background: isSelected ? '#00897b' : 'transparent',
+                                  color: isSelected ? '#ffffff' : (isToday ? '#00897b' : '#1f2937'),
+                                  border: (!isSelected && isToday) ? '1.5px solid #00897b' : 'none',
+                                  transition: 'all 0.15s ease'
+                                }}>
+                                  {dayNum}
+                                </div>
+
+                                {/* Small colored attendance dot below date */}
+                                {dayRecord && !isSelected && (
+                                  <div style={{
+                                    width: '4px',
+                                    height: '4px',
+                                    borderRadius: '50%',
+                                    background: dotColor,
+                                    marginTop: '1px'
+                                  }} />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Material Dialog Action Buttons */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingTop: '12px',
+                          marginTop: '8px',
+                          borderTop: '1px solid #f1f5f9'
+                        }}>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedCalDay(14)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#00897b',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                padding: '4px 6px',
+                                borderRadius: '4px'
+                              }}
+                            >
+                              TODAY
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedCalDay(1)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#64748b',
+                                fontSize: '0.78rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                padding: '4px 6px'
+                              }}
+                            >
+                              CLEAR
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setHistoryViewMode('list')}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#00897b',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              padding: '4px 8px',
+                              borderRadius: '4px'
+                            }}
+                          >
+                            VIEW FULL LIST ›
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Attendance Status Legend */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-around',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      padding: '8px 12px',
+                      borderRadius: '10px',
+                      fontSize: '0.68rem',
+                      color: '#94a3b8'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981' }} />
+                        <span>Present</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#0284c7' }} />
+                        <span>WFH</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#fbbf24' }} />
+                        <span>Leave</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ef4444' }} />
+                        <span>Absent</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />
+                        <span>Off</span>
+                      </div>
+                    </div>
+
+                    {/* ==========================================================
+                        DATA ACCORDING TO SELECTED DATE ("uski ke acording data show ho")
+                       ========================================================== */}
+                    {activeAttendance && (
+                      <div style={{
+                        background: 'linear-gradient(135deg, #111c34 0%, #0d1527 100%)',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        border: '1px solid rgba(0, 137, 123, 0.4)',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px'
+                      }}>
+                        {/* Selected Date Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '10px',
+                              background: 'rgba(0, 137, 123, 0.2)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}>
+                              <Calendar size={16} color="#00897b" />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#ffffff' }}>
+                                {activeAttendance.date}
+                              </div>
+                              <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>
+                                {activeAttendance.dayName}
+                              </div>
+                            </div>
+                          </div>
+
                           <span style={{
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            padding: '3px 8px',
-                            borderRadius: '6px',
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            padding: '4px 10px',
+                            borderRadius: '8px',
                             background: badgeBg,
                             color: badgeColor,
                             border: `1px solid ${badgeBorder}`
                           }}>
-                            {item.status}
+                            {activeAttendance.status}
                           </span>
-                          <ChevronRight size={15} color="var(--text-dim)" />
                         </div>
-                      </div>
 
-                      {/* Prominent Reason & Remarks Box */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '8px',
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        padding: '8px 10px',
+                        {/* Punch Metrics (Check-in, Check-out, Duration, Location) */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '8px',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          padding: '10px',
+                          borderRadius: '10px',
+                          border: '1px solid rgba(255, 255, 255, 0.06)'
+                        }}>
+                          <div>
+                            <div style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Check-in Punch</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                              <Clock size={12} color="#10b981" />
+                              <span>{activeAttendance.check_in}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Check-out Punch</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                              <Clock size={12} color="#f59e0b" />
+                              <span>{activeAttendance.check_out}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Total Duration</div>
+                            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#38bdf8', marginTop: '2px' }}>
+                              {activeAttendance.duration}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Punch Mode / Type</div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#cbd5e1', marginTop: '2px' }}>
+                              {activeAttendance.mode}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Work Location */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: '#94a3b8' }}>
+                          <MapPin size={13} color="#38bdf8" />
+                          <span>{activeAttendance.location}</span>
+                        </div>
+
+                        {/* Prominent Reason & Remarks Box */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '8px',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          borderLeft: `3.5px solid ${badgeColor}`
+                        }}>
+                          <FileText size={15} color={badgeColor} style={{ marginTop: '2px', flexShrink: 0 }} />
+                          <div style={{ fontSize: '0.76rem', color: '#cbd5e1', lineHeight: 1.45 }}>
+                            <strong style={{ color: '#ffffff' }}>Reason / Remarks: </strong>
+                            {activeAttendance.reason}
+                          </div>
+                        </div>
+
+                        {/* HR Approval Details (if applicable) */}
+                        {activeAttendance.hrApproval && (
+                          <div style={{
+                            padding: '10px 12px',
+                            borderRadius: '10px',
+                            background: activeAttendance.hrApproval.status === 'Approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                            border: `1px solid ${activeAttendance.hrApproval.status === 'Approved' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                            fontSize: '0.72rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, color: activeAttendance.hrApproval.status === 'Approved' ? '#34d399' : '#f87171' }}>
+                              <span>
+                                {activeAttendance.hrApproval.status === 'Approved' ? '🟢' : '🔴'} {activeAttendance.hrApproval.status} by HR: {activeAttendance.hrApproval.reviewed_by || 'Sneha Verma (HR Lead)'}
+                              </span>
+                              <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>
+                                {activeAttendance.hrApproval.reviewed_at || 'Recent'}
+                              </span>
+                            </div>
+                            <div style={{ color: activeAttendance.hrApproval.status === 'Approved' ? '#a7f3d0' : '#fca5a5' }}>
+                              HR Feedback: "{activeAttendance.hrApproval.hr_comment || 'Approved per organizational policy.'}"
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Button to View Full Verification Modal */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedHistoryItem(activeAttendance)}
+                          className="btn btn-secondary"
+                          style={{
+                            padding: '9px 12px',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            borderRadius: '10px',
+                            border: '1px solid rgba(0, 137, 123, 0.5)',
+                            color: '#2dd4bf',
+                            background: 'rgba(0, 137, 123, 0.12)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <FileCheck size={14} />
+                          <span>View Official Digital Punch Receipt</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* ==============================================================
+                  MODE 2: 📋 MONTHLY LIST VIEW (Scrollable rows)
+                 ============================================================== */}
+              {historyViewMode === 'list' && (
+                <div>
+                  {/* Interactive Month Switcher (< Month Year >) */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: 'linear-gradient(135deg, #111c34 0%, #0d1527 100%)',
+                    border: '1px solid rgba(56, 189, 248, 0.25)',
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    marginBottom: '14px',
+                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={handlePrevMonth}
+                      disabled={historyMonthIdx >= HISTORY_MONTHS.length - 1}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        border: 'none',
+                        color: historyMonthIdx >= HISTORY_MONTHS.length - 1 ? 'rgba(255, 255, 255, 0.2)' : '#38bdf8',
+                        cursor: historyMonthIdx >= HISTORY_MONTHS.length - 1 ? 'not-allowed' : 'pointer',
+                        padding: '6px 10px',
                         borderRadius: '8px',
-                        borderLeft: `3px solid ${badgeColor}`
-                      }}>
-                        <FileText size={13} color={badgeColor} style={{ marginTop: '2px', flexShrink: 0 }} />
-                        <div style={{ fontSize: '0.73rem', color: '#cbd5e1', lineHeight: 1.4 }}>
-                          <strong style={{ color: '#ffffff' }}>Reason: </strong>{item.reason}
-                        </div>
-                      </div>
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                      title="Previous Month"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
 
-                      {/* Bottom Check-in & Punch Method Details */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.68rem', color: 'var(--text-dim)', paddingTop: '2px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <Clock size={11} color="#94a3b8" />
-                          <span>Check-in: <strong style={{ color: '#e2e8f0' }}>{item.check_in}</strong></span>
-                          {item.check_out && item.check_out !== '--:--' && (
-                            <span> • Out: <strong style={{ color: '#e2e8f0' }}>{item.check_out}</strong></span>
-                          )}
-                        </div>
-                        <span style={{ color: '#38bdf8', fontSize: '0.68rem', fontWeight: 600 }}>
-                          Tap details ›
-                        </span>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.01em' }}>
+                        {currentMonth.label}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                        {currentMonth.records.length} Recorded Days
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    <button
+                      type="button"
+                      onClick={handleNextMonth}
+                      disabled={historyMonthIdx <= 0}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        border: 'none',
+                        color: historyMonthIdx <= 0 ? 'rgba(255, 255, 255, 0.2)' : '#38bdf8',
+                        cursor: historyMonthIdx <= 0 ? 'not-allowed' : 'pointer',
+                        padding: '6px 10px',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                      title="Next Month"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+
+                  {/* Clickable Attendance Records List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '20px' }}>
+                    {currentMonth.records.map((item, idx) => {
+                      const isPresent = item.status === 'Present';
+                      const isLate = item.status === 'Late';
+                      const isAbsent = item.status === 'Absent';
+                      const isWfh = item.status === 'WFH';
+                      const isLeave = item.status === 'Leave';
+
+                      const badgeColor = isPresent ? '#34d399' : isLate ? '#fbbf24' : isAbsent ? '#f87171' : isWfh ? '#38bdf8' : '#c084fc';
+                      const badgeBg = isPresent ? 'rgba(16, 185, 129, 0.15)' : isLate ? 'rgba(245, 158, 11, 0.15)' : isAbsent ? 'rgba(239, 68, 68, 0.15)' : isWfh ? 'rgba(56, 189, 248, 0.15)' : 'rgba(192, 132, 252, 0.15)';
+                      const badgeBorder = isPresent ? 'rgba(16, 185, 129, 0.3)' : isLate ? 'rgba(245, 158, 11, 0.3)' : isAbsent ? 'rgba(239, 68, 68, 0.3)' : isWfh ? 'rgba(56, 189, 248, 0.3)' : 'rgba(192, 132, 252, 0.3)';
+
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => setSelectedHistoryItem(item)}
+                          style={{
+                            background: '#111c34',
+                            borderRadius: '12px',
+                            padding: '12px 14px',
+                            border: '1px solid rgba(255, 255, 255, 0.07)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                          }}
+                        >
+                          {/* Top Header Row: DD/MM/YYYY + Day + Status Badge + Chevron */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                background: 'rgba(56, 189, 248, 0.12)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}>
+                                <Calendar size={14} color="#38bdf8" />
+                              </div>
+                              <div>
+                                <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em' }}>
+                                  {item.date}
+                                </span>
+                                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500, marginLeft: '6px' }}>
+                                  ({item.dayName.slice(0, 3)})
+                                </span>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                background: badgeBg,
+                                color: badgeColor,
+                                border: `1px solid ${badgeBorder}`
+                              }}>
+                                {item.status}
+                              </span>
+                              <ChevronRight size={15} color="var(--text-dim)" />
+                            </div>
+                          </div>
+
+                          {/* Prominent Reason & Remarks Box */}
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '8px',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            borderLeft: `3px solid ${badgeColor}`
+                          }}>
+                            <FileText size={13} color={badgeColor} style={{ marginTop: '2px', flexShrink: 0 }} />
+                            <div style={{ fontSize: '0.73rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                              <strong style={{ color: '#ffffff' }}>Reason: </strong>{item.reason}
+                            </div>
+                          </div>
+
+                          {/* Bottom Check-in & Punch Method Details */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.68rem', color: 'var(--text-dim)', paddingTop: '2px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Clock size={11} color="#94a3b8" />
+                              <span>Check-in: <strong style={{ color: '#e2e8f0' }}>{item.check_in}</strong></span>
+                              {item.check_out && item.check_out !== '--:--' && (
+                                <span> • Out: <strong style={{ color: '#e2e8f0' }}>{item.check_out}</strong></span>
+                              )}
+                            </div>
+                            <span style={{ color: '#38bdf8', fontSize: '0.68rem', fontWeight: 600 }}>
+                              Tap details ›
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Attendance Record Detail Popup Modal */}
               {selectedHistoryItem && (
@@ -3613,6 +4401,35 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                     <span>Absent: {currentStats.absent}d</span>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const idx = HISTORY_MONTHS.findIndex(m => m.key === selectedMonthKey);
+                    if (idx !== -1) setHistoryMonthIdx(idx);
+                    setHistoryViewMode('calendar');
+                    setMobileScreen('history');
+                  }}
+                  style={{
+                    marginTop: '12px',
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    background: 'rgba(0, 137, 123, 0.15)',
+                    border: '1px solid rgba(0, 137, 123, 0.4)',
+                    color: '#2dd4bf',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Calendar size={13} color="#2dd4bf" />
+                  <span>Open in Material Calendar ({currentStats.short}) →</span>
+                </button>
               </div>
 
               {/* 4 Key Metric Cards (Present, WFH, Absent, Leaves) */}
@@ -4884,6 +5701,274 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
             </div>
           </div>
         )}
+
+        {/* ===============================================================
+            MATERIAL DATE PICKER MODAL (EXACT REPLICA OF IMAGE 1)
+           =============================================================== */}
+        {datePickerModal.isOpen && (() => {
+          const mYear = datePickerModal.year || 2026;
+          const mMonth = datePickerModal.month || 10;
+          const mDay = datePickerModal.day || 16;
+
+          const daysInM = new Date(mYear, mMonth, 0).getDate();
+          const startDayOfWeek = new Date(mYear, mMonth - 1, 1).getDay(); // 0 = Sun
+          const selectedDateObj = new Date(mYear, mMonth - 1, mDay);
+          const dayNameShort = selectedDateObj.toLocaleDateString('en-US', { weekday: 'short' });
+          const monthShort = selectedDateObj.toLocaleDateString('en-US', { month: 'short' });
+          const monthLong = selectedDateObj.toLocaleDateString('en-US', { month: 'long' });
+
+          const handleSetDate = () => {
+            const formattedIso = `${mYear}-${String(mMonth).padStart(2, '0')}-${String(mDay).padStart(2, '0')}`;
+            if (datePickerModal.targetField === 'leaveFrom') setLeaveFromDate(formattedIso);
+            else if (datePickerModal.targetField === 'leaveTo') setLeaveToDate(formattedIso);
+            else if (datePickerModal.targetField === 'wfhFrom') setWfhFromDate(formattedIso);
+            else if (datePickerModal.targetField === 'wfhTo') setWfhToDate(formattedIso);
+            setDatePickerModal(prev => ({ ...prev, isOpen: false }));
+          };
+
+          const handleClearDate = () => {
+            if (datePickerModal.targetField === 'leaveFrom') setLeaveFromDate('');
+            else if (datePickerModal.targetField === 'leaveTo') setLeaveToDate('');
+            else if (datePickerModal.targetField === 'wfhFrom') setWfhFromDate('');
+            else if (datePickerModal.targetField === 'wfhTo') setWfhToDate('');
+            setDatePickerModal(prev => ({ ...prev, isOpen: false }));
+          };
+
+          const handlePrevM = () => {
+            if (mMonth > 1) {
+              setDatePickerModal(prev => ({ ...prev, month: mMonth - 1, day: 1 }));
+            }
+          };
+
+          const handleNextM = () => {
+            if (mMonth < 12) {
+              setDatePickerModal(prev => ({ ...prev, month: mMonth + 1, day: 1 }));
+            }
+          };
+
+          return (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(5px)',
+              zIndex: 10000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px'
+            }}>
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                width: '100%',
+                maxWidth: '330px',
+                overflow: 'hidden',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
+                color: '#1f2937'
+              }}>
+                {/* Image 1 Exact Header: Teal Background, Year on top, Day & Date below */}
+                <div style={{
+                  background: '#00897b',
+                  padding: '16px 20px',
+                  color: '#ffffff'
+                }}>
+                  <div style={{
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    opacity: 0.9,
+                    letterSpacing: '0.04em'
+                  }}>
+                    {mYear}
+                  </div>
+                  <div style={{
+                    fontSize: '1.75rem',
+                    fontWeight: 700,
+                    marginTop: '2px',
+                    letterSpacing: '-0.01em',
+                    lineHeight: 1.2
+                  }}>
+                    {dayNameShort}, {mDay} {monthShort}
+                  </div>
+                </div>
+
+                {/* Calendar Body */}
+                <div style={{ padding: '14px 16px 12px 16px' }}>
+                  {/* Month Navigation */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '14px'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={handlePrevM}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        color: '#374151',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+
+                    <span style={{ fontSize: '0.94rem', fontWeight: 600, color: '#111827' }}>
+                      {monthLong} {mYear}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={handleNextM}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        color: '#374151',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+
+                  {/* Weekday Row (S M T W T F S) */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(7, 1fr)',
+                    textAlign: 'center',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: '#6b7280',
+                    marginBottom: '8px'
+                  }}>
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((ch, i) => (
+                      <div key={i}>{ch}</div>
+                    ))}
+                  </div>
+
+                  {/* 7-Column Days Grid */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(7, 1fr)',
+                    rowGap: '6px',
+                    textAlign: 'center'
+                  }}>
+                    {Array.from({ length: startDayOfWeek }).map((_, i) => (
+                      <div key={`modal-blank-${i}`} style={{ height: '34px' }} />
+                    ))}
+
+                    {Array.from({ length: daysInM }).map((_, i) => {
+                      const dayNum = i + 1;
+                      const isSelected = mDay === dayNum;
+                      const isToday = mMonth === 10 && dayNum === 14;
+
+                      return (
+                        <div
+                          key={dayNum}
+                          onClick={() => setDatePickerModal(prev => ({ ...prev, day: dayNum }))}
+                          style={{
+                            height: '36px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.86rem',
+                            fontWeight: isSelected ? 700 : (isToday ? 700 : 500),
+                            background: isSelected ? '#00897b' : 'transparent',
+                            color: isSelected ? '#ffffff' : (isToday ? '#00897b' : '#1f2937'),
+                            border: (!isSelected && isToday) ? '1.5px solid #00897b' : 'none',
+                            transition: 'all 0.15s ease'
+                          }}>
+                            {dayNum}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Image 1 Exact Bottom Action Buttons: CLEAR, CANCEL, SET */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    gap: '12px',
+                    paddingTop: '16px',
+                    marginTop: '8px',
+                    borderTop: '1px solid #f1f5f9'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={handleClearDate}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#00897b',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: '6px 10px',
+                        letterSpacing: '0.04em'
+                      }}
+                    >
+                      CLEAR
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDatePickerModal(prev => ({ ...prev, isOpen: false }))}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#00897b',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: '6px 10px',
+                        letterSpacing: '0.04em'
+                      }}
+                    >
+                      CANCEL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSetDate}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#00897b',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: '6px 10px',
+                        letterSpacing: '0.04em'
+                      }}
+                    >
+                      SET
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* BOTTOM NAVIGATION (Screens 13, 15, 16, 17) */}
         {!['login', 'otp', 'scan'].includes(mobileScreen) && (
