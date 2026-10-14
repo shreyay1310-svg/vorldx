@@ -213,13 +213,16 @@ export const api = {
     return request(`/wfh/eligibility/${employeeId}`);
   },
 
-  async submitWfhRequest({ employeeId, requestDate, reason }) {
+  async submitWfhRequest({ employeeId, requestDate, fromDate, toDate, totalDays, reason }) {
     return request('/wfh/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         employee_id: employeeId,
-        request_date: requestDate,
+        request_date: requestDate || (fromDate && toDate ? `${fromDate} to ${toDate}` : fromDate),
+        from_date: fromDate,
+        to_date: toDate,
+        total_days: totalDays || 1,
         reason
       })
     });
@@ -242,6 +245,76 @@ export const api = {
         status,
         admin_comment: adminComment,
         reviewed_by: reviewedBy
+      })
+    });
+  },
+
+  // Leave Applications (Screen 15 & HR Portal)
+  async submitLeaveRequest({ employeeId, leaveType, fromDate, toDate, totalDays, reason }) {
+    return request('/leaves/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        employee_id: employeeId,
+        leave_type: leaveType || 'Casual Leave',
+        from_date: fromDate,
+        to_date: toDate,
+        total_days: totalDays || 1,
+        reason
+      })
+    });
+  },
+
+  async getEmployeeLeaveRequests(employeeId) {
+    return request(`/leaves/employee/${employeeId}`);
+  },
+
+  async getAllLeaveRequests(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return request(`/leaves/all?${query}`);
+  },
+
+  async reviewLeaveRequest(id, { status, hrComment, reviewedBy }) {
+    return request(`/leaves/review/${id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status,
+        hr_comment: hrComment,
+        reviewed_by: reviewedBy
+      })
+    });
+  },
+
+  // HR Announcements
+  async getAnnouncements() {
+    return request('/announcements');
+  },
+
+  async createAnnouncement(data) {
+    return request('/announcements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  },
+
+  // Client Projects & Requirements through Admin
+  async getAssignedProject(employeeId = 'VX001') {
+    return request(`/projects/assigned/${employeeId}`);
+  },
+
+  async getAllProjects() {
+    return request('/projects/all');
+  },
+
+  async toggleProjectRequirement(projectId, { requirementId, status }) {
+    return request(`/projects/${projectId}/requirement-toggle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requirement_id: requirementId,
+        status
       })
     });
   },

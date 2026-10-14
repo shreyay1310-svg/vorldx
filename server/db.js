@@ -69,6 +69,9 @@ function initializeDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       employee_id TEXT NOT NULL,
       request_date TEXT NOT NULL,
+      from_date TEXT,
+      to_date TEXT,
+      total_days INTEGER DEFAULT 1,
       reason TEXT NOT NULL,
       status TEXT DEFAULT 'Pending',
       requester_role TEXT DEFAULT 'Employee',
@@ -78,6 +81,70 @@ function initializeDatabase() {
       admin_comment TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+    );
+  `);
+
+  // Ensure columns exist if table was already created
+  try {
+    const cols = db.pragma('table_info(wfh_requests)').map(c => c.name);
+    if (!cols.includes('from_date')) db.exec('ALTER TABLE wfh_requests ADD COLUMN from_date TEXT;');
+    if (!cols.includes('to_date')) db.exec('ALTER TABLE wfh_requests ADD COLUMN to_date TEXT;');
+    if (!cols.includes('total_days')) db.exec('ALTER TABLE wfh_requests ADD COLUMN total_days INTEGER DEFAULT 1;');
+  } catch (e) {}
+
+  // 4b. Leave Requests table with HR Approval workflow
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS leave_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id TEXT NOT NULL,
+      leave_type TEXT DEFAULT 'Casual Leave',
+      from_date TEXT NOT NULL,
+      to_date TEXT NOT NULL,
+      total_days INTEGER DEFAULT 1,
+      reason TEXT NOT NULL,
+      status TEXT DEFAULT 'Pending',
+      requester_role TEXT DEFAULT 'Employee',
+      approver_role TEXT DEFAULT 'HR',
+      reviewed_by TEXT,
+      reviewed_at TEXT,
+      hr_comment TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+    );
+  `);
+
+  // 4c. Announcements by HR
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS announcements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      priority TEXT DEFAULT 'General',
+      tag TEXT DEFAULT 'HR Notice',
+      author_name TEXT DEFAULT 'Sneha Verma (HR Lead)',
+      author_role TEXT DEFAULT 'HR Executive',
+      published_date TEXT DEFAULT CURRENT_DATE,
+      is_active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // 4d. Client Projects & Requirements assigned via Admin
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS client_projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_name TEXT NOT NULL,
+      client_name TEXT NOT NULL,
+      assigned_to TEXT NOT NULL DEFAULT 'All',
+      assigned_by TEXT DEFAULT 'Admin (Vikram Singhania)',
+      priority TEXT DEFAULT 'High Priority',
+      deadline TEXT NOT NULL,
+      status TEXT DEFAULT 'In Progress',
+      progress_percent INTEGER DEFAULT 85,
+      description TEXT,
+      requirements_json TEXT,
+      admin_notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
 

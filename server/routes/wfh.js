@@ -47,10 +47,13 @@ router.get('/eligibility/:employee_id', (req, res) => {
 // POST /api/wfh/request - Screen 15 WFH submission
 router.post('/request', (req, res) => {
   try {
-    const { employee_id, request_date, reason } = req.body;
+    const { employee_id, request_date, from_date, to_date, total_days, reason } = req.body;
 
-    if (!employee_id || !request_date || !reason) {
-      return res.status(400).json({ error: 'Employee ID, request date, and reason are required' });
+    const startDate = from_date || request_date;
+    const endDate = to_date || from_date || request_date;
+
+    if (!employee_id || (!request_date && !from_date) || !reason) {
+      return res.status(400).json({ error: 'Employee ID, date range, and reason are required' });
     }
 
     const empId = employee_id.trim().toUpperCase();
@@ -65,18 +68,21 @@ router.post('/request', (req, res) => {
     const requesterRole = employee.role || 'Employee';
     const approverRole = requesterRole === 'HR' ? 'Admin' : 'HR';
 
+    const reqDateDisplay = startDate === endDate ? startDate : `${startDate} to ${endDate}`;
+    const daysCount = parseInt(total_days, 10) || 1;
+
     const result = db.prepare(`
       INSERT INTO wfh_requests (
-        employee_id, request_date, reason, status, requester_role, approver_role
+        employee_id, request_date, from_date, to_date, total_days, reason, status, requester_role, approver_role
       ) VALUES (
-        ?, ?, ?, 'Pending', ?, ?
+        ?, ?, ?, ?, ?, ?, 'Pending', ?, ?
       )
-    `).run(empId, request_date, reason.trim(), requesterRole, approverRole);
+    `).run(empId, reqDateDisplay, startDate, endDate, daysCount, reason.trim(), requesterRole, approverRole);
 
     db.prepare(`
       INSERT INTO audit_logs (actor, action, details)
       VALUES (?, 'WFH_REQUEST_CREATED', ?)
-    `).run(employee.name, `Submitted WFH request for ${request_date} (Approver Queue: ${approverRole})`);
+    `).run(employee.name, `Submitted WFH request for ${reqDateDisplay} (${daysCount} day${daysCount > 1 ? 's' : ''}) (Approver: ${approverRole})`);
 
     const created = db.prepare('SELECT * FROM wfh_requests WHERE id = ?').get(result.lastInsertRowid);
     res.json({

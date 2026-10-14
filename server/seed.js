@@ -303,19 +303,83 @@ function seedData() {
     });
   }
 
-  // 5. Seed WFH Requests matching Screen 6 (with RBAC requester & approver queues)
+  // 5. Seed WFH Requests matching Screen 6 (with RBAC requester & approver queues and Date Ranges)
   const insertWfh = db.prepare(`
     INSERT INTO wfh_requests (
-      employee_id, request_date, reason, status, requester_role, approver_role, reviewed_by, reviewed_at, admin_comment
+      employee_id, request_date, from_date, to_date, total_days, reason, status, requester_role, approver_role, reviewed_by, reviewed_at, admin_comment
     ) VALUES (
-      @employee_id, @request_date, @reason, @status, @requester_role, @approver_role, @reviewed_by, @reviewed_at, @admin_comment
+      @employee_id, @request_date, @from_date, @to_date, @total_days, @reason, @status, @requester_role, @approver_role, @reviewed_by, @reviewed_at, @admin_comment
     )
   `);
+
+  // Rohit Sharma (VX001) - Sample WFH requests with Approved / Rejected / Pending
+  insertWfh.run({
+    employee_id: 'VX001',
+    request_date: '2026-10-15 to 2026-10-16',
+    from_date: '2026-10-15',
+    to_date: '2026-10-16',
+    total_days: 2,
+    reason: 'High-focus backend API development & offline sync verification',
+    status: 'Approved',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: 'Sneha Verma (HR Lead)',
+    reviewed_at: '14 Oct 2026, 04:30 PM',
+    admin_comment: 'Approved for 2 days. Ensure daily sprint commits are pushed to GitHub.'
+  });
+
+  insertWfh.run({
+    employee_id: 'VX001',
+    request_date: '2026-10-09 to 2026-10-09',
+    from_date: '2026-10-09',
+    to_date: '2026-10-09',
+    total_days: 1,
+    reason: 'Personal work & residential fiber maintenance',
+    status: 'Approved',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: 'Sneha Verma (HR Lead)',
+    reviewed_at: '08 Oct 2026, 05:00 PM',
+    admin_comment: 'Approved. Fiber technician visit confirmed.'
+  });
+
+  insertWfh.run({
+    employee_id: 'VX001',
+    request_date: '2026-10-02 to 2026-10-02',
+    from_date: '2026-10-02',
+    to_date: '2026-10-02',
+    total_days: 1,
+    reason: 'Family event out of town',
+    status: 'Rejected',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: 'Sneha Verma (HR Lead)',
+    reviewed_at: '01 Oct 2026, 02:15 PM',
+    admin_comment: 'Rejected. All-hands sprint planning was mandatory on-site in office.'
+  });
+
+  insertWfh.run({
+    employee_id: 'VX001',
+    request_date: '2026-10-23 to 2026-10-24',
+    from_date: '2026-10-23',
+    to_date: '2026-10-24',
+    total_days: 2,
+    reason: 'Deep architectural refactoring for client release module',
+    status: 'Pending',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: null,
+    reviewed_at: null,
+    admin_comment: null
+  });
 
   // HR Requester -> Admin Approver
   insertWfh.run({
     employee_id: 'VX002', // Sneha Verma (HR)
-    request_date: '15 Oct 2026',
+    request_date: '2026-10-15 to 2026-10-15',
+    from_date: '2026-10-15',
+    to_date: '2026-10-15',
+    total_days: 1,
     reason: 'Doctor appointment',
     status: 'Pending',
     requester_role: 'HR',
@@ -328,7 +392,10 @@ function seedData() {
   // Employee Requester -> HR Approver
   insertWfh.run({
     employee_id: 'VX003', // Amit Kumar (Employee)
-    request_date: '14 Oct 2026',
+    request_date: '2026-10-14 to 2026-10-14',
+    from_date: '2026-10-14',
+    to_date: '2026-10-14',
+    total_days: 1,
     reason: 'Personal work',
     status: 'Pending',
     requester_role: 'Employee',
@@ -340,51 +407,228 @@ function seedData() {
 
   insertWfh.run({
     employee_id: 'VX004', // Pooja Singh (Employee)
-    request_date: '13 Oct 2026',
+    request_date: '2026-10-13 to 2026-10-13',
+    from_date: '2026-10-13',
+    to_date: '2026-10-13',
+    total_days: 1,
     reason: 'Internet issue',
     status: 'Approved',
     requester_role: 'Employee',
     approver_role: 'HR',
-    reviewed_by: 'Sneha Verma (HR)',
-    reviewed_at: '12 Oct 2026',
-    admin_comment: 'Approved'
+    reviewed_by: 'Sneha Verma (HR Lead)',
+    reviewed_at: '12 Oct 2026, 06:10 PM',
+    admin_comment: 'Approved by HR'
   });
 
   insertWfh.run({
     employee_id: 'VX005', // Karan Mehta (Employee)
-    request_date: '12 Oct 2026',
+    request_date: '2026-10-12 to 2026-10-12',
+    from_date: '2026-10-12',
+    to_date: '2026-10-12',
+    total_days: 1,
     reason: 'Family function',
     status: 'Rejected',
     requester_role: 'Employee',
     approver_role: 'HR',
-    reviewed_by: 'Sneha Verma (HR)',
-    reviewed_at: '11 Oct 2026',
+    reviewed_by: 'Sneha Verma (HR Lead)',
+    reviewed_at: '11 Oct 2026, 03:00 PM',
     admin_comment: 'Important client meeting on-site'
   });
 
-  insertWfh.run({
-    employee_id: 'VX006', // Neha Gupta (Employee)
-    request_date: '12 Oct 2026',
-    reason: 'Personal reason',
+  // 5b. Seed Leave Requests
+  const insertLeave = db.prepare(`
+    INSERT INTO leave_requests (
+      employee_id, leave_type, from_date, to_date, total_days, reason, status, requester_role, approver_role, reviewed_by, reviewed_at, hr_comment
+    ) VALUES (
+      @employee_id, @leave_type, @from_date, @to_date, @total_days, @reason, @status, @requester_role, @approver_role, @reviewed_by, @reviewed_at, @hr_comment
+    )
+  `);
+
+  insertLeave.run({
+    employee_id: 'VX001',
+    leave_type: 'Casual Leave',
+    from_date: '2026-10-18',
+    to_date: '2026-10-20',
+    total_days: 3,
+    reason: 'Family cousin wedding ceremony out of station',
     status: 'Approved',
     requester_role: 'Employee',
     approver_role: 'HR',
-    reviewed_by: 'Sneha Verma (HR)',
-    reviewed_at: '11 Oct 2026',
-    admin_comment: 'Approved'
+    reviewed_by: 'Sneha Verma (HR Lead)',
+    reviewed_at: '12 Oct 2026, 11:30 AM',
+    hr_comment: 'Approved. Have a great time at the wedding! Ensure sprint tasks are updated.'
   });
 
-  insertWfh.run({
-    employee_id: 'VX001', // Rohit Sharma (Employee)
-    request_date: '11 Oct 2026',
-    reason: 'Home maintenance',
+  insertLeave.run({
+    employee_id: 'VX001',
+    leave_type: 'Sick Leave',
+    from_date: '2026-10-12',
+    to_date: '2026-10-12',
+    total_days: 1,
+    reason: 'Viral illness & doctor advised rest',
+    status: 'Approved',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: 'Sneha Verma (HR Lead)',
+    reviewed_at: '12 Oct 2026, 09:30 AM',
+    hr_comment: 'Regularized medical leave. Take care and get well soon.'
+  });
+
+  insertLeave.run({
+    employee_id: 'VX001',
+    leave_type: 'Paid Leave',
+    from_date: '2026-10-27',
+    to_date: '2026-10-28',
+    total_days: 2,
+    reason: 'Personal bank work and family documentation',
     status: 'Pending',
     requester_role: 'Employee',
     approver_role: 'HR',
     reviewed_by: null,
     reviewed_at: null,
-    admin_comment: null
+    hr_comment: null
   });
+
+  insertLeave.run({
+    employee_id: 'VX003',
+    leave_type: 'Casual Leave',
+    from_date: '2026-10-22',
+    to_date: '2026-10-23',
+    total_days: 2,
+    reason: 'Hometown visit',
+    status: 'Pending',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: null,
+    reviewed_at: null,
+    hr_comment: null
+  });
+
+  insertLeave.run({
+    employee_id: 'VX005',
+    leave_type: 'Paid Leave',
+    from_date: '2026-10-14',
+    to_date: '2026-10-16',
+    total_days: 3,
+    reason: 'Vacation travel',
+    status: 'Rejected',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: 'Sneha Verma (HR Lead)',
+    reviewed_at: '10 Oct 2026, 04:45 PM',
+    hr_comment: 'Rejected due to milestone release deadlines.'
+  });
+
+  // 5c. Seed Announcements by HR
+  const insertAnnouncement = db.prepare(`
+    INSERT INTO announcements (
+      title, content, priority, tag, author_name, author_role, published_date, is_active
+    ) VALUES (
+      @title, @content, @priority, @tag, @author_name, @author_role, @published_date, 1
+    )
+  `);
+
+  insertAnnouncement.run({
+    title: '🪔 Diwali Festive Bonus & Extended Office Holidays',
+    content: 'Management is thrilled to announce Diwali festival bonuses for all employees! Office will observe official holidays from 31st Oct to 3rd Nov 2026. Sweet distribution will take place in the cafeteria on 29th Oct at 4:30 PM.',
+    priority: 'Celebration',
+    tag: 'Festive Notice',
+    author_name: 'Sneha Verma (HR Lead)',
+    author_role: 'HR Executive',
+    published_date: '14 Oct 2026'
+  });
+
+  insertAnnouncement.run({
+    title: '📢 Q4 Company Town Hall & Product Showcase',
+    content: 'All employees are cordially invited to the Q4 Town Hall on Friday, 24th Oct 2026 at 3:00 PM (Hybrid: Lucknow HQ Auditorium & Meet). Leadership will share corporate milestones and live enterprise client achievements.',
+    priority: 'Urgent',
+    tag: 'All Hands',
+    author_name: 'Sneha Verma (HR Lead)',
+    author_role: 'HR Executive',
+    published_date: '13 Oct 2026'
+  });
+
+  insertAnnouncement.run({
+    title: '📋 Updated WFH & Leave Regularization Policy Guidelines',
+    content: 'Effective immediately: All WFH and Leave applications must be submitted with From & To calendar dates in advance via the VorldX Employee App. HR approval decisions can now be tracked live with reviewer remarks.',
+    priority: 'Policy',
+    tag: 'HR Policy',
+    author_name: 'Sneha Verma (HR Lead)',
+    author_role: 'HR Executive',
+    published_date: '11 Oct 2026'
+  });
+
+  // 5d. Seed Client Projects & Requirements through Admin
+  const sampleProjectRequirements = [
+    {
+      id: 'REQ-101',
+      title: 'Multi-Day Leave Application with Calendar Date Selection',
+      desc: 'Employee can select From Date and To Date using native calendar pickers, specify leave type (Casual, Sick, Paid), and submit reasons.',
+      status: 'Completed',
+      priority: 'High 🔥',
+      client_note: 'Verified - user can pick date ranges easily on mobile.'
+    },
+    {
+      id: 'REQ-102',
+      title: 'Multi-Day WFH Request with Calendar Range Pickers',
+      desc: 'Work From Home form must accept From Date & To Date calendar pickers with auto-calculated working day counts and remote reasons.',
+      status: 'Completed',
+      priority: 'High 🔥',
+      client_note: 'Verified - matches company remote work policy.'
+    },
+    {
+      id: 'REQ-103',
+      title: 'Real-time HR Approval Status Tracking Receipt',
+      desc: 'Clear visual status (🟢 Approved, 🔴 Rejected, 🟡 Pending) displaying HR Reviewer name, review timestamp, and HR remarks.',
+      status: 'Completed',
+      priority: 'High 🔥',
+      client_note: 'Critical for compliance - transparency on who approved each request.'
+    },
+    {
+      id: 'REQ-104',
+      title: 'HR Broadcast Announcements Feed on Employee Dashboard',
+      desc: 'Direct announcements channel from HR to employees for urgent notices, festive bonus updates, and holiday circulars.',
+      status: 'Completed',
+      priority: 'Medium ⚡',
+      client_note: 'Improves internal team engagement.'
+    },
+    {
+      id: 'REQ-105',
+      title: 'Offline-First APK Support & Zero-Latency Sync',
+      desc: 'Seamless mobile execution when away from office network with fast local caching and automatic sync.',
+      status: 'Completed',
+      priority: 'High 🔥',
+      client_note: 'Approved for Android APK distribution.'
+    },
+    {
+      id: 'REQ-106',
+      title: 'Final Client Demo & Production Sign-off Meeting',
+      desc: 'Live interactive presentation with Alpha Corp leadership on 28th October 2026.',
+      status: 'In Progress',
+      priority: 'High 🔥',
+      client_note: 'Scheduled for 28 Oct 2026 11:00 AM.'
+    }
+  ];
+
+  db.prepare(`
+    INSERT INTO client_projects (
+      project_name, client_name, assigned_to, assigned_by, priority, deadline, status, progress_percent, description, requirements_json, admin_notes
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    )
+  `).run(
+    'VorldX Attendance AI & Biometric QR Terminal',
+    'Alpha Corp Global (Enterprise Client)',
+    'All',
+    'Admin (Vikram Singhania)',
+    'High Priority 🔥',
+    '28 Oct 2026',
+    'Sprint 4 (In Progress)',
+    85,
+    'Enterprise-grade employee attendance tracking system with rotating QR biometrics, mobile Android APK, multi-day WFH/Leave management, and real-time HR approval tracking.',
+    JSON.stringify(sampleProjectRequirements),
+    'Admin Vikram Singhania: "Alpha Corp client has requested strict compliance on real-time HR approval tracking and HR announcements directly in the employee mobile app. Great progress so far!"'
+  );
 
   // 6. Seed Audit Logs matching Screen 10
   const insertAudit = db.prepare(`

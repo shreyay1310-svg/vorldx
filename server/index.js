@@ -9,6 +9,9 @@ const attendanceRoutes = require('./routes/attendance');
 const wfhRoutes = require('./routes/wfh');
 const adminRoutes = require('./routes/admin');
 const { router: wfoRoutes } = require('./routes/wfo');
+const leaveRoutes = require('./routes/leaves');
+const announcementRoutes = require('./routes/announcements');
+const projectRoutes = require('./routes/projects');
 
 // Ensure DB is set up
 initializeDatabase();
@@ -24,6 +27,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/kiosk', kioskRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/wfh', wfhRoutes);
+app.use('/api/leaves', leaveRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/projects', projectRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/wfo', wfoRoutes);
 

@@ -100,9 +100,12 @@ export default function AdminPortal() {
     remarks: 'Manual regularization approved by HR'
   });
 
-  // WFH Requests state (Screen 6)
+  // WFH & Leave Requests state (Screen 6)
+  const [requestSection, setRequestSection] = useState('wfh'); // 'wfh', 'leave'
   const [wfhTab, setWfhTab] = useState('All'); // 'All', 'Pending', 'Approved', 'Rejected'
   const [wfhList, setWfhList] = useState([]);
+  const [leaveTab, setLeaveTab] = useState('All');
+  const [leaveList, setLeaveList] = useState([]);
   const [showWfhReviewModal, setShowWfhReviewModal] = useState(false);
   const [reviewRequest, setReviewRequest] = useState(null);
   const [reviewAction, setReviewAction] = useState('Approved');
@@ -190,6 +193,19 @@ export default function AdminPortal() {
         status: wfhTab !== 'All' ? wfhTab : ''
       });
       setWfhList(list);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const loadLeaveList = async () => {
+    try {
+      const list = await api.getAllLeaveRequests({
+        status: leaveTab !== 'All' ? leaveTab : ''
+      });
+      if (Array.isArray(list)) {
+        setLeaveList(list);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -356,18 +372,28 @@ export default function AdminPortal() {
     }
   };
 
-  // Review WFH Request handler
+  // Review WFH & Leave Request handler
   const handleReviewWfh = async () => {
     if (!reviewRequest) return;
     try {
-      await api.reviewWfhRequest(reviewRequest.id, {
-        status: reviewAction,
-        adminComment: reviewComment || 'Reviewed by ' + currentUser.name,
-        reviewedBy: currentUser.name
-      });
-      alert(`WFH Request ${reviewAction}!`);
+      if (reviewRequest.leave_type || requestSection === 'leave') {
+        await api.reviewLeaveRequest(reviewRequest.id, {
+          status: reviewAction,
+          hrComment: reviewComment || ('Reviewed by ' + currentUser.name + ' (HR)'),
+          reviewedBy: currentUser.name + ' (HR)'
+        });
+        alert(`Leave Request ${reviewAction}!`);
+        loadLeaveList();
+      } else {
+        await api.reviewWfhRequest(reviewRequest.id, {
+          status: reviewAction,
+          adminComment: reviewComment || ('Reviewed by ' + currentUser.name),
+          reviewedBy: currentUser.name
+        });
+        alert(`WFH Request ${reviewAction}!`);
+        loadWfhList();
+      }
       setShowWfhReviewModal(false);
-      loadWfhList();
       loadOverview();
     } catch (err) {
       alert('Failed to review request');
@@ -1434,97 +1460,240 @@ export default function AdminPortal() {
           )}
 
           {/* ===============================================================
-              SCREEN 6: WFH REQUESTS MANAGEMENT
+              SCREEN 6: WFH & LEAVE REQUESTS MANAGEMENT
              =============================================================== */}
           {activeModule === 'wfh' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff' }}>WFH Requests</h2>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  October 2026
+                <div>
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                    Requests & Approvals Hub
+                  </h2>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Review and approve employee WFH and Leave applications • Real-time employee sync
+                  </div>
+                </div>
+
+                {/* Sub-tabs: WFH vs Leave */}
+                <div style={{ display: 'flex', gap: '6px', background: '#111c34', padding: '4px', borderRadius: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => { setRequestSection('wfh'); loadWfhList(); }}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: requestSection === 'wfh' ? '#2563eb' : 'transparent',
+                      color: requestSection === 'wfh' ? '#ffffff' : '#94a3b8',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🏠 WFH Requests ({wfhList.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setRequestSection('leave'); loadLeaveList(); }}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: requestSection === 'leave' ? '#f59e0b' : 'transparent',
+                      color: requestSection === 'leave' ? '#ffffff' : '#94a3b8',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🌴 Leave Applications ({leaveList.length})
+                  </button>
                 </div>
               </div>
 
-              {/* Tabs matching Screen 6: All (12), Pending (4), Approved (6), Rejected (2) */}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                {[
-                  { id: 'All', label: 'All', count: 12 },
-                  { id: 'Pending', label: 'Pending', count: 4 },
-                  { id: 'Approved', label: 'Approved', count: 6 },
-                  { id: 'Rejected', label: 'Rejected', count: 2 }
-                ].map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => { setWfhTab(t.id); loadWfhList(); }}
-                    className={`btn btn-sm ${wfhTab === t.id ? 'btn-primary' : 'btn-secondary'}`}
-                  >
-                    {t.label} ({t.count})
-                  </button>
-                ))}
-              </div>
-
-              {/* Table matching Screen 6 */}
-              <div className="data-table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Employee</th>
-                      <th>Reason</th>
-                      <th>Queue / Approver</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {wfhList.map(req => (
-                      <tr key={req.id}>
-                        <td>{req.request_date}</td>
-                        <td style={{ fontWeight: 600 }}>{req.employee_name}</td>
-                        <td style={{ color: 'var(--text-muted)' }}>{req.reason}</td>
-                        <td style={{ fontSize: '0.75rem', color: '#38bdf8' }}>
-                          {req.approver_role} Queue
-                        </td>
-                        <td>
-                          <span className={`badge ${req.status === 'Approved' ? 'badge-present' : req.status === 'Rejected' ? 'badge-absent' : 'badge-late'}`}>
-                            {req.status}
-                          </span>
-                        </td>
-                        <td>
-                          {req.status === 'Pending' ? (
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <button
-                                onClick={() => {
-                                  setReviewRequest(req);
-                                  setReviewAction('Approved');
-                                  setShowWfhReviewModal(true);
-                                }}
-                                className="btn btn-success btn-sm"
-                                style={{ padding: '4px 8px' }}
-                              >
-                                <Check size={14} />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setReviewRequest(req);
-                                  setReviewAction('Rejected');
-                                  setShowWfhReviewModal(true);
-                                }}
-                                className="btn btn-danger btn-sm"
-                                style={{ padding: '4px 8px' }}
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Decided</span>
-                          )}
-                        </td>
-                      </tr>
+              {/* Status Tabs for WFH */}
+              {requestSection === 'wfh' && (
+                <>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                    {[
+                      { id: 'All', label: 'All', count: wfhList.length },
+                      { id: 'Pending', label: 'Pending', count: wfhList.filter(w => w.status === 'Pending').length },
+                      { id: 'Approved', label: 'Approved', count: wfhList.filter(w => w.status === 'Approved').length },
+                      { id: 'Rejected', label: 'Rejected', count: wfhList.filter(w => w.status === 'Rejected').length }
+                    ].map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => { setWfhTab(t.id); loadWfhList(); }}
+                        className={`btn btn-sm ${wfhTab === t.id ? 'btn-primary' : 'btn-secondary'}`}
+                      >
+                        {t.label} ({t.count})
+                      </button>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+
+                  {/* Table for WFH */}
+                  <div className="data-table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Date Range</th>
+                          <th>Employee</th>
+                          <th>Reason</th>
+                          <th>Queue / Approver</th>
+                          <th>Status</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {wfhList.map(req => (
+                          <tr key={req.id}>
+                            <td>{req.from_date || req.request_date} {req.to_date && req.to_date !== req.from_date ? `to ${req.to_date}` : ''} ({req.total_days || 1}d)</td>
+                            <td style={{ fontWeight: 600 }}>{req.employee_name}</td>
+                            <td style={{ color: 'var(--text-muted)' }}>{req.reason}</td>
+                            <td style={{ fontSize: '0.75rem', color: '#38bdf8' }}>
+                              {req.approver_role} Queue
+                            </td>
+                            <td>
+                              <span className={`badge ${req.status === 'Approved' ? 'badge-present' : req.status === 'Rejected' ? 'badge-absent' : 'badge-late'}`}>
+                                {req.status}
+                              </span>
+                            </td>
+                            <td>
+                              {req.status === 'Pending' ? (
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <button
+                                    onClick={() => {
+                                      setReviewRequest(req);
+                                      setReviewAction('Approved');
+                                      setShowWfhReviewModal(true);
+                                    }}
+                                    className="btn btn-success btn-sm"
+                                    style={{ padding: '4px 8px' }}
+                                    title="Approve WFH"
+                                  >
+                                    <Check size={14} /> Approve
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setReviewRequest(req);
+                                      setReviewAction('Rejected');
+                                      setShowWfhReviewModal(true);
+                                    }}
+                                    className="btn btn-danger btn-sm"
+                                    style={{ padding: '4px 8px' }}
+                                    title="Reject WFH"
+                                  >
+                                    <X size={14} /> Reject
+                                  </button>
+                                </div>
+                              ) : (
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                                  {req.reviewed_by ? `By ${req.reviewed_by}` : 'Decided'}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+
+              {/* Status Tabs for Leave Applications */}
+              {requestSection === 'leave' && (
+                <>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                    {[
+                      { id: 'All', label: 'All', count: leaveList.length },
+                      { id: 'Pending', label: 'Pending', count: leaveList.filter(l => l.status === 'Pending').length },
+                      { id: 'Approved', label: 'Approved', count: leaveList.filter(l => l.status === 'Approved').length },
+                      { id: 'Rejected', label: 'Rejected', count: leaveList.filter(l => l.status === 'Rejected').length }
+                    ].map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => { setLeaveTab(t.id); loadLeaveList(); }}
+                        className={`btn btn-sm ${leaveTab === t.id ? 'btn-primary' : 'btn-secondary'}`}
+                      >
+                        {t.label} ({t.count})
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Table for Leave */}
+                  <div className="data-table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Date Range</th>
+                          <th>Employee</th>
+                          <th>Leave Type</th>
+                          <th>Reason</th>
+                          <th>Queue / Approver</th>
+                          <th>Status</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leaveList.map(req => (
+                          <tr key={req.id}>
+                            <td>{req.from_date} to {req.to_date} ({req.total_days || 1}d)</td>
+                            <td style={{ fontWeight: 600 }}>{req.employee_name}</td>
+                            <td>
+                              <span style={{ color: '#fbbf24', fontWeight: 600, fontSize: '0.78rem' }}>
+                                {req.leave_type || 'Casual Leave'}
+                              </span>
+                            </td>
+                            <td style={{ color: 'var(--text-muted)' }}>{req.reason}</td>
+                            <td style={{ fontSize: '0.75rem', color: '#38bdf8' }}>
+                              {req.approver_role || 'HR'} Queue
+                            </td>
+                            <td>
+                              <span className={`badge ${req.status === 'Approved' ? 'badge-present' : req.status === 'Rejected' ? 'badge-absent' : 'badge-late'}`}>
+                                {req.status}
+                              </span>
+                            </td>
+                            <td>
+                              {req.status === 'Pending' ? (
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <button
+                                    onClick={() => {
+                                      setReviewRequest(req);
+                                      setReviewAction('Approved');
+                                      setShowWfhReviewModal(true);
+                                    }}
+                                    className="btn btn-success btn-sm"
+                                    style={{ padding: '4px 8px' }}
+                                    title="Approve Leave"
+                                  >
+                                    <Check size={14} /> Approve
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setReviewRequest(req);
+                                      setReviewAction('Rejected');
+                                      setShowWfhReviewModal(true);
+                                    }}
+                                    className="btn btn-danger btn-sm"
+                                    style={{ padding: '4px 8px' }}
+                                    title="Reject Leave"
+                                  >
+                                    <X size={14} /> Reject
+                                  </button>
+                                </div>
+                              ) : (
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                                  {req.reviewed_by ? `By ${req.reviewed_by}` : 'Decided'}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
