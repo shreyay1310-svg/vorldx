@@ -40,10 +40,10 @@ function seedData() {
   // 3. Seed Employees (Screen 3 & RBAC)
   const insertEmployee = db.prepare(`
     INSERT INTO employees (
-      id, name, email, phone, department, designation, shift, work_type,
+      id, name, email, phone, address, department, designation, shift, work_type,
       joining_date, status, role, avatar, verified, password
     ) VALUES (
-      @id, @name, @email, @phone, @department, @designation, @shift, @work_type,
+      @id, @name, @email, @phone, @address, @department, @designation, @shift, @work_type,
       @joining_date, @status, @role, @avatar, @verified, @password
     )
   `);
@@ -54,6 +54,7 @@ function seedData() {
       name: 'Rohit Sharma',
       email: 'rohit.sharma@vorldx.com',
       phone: '9876543210',
+      address: 'Flat 402, Shalimar Heights, Gomti Nagar Ext., Lucknow, UP - 226010',
       department: 'Development',
       designation: 'SDE',
       shift: 'General (9:00 AM - 6:00 PM)',
@@ -70,6 +71,7 @@ function seedData() {
       name: 'Sneha Verma',
       email: 'sneha.verma@vorldx.com',
       phone: '9811122334',
+      address: 'B-14, Indira Nagar, Near Wave Mall, Lucknow, UP - 226016',
       department: 'HR',
       designation: 'Executive',
       shift: 'General (9:00 AM - 6:00 PM)',
@@ -86,6 +88,7 @@ function seedData() {
       name: 'Amit Kumar',
       email: 'amit.kumar@vorldx.com',
       phone: '9723456789',
+      address: 'Plot 88, Sector 14, Vikas Nagar, Lucknow, UP - 226022',
       department: 'Design',
       designation: 'UI/UX',
       shift: 'General (9:00 AM - 6:00 PM)',
@@ -102,6 +105,7 @@ function seedData() {
       name: 'Pooja Singh',
       email: 'pooja.singh@vorldx.com',
       phone: '9654321876',
+      address: 'House No 12/B, Aliganj Main Road, Lucknow, UP - 226024',
       department: 'Testing',
       designation: 'QA',
       shift: 'General (9:00 AM - 6:00 PM)',
@@ -118,6 +122,7 @@ function seedData() {
       name: 'Karan Mehta',
       email: 'karan.mehta@vorldx.com',
       phone: '9543219870',
+      address: 'Flat 101, Eldeco Greens, Gomti Nagar, Lucknow, UP - 226010',
       department: 'Operations',
       designation: 'Manager',
       shift: 'General (9:00 AM - 6:00 PM)',
@@ -134,6 +139,7 @@ function seedData() {
       name: 'Neha Gupta',
       email: 'neha.gupta@vorldx.com',
       phone: '9432109876',
+      address: 'C-45, Mahanagar Ext., Lucknow, UP - 226006',
       department: 'Marketing',
       designation: 'Executive',
       shift: 'General (9:00 AM - 6:00 PM)',
@@ -150,6 +156,7 @@ function seedData() {
       name: 'Vikram Singhania',
       email: 'admin@vorldx.com',
       phone: '9321098765',
+      address: 'Penthouse 12, Cyber Heights, Vibhuti Khand, Lucknow, UP - 226010',
       department: 'Management',
       designation: 'Managing Director & Admin',
       shift: 'General (9:00 AM - 6:00 PM)',

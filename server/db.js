@@ -16,6 +16,7 @@ function initializeDatabase() {
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       phone TEXT,
+      address TEXT,
       department TEXT NOT NULL,
       designation TEXT NOT NULL,
       shift TEXT DEFAULT 'General (09:00 AM - 06:00 PM)',
@@ -29,6 +30,14 @@ function initializeDatabase() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Migration for employees table to ensure address column exists
+  try {
+    const empCols = db.pragma('table_info(employees)').map(c => c.name);
+    if (!empCols.includes('address')) {
+      db.exec('ALTER TABLE employees ADD COLUMN address TEXT;');
+    }
+  } catch (e) {}
 
   // 2. Demo Verification OTPs table
   db.exec(`

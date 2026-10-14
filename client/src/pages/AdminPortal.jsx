@@ -1294,6 +1294,12 @@ export default function AdminPortal() {
                       <span style={{ color: 'var(--text-dim)', display: 'block', fontSize: '0.75rem' }}>Joining Date</span>
                       <strong style={{ color: '#ffffff' }}>{profileData.employee.joining_date}</strong>
                     </div>
+                    {profileData.employee.address && (
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <span style={{ color: 'var(--text-dim)', display: 'block', fontSize: '0.75rem' }}>Residential Address</span>
+                        <strong style={{ color: '#ffffff' }}>{profileData.employee.address}</strong>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

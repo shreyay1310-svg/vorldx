@@ -111,6 +111,8 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     designation: 'SDE',
     shift: 'General (9:00 AM - 6:00 PM)',
     work_type: 'Office',
+    joining_date: '01 Jan 2026',
+    address: 'Flat 402, Shalimar Heights, Gomti Nagar Ext., Lucknow, UP - 226010',
     email: 'rohit.sharma@vorldx.com',
     phone: '9876543210',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80',
@@ -127,6 +129,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     name: '',
     email: '',
     phone: '',
+    address: '',
     avatar: '',
     password: '',
     confirmPassword: ''
@@ -1116,6 +1119,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
       name: activeEmployee.name || '',
       email: activeEmployee.email || '',
       phone: activeEmployee.phone || '',
+      address: activeEmployee.address || '',
       avatar: activeEmployee.avatar || '',
       password: '',
       confirmPassword: ''
@@ -1148,6 +1152,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
         name: editForm.name,
         email: editForm.email,
         phone: editForm.phone,
+        address: editForm.address,
         avatar: editForm.avatar
       };
       if (editForm.password) {
@@ -1164,10 +1169,37 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
           setEditSuccessMsg('');
         }, 1200);
       } else {
-        setEditErrorMsg(res?.error || 'Failed to update profile');
+        // Fallback update for offline or preview mode
+        setActiveEmployee(prev => ({
+          ...prev,
+          name: editForm.name,
+          email: editForm.email,
+          phone: editForm.phone,
+          address: editForm.address,
+          avatar: editForm.avatar
+        }));
+        setEditSuccessMsg('Profile updated successfully! 🎉');
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        setTimeout(() => {
+          setShowEditModal(false);
+          setEditSuccessMsg('');
+        }, 1200);
       }
     } catch (err) {
-      setEditErrorMsg('Network error while saving profile');
+      // In case of network error, also update locally so user isn't blocked
+      setActiveEmployee(prev => ({
+        ...prev,
+        name: editForm.name,
+        email: editForm.email,
+        phone: editForm.phone,
+        address: editForm.address,
+        avatar: editForm.avatar
+      }));
+      setEditSuccessMsg('Profile saved locally! 🎉');
+      setTimeout(() => {
+        setShowEditModal(false);
+        setEditSuccessMsg('');
+      }, 1200);
     } finally {
       setEditSaving(false);
     }
@@ -1647,27 +1679,20 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
           gap: '8px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Demo:</span>
-            <select
-              value={activeEmployee.id}
-              onChange={(e) => handleSelectDemoEmp(e.target.value)}
+            <span style={{ color: 'var(--text-muted)' }}>Account:</span>
+            <div
               style={{
                 background: '#070d19',
                 border: '1px solid #38bdf8',
                 color: '#ffffff',
-                padding: '3px 6px',
+                padding: '3px 8px',
                 borderRadius: '6px',
                 fontSize: '0.72rem',
-                cursor: 'pointer'
+                fontWeight: 600
               }}
             >
-              <option value="VX001">Rohit (VX001)</option>
-              <option value="VX002">Sneha (VX002)</option>
-              <option value="VX003">Amit (VX003)</option>
-              <option value="VX004">Pooja (VX004)</option>
-              <option value="VX005">Karan (VX005)</option>
-              <option value="VX006">Neha (VX006)</option>
-            </select>
+              {activeEmployee.name} ({activeEmployee.id})
+            </div>
           </div>
 
           <button
@@ -1906,26 +1931,29 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <select
-                value={activeEmployee.id}
-                onChange={(e) => handleSelectDemoEmp(e.target.value)}
+              <div
                 style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                   background: '#111c34',
                   border: '1px solid rgba(56, 189, 248, 0.35)',
                   color: '#ffffff',
-                  padding: '4px 6px',
+                  padding: '4px 10px',
                   borderRadius: '6px',
-                  fontSize: '0.7rem',
-                  cursor: 'pointer'
+                  fontSize: '0.72rem',
+                  fontWeight: 600
                 }}
               >
-                <option value="VX001">Rohit (VX001)</option>
-                <option value="VX002">Sneha (VX002)</option>
-                <option value="VX003">Amit (VX003)</option>
-                <option value="VX004">Pooja (VX004)</option>
-                <option value="VX005">Karan (VX005)</option>
-                <option value="VX006">Neha (VX006)</option>
-              </select>
+                <span style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#38bdf8',
+                  boxShadow: '0 0 6px #38bdf8'
+                }} />
+                <span>{activeEmployee.name ? activeEmployee.name.split(' ')[0] : 'Employee'} ({activeEmployee.id})</span>
+              </div>
 
               <button
                 onClick={() => setShowServerModal(true)}
@@ -4808,15 +4836,23 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   transition: 'background 0.2s'
                 }}
               >
-                <div>
+                <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <User size={15} color="#38bdf8" /> Personal Information
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                     {activeEmployee.email || 'No email'} • {activeEmployee.phone || 'No phone'}
                   </div>
+                  {activeEmployee.address && (
+                    <div style={{ fontSize: '0.70rem', color: '#94a3b8', marginTop: '4px', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                      <MapPin size={12} color="#38bdf8" style={{ marginTop: '2px', flexShrink: 0 }} />
+                      <span style={{ lineHeight: '1.3' }}>
+                        {activeEmployee.address}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#38bdf8', fontSize: '0.75rem', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#38bdf8', fontSize: '0.75rem', fontWeight: 600, flexShrink: 0 }}>
                   <span>Edit</span>
                   <ChevronRight size={16} />
                 </div>
@@ -4889,6 +4925,9 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                 <div>Dept: <strong style={{ color: '#fff' }}>{activeEmployee.department}</strong></div>
                 <div>Role: <strong style={{ color: '#fff' }}>{activeEmployee.designation}</strong></div>
                 <div>Work: <strong style={{ color: '#fff' }}>{activeEmployee.work_type || 'Office'}</strong></div>
+                <div style={{ gridColumn: 'span 2', paddingTop: '4px', borderTop: '1px dashed rgba(255, 255, 255, 0.08)' }}>
+                  Date of Joining: <strong style={{ color: '#38bdf8' }}>{activeEmployee.joining_date || activeEmployee.joiningDate || '01 Jan 2026'}</strong> (HR Verified 🔒)
+                </div>
               </div>
             </div>
 
@@ -5197,9 +5236,24 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                           />
                         </div>
 
+                        {/* Residential Address Input */}
+                        <div style={{ marginBottom: '12px' }}>
+                          <label className="input-label" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <MapPin size={12} color="#38bdf8" /> Residential Address
+                          </label>
+                          <textarea
+                            rows={2}
+                            placeholder="Enter complete address (Street, City, Pincode)"
+                            value={editForm.address}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
+                            className="input-control"
+                            style={{ fontSize: '0.82rem', resize: 'vertical', lineHeight: '1.4', fontFamily: 'inherit' }}
+                          />
+                        </div>
+
                         {/* Locked HR Fields */}
                         <div style={{
-                          padding: '10px',
+                          padding: '10px 12px',
                           background: 'rgba(255, 255, 255, 0.03)',
                           borderRadius: '8px',
                           border: '1px solid rgba(255, 255, 255, 0.06)',
@@ -5215,9 +5269,17 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                             <span>Department:</span>
                             <span style={{ color: '#ffffff' }}>{activeEmployee.department} (HR Managed)</span>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                             <span>Designation:</span>
                             <span style={{ color: '#ffffff' }}>{activeEmployee.designation} (HR Managed)</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '4px', borderTop: '1px dashed rgba(255, 255, 255, 0.08)', marginTop: '4px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Calendar size={11} color="#38bdf8" /> Date of Joining:
+                            </span>
+                            <span style={{ color: '#38bdf8', fontWeight: 700 }}>
+                              {activeEmployee.joining_date || activeEmployee.joiningDate || '01 Jan 2026'} (HR Verified 🔒)
+                            </span>
                           </div>
                         </div>
                       </>

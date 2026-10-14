@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/employees', (req, res) => {
   try {
     const employees = db.prepare(`
-      SELECT id, name, email, phone, department, designation, shift, work_type,
+      SELECT id, name, email, phone, address, department, designation, shift, work_type,
              joining_date, status, role, avatar, verified
       FROM employees
       ORDER BY id ASC
@@ -22,7 +22,7 @@ router.get('/employees', (req, res) => {
 router.get('/employee/:id', (req, res) => {
   try {
     const emp = db.prepare(`
-      SELECT id, name, email, phone, department, designation, shift, work_type,
+      SELECT id, name, email, phone, address, department, designation, shift, work_type,
              joining_date, status, role, avatar, verified
       FROM employees
       WHERE id = ?
@@ -242,7 +242,7 @@ router.post('/verify-otp', (req, res) => {
 router.put('/employee/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, avatar, password } = req.body;
+    const { name, email, phone, address, avatar, password } = req.body;
     const cleanId = id.trim().toUpperCase();
 
     const emp = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
@@ -253,20 +253,21 @@ router.put('/employee/:id', (req, res) => {
     const updatedName = name && name.trim() ? name.trim() : emp.name;
     const updatedEmail = email && email.trim() ? email.trim() : emp.email;
     const updatedPhone = phone && phone.trim() ? phone.trim() : emp.phone;
+    const updatedAddress = address !== undefined ? address.trim() : (emp.address || '');
     const updatedAvatar = avatar && avatar.trim() ? avatar.trim() : emp.avatar;
 
     if (password && password.trim()) {
       db.prepare(`
         UPDATE employees 
-        SET name = ?, email = ?, phone = ?, avatar = ?, password = ?
+        SET name = ?, email = ?, phone = ?, address = ?, avatar = ?, password = ?
         WHERE id = ?
-      `).run(updatedName, updatedEmail, updatedPhone, updatedAvatar, password.trim(), cleanId);
+      `).run(updatedName, updatedEmail, updatedPhone, updatedAddress, updatedAvatar, password.trim(), cleanId);
     } else {
       db.prepare(`
         UPDATE employees 
-        SET name = ?, email = ?, phone = ?, avatar = ?
+        SET name = ?, email = ?, phone = ?, address = ?, avatar = ?
         WHERE id = ?
-      `).run(updatedName, updatedEmail, updatedPhone, updatedAvatar, cleanId);
+      `).run(updatedName, updatedEmail, updatedPhone, updatedAddress, updatedAvatar, cleanId);
     }
 
     db.prepare(`
