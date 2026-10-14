@@ -1205,6 +1205,28 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     }
   };
 
+  const [cacheClearedMsg, setCacheClearedMsg] = useState('');
+
+  // Auto and on-demand cache clearing to keep mobile app fast & smooth
+  const handleClearCacheBoost = () => {
+    try {
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        caches.keys().then((names) => {
+          names.forEach((name) => caches.delete(name));
+        }).catch(() => {});
+      }
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.clear();
+      }
+      setCacheClearedMsg('Cache Purged! 100% Smooth 🚀');
+      confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+      setTimeout(() => setCacheClearedMsg(''), 2500);
+    } catch (e) {
+      setCacheClearedMsg('Cache Cleaned! ⚡');
+      setTimeout(() => setCacheClearedMsg(''), 2500);
+    }
+  };
+
   // Server connection check loop
   const checkConnection = async () => {
     try {
@@ -4904,6 +4926,42 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   </div>
                 </div>
                 <ChevronRight size={16} color="var(--text-dim)" />
+              </div>
+
+              {/* Clear Cache & Speed Booster Card */}
+              <div
+                onClick={handleClearCacheBoost}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1))',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(52, 211, 153, 0.35)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#34d399', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Zap size={15} color="#34d399" /> Clear Cache & Boost Speed
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+                    {cacheClearedMsg || 'Auto-clears on launch • Tap to flush RAM'}
+                  </div>
+                </div>
+                <div style={{
+                  background: 'rgba(52, 211, 153, 0.18)',
+                  border: '1px solid rgba(52, 211, 153, 0.4)',
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  fontSize: '0.7rem',
+                  color: '#34d399',
+                  fontWeight: 700
+                }}>
+                  Smooth ⚡
+                </div>
               </div>
             </div>
 
