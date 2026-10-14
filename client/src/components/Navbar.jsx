@@ -348,7 +348,7 @@ export default function Navbar({ activeTab, setActiveTab, onResetDemo }) {
                   <span className="badge badge-present">Ready to Download</span>
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '4px' }}>
-                  Native Android APK (3.8 MB Ultra-light) • Real Camera Scanner • Standalone & Offline Ready
+                  Native Android APK (1.2 MB Ultra-light) • Real Camera Scanner • Standalone & Offline Ready
                 </div>
               </div>
 
