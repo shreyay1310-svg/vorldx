@@ -1732,8 +1732,32 @@ export default function EmployeeApp({
             </div>
           </div>
 
-          <button
-            onClick={() => setShowServerModal(true)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.18)',
+                  color: '#e2e8f0',
+                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+                title="Return to Main Portal Gateway"
+              >
+                <ArrowLeft size={12} />
+                <span>Exit</span>
+              </button>
+            )}
+            <button
+              onClick={() => setShowServerModal(true)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -1753,7 +1777,8 @@ export default function EmployeeApp({
             <span>{serverOnline ? 'Server Online' : 'Offline Mode'}</span>
           </button>
         </div>
-      )}
+      </div>
+    )}
 
       {/* Server IP Config Modal */}
       {showServerModal && (
@@ -1947,6 +1972,28 @@ export default function EmployeeApp({
             zIndex: 10
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  title="Return to Portal Gateway"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.16)',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                >
+                  <ArrowLeft size={16} />
+                </button>
+              )}
               <div style={{
                 width: '32px',
                 height: '32px',

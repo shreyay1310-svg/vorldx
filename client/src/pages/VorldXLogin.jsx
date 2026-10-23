@@ -16,7 +16,9 @@ import {
   Check,
   AlertCircle,
   X,
-  Sparkles
+  Sparkles,
+  Smartphone,
+  FileText
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '../api';
@@ -355,6 +357,61 @@ export default function VorldXLogin({ onLoginSuccess, onNavigate }) {
 
         {/* Right Floating Sign-in Card */}
         <div className="vx-login-card-wrapper">
+          {/* Direct 1-Tap Portal Access Bar (Instant access on mobile & desktop) */}
+          <div className="vx-direct-portal-bar">
+            <div className="vx-direct-bar-header">
+              <Sparkles size={14} color="#7c3aed" />
+              <span>DIRECT 1-TAP PORTAL ACCESS</span>
+            </div>
+            <div className="vx-direct-chips-row">
+              <button
+                type="button"
+                className="vx-direct-chip chip-hr"
+                onClick={() => onNavigate && onNavigate('hr')}
+                title="Open OfficeNova HR Portal"
+              >
+                <Sparkles size={13} />
+                <span>OfficeNova HR</span>
+              </button>
+              <button
+                type="button"
+                className="vx-direct-chip chip-emp"
+                onClick={() => onNavigate && onNavigate('employee')}
+                title="Open Employee Mobile App"
+              >
+                <Smartphone size={13} />
+                <span>Employee App</span>
+              </button>
+              <button
+                type="button"
+                className="vx-direct-chip chip-admin"
+                onClick={() => onNavigate && onNavigate('admin')}
+                title="Open Admin Portal"
+              >
+                <ShieldCheck size={13} />
+                <span>Admin</span>
+              </button>
+              <button
+                type="button"
+                className="vx-direct-chip chip-kiosk"
+                onClick={() => onNavigate && onNavigate('kiosk')}
+                title="Open QR Kiosk"
+              >
+                <Building2 size={13} />
+                <span>Kiosk</span>
+              </button>
+              <button
+                type="button"
+                className="vx-direct-chip chip-report"
+                onClick={() => onNavigate && onNavigate('report')}
+                title="View 20-Page Technical Report"
+              >
+                <FileText size={13} />
+                <span>20-Page Report</span>
+              </button>
+            </div>
+          </div>
+
           <div className="vx-login-card">
             {/* Card Top Branding */}
             <div className="vx-card-top">
