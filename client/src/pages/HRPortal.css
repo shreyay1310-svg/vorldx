@@ -838,3 +838,124 @@
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+/* --------------------------------------------------------------------------
+   MOBILE & TABLET RESPONSIVE STYLING (HR PORTAL)
+   -------------------------------------------------------------------------- */
+.hr-mobile-toggle-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.hr-mobile-toggle-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+}
+
+@media (max-width: 860px) {
+  .hr-mobile-toggle-btn {
+    display: inline-flex;
+  }
+
+  .hr-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -270px;
+    width: 260px;
+    height: 100vh;
+    z-index: 9999;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 40px rgba(0, 0, 0, 0.85);
+  }
+
+  .hr-sidebar.mobile-open {
+    left: 0;
+  }
+
+  .hr-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+  }
+
+  .hr-main-wrap {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .hr-topbar {
+    padding: 0 14px;
+    gap: 8px;
+    height: 56px;
+  }
+
+  .hr-search-wrapper {
+    width: 130px;
+  }
+
+  .hr-topbar-right > div:first-child {
+    display: none; /* Hide date on small mobile */
+  }
+
+  .hr-content-scroll {
+    padding: 14px 12px;
+  }
+
+  .hr-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .hr-table-card {
+    padding: 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hr-table {
+    min-width: 580px;
+  }
+
+  .hr-4kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .hr-tabs-row {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+
+  .hr-modal-content {
+    padding: 18px 14px;
+    border-radius: 14px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .hr-4kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .hr-search-wrapper {
+    width: 110px;
+  }
+}
+

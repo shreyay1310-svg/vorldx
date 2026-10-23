@@ -40,7 +40,8 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   XCircle,
-  RefreshCw
+  RefreshCw,
+  Menu
 } from 'lucide-react';
 import './HRPortal.css';
 
@@ -57,6 +58,7 @@ export default function HRPortal({ onLogout, onSwitchToAdmin, onSwitchToEmployee
   // Active module matching the 16 screens
   const [activeModule, setActiveModule] = useState('dashboard');
   const [globalSearch, setGlobalSearch] = useState('');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
 
   // Trigger brief alert toast
@@ -937,7 +939,13 @@ export default function HRPortal({ onLogout, onSwitchToAdmin, onSwitchToEmployee
       {/* =====================================================================
           SIDEBAR: WorldX ATTENDANCE 360 | HR PORTAL (13 ITEMS)
          ===================================================================== */}
-      <aside className="hr-sidebar">
+      {mobileSidebarOpen && (
+        <div
+          className="hr-sidebar-overlay"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+      <aside className={`hr-sidebar ${mobileSidebarOpen ? 'mobile-open' : ''}`}>
         <div>
           {/* Logo Header */}
           <div className="hr-sidebar-logo">
@@ -961,7 +969,10 @@ export default function HRPortal({ onLogout, onSwitchToAdmin, onSwitchToEmployee
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveModule(item.id)}
+                  onClick={() => {
+                    setActiveModule(item.id);
+                    setMobileSidebarOpen(false);
+                  }}
                   className={`hr-nav-item ${isActive ? 'active' : ''}`}
                 >
                   <div className="hr-nav-left">
@@ -997,15 +1008,25 @@ export default function HRPortal({ onLogout, onSwitchToAdmin, onSwitchToEmployee
       <div className="hr-main-wrap">
         {/* Topbar */}
         <header className="hr-topbar">
-          <div className="hr-search-wrapper">
-            <Search size={15} className="hr-search-icon" />
-            <input
-              type="text"
-              placeholder="Search employees, requests, reports..."
-              value={globalSearch}
-              onChange={(e) => setGlobalSearch(e.target.value)}
-              className="hr-search-input"
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              type="button"
+              className="hr-mobile-toggle-btn"
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              title="Toggle Menu"
+            >
+              <Menu size={18} />
+            </button>
+            <div className="hr-search-wrapper">
+              <Search size={15} className="hr-search-icon" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                className="hr-search-input"
+              />
+            </div>
           </div>
 
           <div className="hr-topbar-right">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import SplitView from './pages/SplitView';
 import AdminPortal from './pages/AdminPortal';
@@ -21,6 +21,25 @@ export default function App() {
 
   const [loggedInUser, setLoggedInUser] = useState(null);
 
+  // Dynamic responsive detection for mobile vs desktop automatic adjustment
+  const [isMobileScreen, setIsMobileScreen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+      setIsMobileScreen(mobile);
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
+
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
@@ -38,14 +57,14 @@ export default function App() {
     if (isNativeApp) {
       return 'employee';
     }
-    // If on mobile browser directly without params -> Employee App
+    // Auto-adjust: If opened on mobile browser directly -> Employee Mobile App
     if (typeof window !== 'undefined') {
       const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-      if (isMobileDevice && window.innerWidth <= 600) {
+      if (isMobileDevice || window.innerWidth <= 768) {
         return 'employee';
       }
     }
-    // Default Website view: Welcome & Authentication Portal (exact mockup!)
+    // Default Desktop view: Welcome & Authentication Portal
     return 'login';
   });
 
