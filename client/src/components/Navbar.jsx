@@ -131,63 +131,86 @@ export default function Navbar({ activeTab, setActiveTab, onResetDemo }) {
         </div>
       </div>
 
-      {/* HR / Admin Portal Navigation Badge */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        background: 'rgba(14, 21, 38, 0.85)',
-        padding: '6px 16px',
-        borderRadius: '12px',
-        border: '1px solid var(--border-subtle)',
-        gap: '8px'
-      }}>
-        <Building2 size={16} color="#38bdf8" />
-        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', letterSpacing: '0.01em' }}>
-          HR & Admin Management Portal
-        </span>
-      </div>
-
-      {/* Right Action Tools */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      {/* Interactive Portal Switcher Pills (Hidden per user request) */}
+      {false && (
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          padding: '6px 12px',
-          background: 'rgba(16, 185, 129, 0.1)',
-          borderRadius: '20px',
-          border: '1px solid rgba(16, 185, 129, 0.25)',
-          fontSize: '0.75rem',
-          color: '#34d399',
-          fontWeight: 600
+          background: 'rgba(14, 21, 38, 0.9)',
+          padding: '4px',
+          borderRadius: '12px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          gap: '4px'
         }}>
-          <span className="pulse-indicator green" />
-          <span>LAN: {localIp}</span>
-        </div>
+          <button
+            onClick={() => setActiveTab('admin')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 14px',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'admin' ? '#2563eb' : 'transparent',
+              color: activeTab === 'admin' ? '#ffffff' : '#94a3b8',
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: activeTab === 'admin' ? '0 2px 8px rgba(37, 99, 235, 0.4)' : 'none'
+            }}
+          >
+            <Building2 size={14} />
+            <span>Admin Portal</span>
+          </button>
 
-        <button
-          onClick={handleReset}
-          disabled={resetting}
-          title="Reset demo data with sample employees, attendance logs, and policies"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: '8px',
-            color: 'var(--text-muted)',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-        >
-          <RotateCcw size={14} className={resetting ? 'spin' : ''} />
-          <span>{resetting ? 'Resetting...' : 'Reset Data'}</span>
-        </button>
-      </div>
+          <button
+            onClick={() => setActiveTab('hr')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 14px',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'hr' ? '#7c3aed' : 'transparent',
+              color: activeTab === 'hr' ? '#ffffff' : '#94a3b8',
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: activeTab === 'hr' ? '0 2px 8px rgba(124, 58, 237, 0.4)' : 'none'
+            }}
+          >
+            <Sparkles size={14} color={activeTab === 'hr' ? '#ffffff' : '#c084fc'} />
+            <span>HR Portal</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('employee')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 14px',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'employee' ? '#059669' : 'transparent',
+              color: activeTab === 'employee' ? '#ffffff' : '#94a3b8',
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: activeTab === 'employee' ? '0 2px 8px rgba(5, 150, 105, 0.4)' : 'none'
+            }}
+          >
+            <Smartphone size={14} />
+            <span>Employee App</span>
+          </button>
+        </div>
+      )}
+
+      {/* Right Action Tools (Hidden per user request) */}
 
       {/* Mobile App & APK Guide Modal */}
       {showMobileModal && (

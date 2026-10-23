@@ -17,8 +17,8 @@ export const getServerUrl = () => {
     );
 
     if (isCapacitor) {
-      // Connect to host machine IP on port 5000
-      return 'http://192.168.1.141:5000';
+      // Connect to host machine IP on port 5000 (Local WiFi Network)
+      return 'http://192.168.1.77:5000';
     }
   }
   // Standard web browser development/production
@@ -45,7 +45,11 @@ async function request(endpoint, options = {}) {
   const base = getApiBase();
   const url = `${base}${endpoint}`;
   try {
-    const res = await fetch(url, options);
+    const headers = {
+      'bypass-tunnel-reminder': 'true',
+      ...(options.headers || {})
+    };
+    const res = await fetch(url, { ...options, headers });
     const contentType = res.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
       return await res.json();
@@ -198,6 +202,11 @@ export const api = {
   async getAllAttendance(params = {}) {
     const query = new URLSearchParams(params).toString();
     return request(`/attendance/all?${query}`);
+  },
+
+  async getAttendanceSummary(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return request(`/attendance/summary?${query}`);
   },
 
   async regularizeAttendance(id, data) {
@@ -358,14 +367,33 @@ export const api = {
 
   async pingServer(targetHost) {
     try {
-      const url = targetHost ? `${targetHost.replace(/\/$/, '')}/api/health` : `${getApiBase()}/health`;
+      const base = targetHost 
+        ? targetHost.replace(/\/$/, '') 
+        : (getApiBase() ? getApiBase().replace(/\/api$/, '') : 'http://192.168.1.77:5000');
+      
+      const pingUrl = `${base}/api/ping`;
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 3500);
-      const res = await fetch(url, { signal: controller.signal });
+      const timer = setTimeout(() => controller.abort(), 4000);
+      const startTime = Date.now();
+      
+      const res = await fetch(pingUrl, {
+        signal: controller.signal,
+        headers: { 'bypass-tunnel-reminder': 'true' }
+      }).catch(() => fetch(`${base}/api/health`, {
+        signal: controller.signal,
+        headers: { 'bypass-tunnel-reminder': 'true' }
+      }));
+      
       clearTimeout(timer);
-      return res.ok;
+      const latency = Date.now() - startTime;
+      
+      if (res && res.ok) {
+        const data = await res.json().catch(() => ({ status: 'online' }));
+        return { ok: true, latency, data, url: base };
+      }
+      return { ok: false, error: `HTTP ${res?.status || 'Error'}` };
     } catch (e) {
-      return false;
+      return { ok: false, error: e.message || 'Cannot reach server' };
     }
   }
 };

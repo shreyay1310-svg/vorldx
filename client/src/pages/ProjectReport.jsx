@@ -41,7 +41,15 @@ export default function ProjectReport() {
           <span>VorldX Employee Attendance System — Official Project Documentation</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <a
+            href="/VorldX_Project_Report.pdf"
+            download="VorldX_Project_Report.pdf"
+            className="btn btn-primary btn-sm"
+            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Download size={15} /> Download PDF Report
+          </a>
           <button
             onClick={handlePrint}
             className="btn btn-secondary btn-sm"

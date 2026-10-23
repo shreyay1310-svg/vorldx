@@ -50,10 +50,95 @@ function seedData() {
 
   const sampleEmployees = [
     {
-      id: 'VX001',
+      id: 'EMP001',
+      name: 'Neha Singh',
+      email: 'neha.singh@vorldx.com',
+      phone: '9876543211',
+      address: 'Flat 12, Gomti Nagar, Lucknow, UP - 226010',
+      department: 'Software Development',
+      designation: 'Developer',
+      shift: 'General (9:00 AM - 6:00 PM)',
+      work_type: 'Office',
+      joining_date: '10 Jan 2024',
+      status: 'Active',
+      role: 'Employee',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80',
+      verified: 1,
+      password: 'password123'
+    },
+    {
+      id: 'EMP005',
       name: 'Rohit Sharma',
       email: 'rohit.sharma@vorldx.com',
       phone: '9876543210',
+      address: 'Flat 402, Shalimar Heights, Gomti Nagar Ext., Lucknow, UP - 226010',
+      department: 'Product Design',
+      designation: 'Designer',
+      shift: 'General (9:00 AM - 6:00 PM)',
+      work_type: 'Office',
+      joining_date: '12 Feb 2024',
+      status: 'Active',
+      role: 'Employee',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+      verified: 1,
+      password: 'password123'
+    },
+    {
+      id: 'EMP012',
+      name: 'Pooja Yadav',
+      email: 'pooja.yadav@vorldx.com',
+      phone: '9654321876',
+      address: 'House No 12/B, Aliganj Main Road, Lucknow, UP - 226024',
+      department: 'Human Resources',
+      designation: 'Executive',
+      shift: 'General (9:00 AM - 6:00 PM)',
+      work_type: 'Office',
+      joining_date: '01 Mar 2024',
+      status: 'Active',
+      role: 'Employee',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80',
+      verified: 1,
+      password: 'password123'
+    },
+    {
+      id: 'EMP018',
+      name: 'Amit Kumar',
+      email: 'amit.kumar@vorldx.com',
+      phone: '9723456789',
+      address: 'Plot 88, Sector 14, Vikas Nagar, Lucknow, UP - 226022',
+      department: 'Operations',
+      designation: 'Manager',
+      shift: 'General (9:00 AM - 6:00 PM)',
+      work_type: 'Office',
+      joining_date: '15 Apr 2024',
+      status: 'Active',
+      role: 'Employee',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
+      verified: 1,
+      password: 'password123'
+    },
+    {
+      id: 'EMP020',
+      name: 'Karan Mehta',
+      email: 'karan.mehta@vorldx.com',
+      phone: '9543219870',
+      address: 'Flat 101, Eldeco Greens, Gomti Nagar, Lucknow, UP - 226010',
+      department: 'Marketing',
+      designation: 'Associate',
+      shift: 'General (9:00 AM - 6:00 PM)',
+      work_type: 'Office',
+      joining_date: '01 May 2024',
+      status: 'Active',
+      role: 'Employee',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80',
+      verified: 1,
+      password: 'password123'
+    },
+    {
+      id: 'VX001',
+      name: 'Rohit S.',
+      email: 'rohit.dev@vorldx.com',
+      phone: '9876543219',
       address: 'Flat 402, Shalimar Heights, Gomti Nagar Ext., Lucknow, UP - 226010',
       department: 'Development',
       designation: 'SDE',
@@ -73,7 +158,7 @@ function seedData() {
       phone: '9811122334',
       address: 'B-14, Indira Nagar, Near Wave Mall, Lucknow, UP - 226016',
       department: 'HR',
-      designation: 'Executive',
+      designation: 'HR Executive',
       shift: 'General (9:00 AM - 6:00 PM)',
       work_type: 'Office',
       joining_date: '15 Feb 2026',
@@ -85,9 +170,9 @@ function seedData() {
     },
     {
       id: 'VX003',
-      name: 'Amit Kumar',
-      email: 'amit.kumar@vorldx.com',
-      phone: '9723456789',
+      name: 'Amit K.',
+      email: 'amit.design@vorldx.com',
+      phone: '9723456788',
       address: 'Plot 88, Sector 14, Vikas Nagar, Lucknow, UP - 226022',
       department: 'Design',
       designation: 'UI/UX',
@@ -119,9 +204,9 @@ function seedData() {
     },
     {
       id: 'VX005',
-      name: 'Karan Mehta',
-      email: 'karan.mehta@vorldx.com',
-      phone: '9543219870',
+      name: 'Karan M.',
+      email: 'karan.ops@vorldx.com',
+      phone: '9543219871',
       address: 'Flat 101, Eldeco Greens, Gomti Nagar, Lucknow, UP - 226010',
       department: 'Operations',
       designation: 'Manager',
@@ -148,7 +233,7 @@ function seedData() {
       status: 'Inactive',
       role: 'Employee',
       avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=256&q=80',
-      verified: 0, // Unverified for testing simulated OTP flow!
+      verified: 0,
       password: 'password123'
     },
     {
@@ -380,26 +465,25 @@ function seedData() {
     admin_comment: null
   });
 
-  // HR Requester -> Admin Approver
+  // Exact Mockup 4 WFH Requests (Employee Requests)
   insertWfh.run({
-    employee_id: 'VX002', // Sneha Verma (HR)
-    request_date: '2026-10-15 to 2026-10-15',
-    from_date: '2026-10-15',
-    to_date: '2026-10-15',
+    employee_id: 'EMP001',
+    request_date: '14 Oct 2026',
+    from_date: '2026-10-14',
+    to_date: '2026-10-14',
     total_days: 1,
-    reason: 'Doctor appointment',
+    reason: 'Family function',
     status: 'Pending',
-    requester_role: 'HR',
-    approver_role: 'Admin',
+    requester_role: 'Employee',
+    approver_role: 'HR',
     reviewed_by: null,
     reviewed_at: null,
     admin_comment: null
   });
 
-  // Employee Requester -> HR Approver
   insertWfh.run({
-    employee_id: 'VX003', // Amit Kumar (Employee)
-    request_date: '2026-10-14 to 2026-10-14',
+    employee_id: 'EMP005',
+    request_date: '14 Oct 2026',
     from_date: '2026-10-14',
     to_date: '2026-10-14',
     total_days: 1,
@@ -413,33 +497,64 @@ function seedData() {
   });
 
   insertWfh.run({
-    employee_id: 'VX004', // Pooja Singh (Employee)
-    request_date: '2026-10-13 to 2026-10-13',
-    from_date: '2026-10-13',
-    to_date: '2026-10-13',
+    employee_id: 'EMP012',
+    request_date: '15 Oct 2026',
+    from_date: '2026-10-15',
+    to_date: '2026-10-15',
     total_days: 1,
-    reason: 'Internet issue',
-    status: 'Approved',
+    reason: 'Health issue',
+    status: 'Pending',
     requester_role: 'Employee',
     approver_role: 'HR',
-    reviewed_by: 'Sneha Verma (HR Lead)',
-    reviewed_at: '12 Oct 2026, 06:10 PM',
-    admin_comment: 'Approved by HR'
+    reviewed_by: null,
+    reviewed_at: null,
+    admin_comment: null
   });
 
   insertWfh.run({
-    employee_id: 'VX005', // Karan Mehta (Employee)
-    request_date: '2026-10-12 to 2026-10-12',
-    from_date: '2026-10-12',
-    to_date: '2026-10-12',
+    employee_id: 'EMP018',
+    request_date: '15 Oct 2026',
+    from_date: '2026-10-15',
+    to_date: '2026-10-15',
+    total_days: 1,
+    reason: 'Doctor appointment',
+    status: 'Pending',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: null,
+    reviewed_at: null,
+    admin_comment: null
+  });
+
+  // HR's Own Requests (Mockup 6: My Requests - Goes to Admin)
+  insertWfh.run({
+    employee_id: 'VX002', // Sneha Verma (HR Executive)
+    request_date: '16 Oct 2026',
+    from_date: '2026-10-16',
+    to_date: '2026-10-16',
+    total_days: 1,
+    reason: 'Health issue',
+    status: 'Pending',
+    requester_role: 'HR',
+    approver_role: 'Admin',
+    reviewed_by: null,
+    reviewed_at: null,
+    admin_comment: 'Waiting for Admin approval'
+  });
+
+  insertWfh.run({
+    employee_id: 'VX002', // Sneha Verma (HR Executive)
+    request_date: '05 Oct 2026',
+    from_date: '2026-10-05',
+    to_date: '2026-10-05',
     total_days: 1,
     reason: 'Family function',
     status: 'Rejected',
-    requester_role: 'Employee',
-    approver_role: 'HR',
-    reviewed_by: 'Sneha Verma (HR Lead)',
-    reviewed_at: '11 Oct 2026, 03:00 PM',
-    admin_comment: 'Important client meeting on-site'
+    requester_role: 'HR',
+    approver_role: 'Admin',
+    reviewed_by: 'Vikram Singhania (Admin)',
+    reviewed_at: '04 Oct 2026',
+    admin_comment: 'Not approved'
   });
 
   // 5b. Seed Leave Requests
@@ -451,79 +566,81 @@ function seedData() {
     )
   `);
 
+  // Mockup 5 Leave Applications (Employee Applications)
   insertLeave.run({
-    employee_id: 'VX001',
+    employee_id: 'EMP020',
     leave_type: 'Casual Leave',
-    from_date: '2026-10-18',
-    to_date: '2026-10-20',
-    total_days: 3,
-    reason: 'Family cousin wedding ceremony out of station',
-    status: 'Approved',
+    from_date: '16 Oct 2026',
+    to_date: '17 Oct 2026',
+    total_days: 2,
+    reason: 'Family function',
+    status: 'Pending',
     requester_role: 'Employee',
     approver_role: 'HR',
-    reviewed_by: 'Sneha Verma (HR Lead)',
-    reviewed_at: '12 Oct 2026, 11:30 AM',
-    hr_comment: 'Approved. Have a great time at the wedding! Ensure sprint tasks are updated.'
+    reviewed_by: null,
+    reviewed_at: null,
+    hr_comment: null
   });
 
   insertLeave.run({
-    employee_id: 'VX001',
+    employee_id: 'EMP012',
     leave_type: 'Sick Leave',
-    from_date: '2026-10-12',
-    to_date: '2026-10-12',
-    total_days: 1,
-    reason: 'Viral illness & doctor advised rest',
+    from_date: '18 Oct 2026',
+    to_date: '19 Oct 2026',
+    total_days: 2,
+    reason: 'Health issue',
+    status: 'Pending',
+    requester_role: 'Employee',
+    approver_role: 'HR',
+    reviewed_by: null,
+    reviewed_at: null,
+    hr_comment: null
+  });
+
+  insertLeave.run({
+    employee_id: 'EMP001',
+    leave_type: 'Earned Leave',
+    from_date: '20 Oct 2026',
+    to_date: '22 Oct 2026',
+    total_days: 3,
+    reason: 'Personal work',
     status: 'Approved',
     requester_role: 'Employee',
     approver_role: 'HR',
     reviewed_by: 'Sneha Verma (HR Lead)',
-    reviewed_at: '12 Oct 2026, 09:30 AM',
-    hr_comment: 'Regularized medical leave. Take care and get well soon.'
+    reviewed_at: '19 Oct 2026, 11:30 AM',
+    hr_comment: 'Approved by HR'
   });
 
   insertLeave.run({
-    employee_id: 'VX001',
-    leave_type: 'Paid Leave',
-    from_date: '2026-10-27',
-    to_date: '2026-10-28',
-    total_days: 2,
-    reason: 'Personal bank work and family documentation',
-    status: 'Pending',
-    requester_role: 'Employee',
-    approver_role: 'HR',
-    reviewed_by: null,
-    reviewed_at: null,
-    hr_comment: null
-  });
-
-  insertLeave.run({
-    employee_id: 'VX003',
+    employee_id: 'EMP005',
     leave_type: 'Casual Leave',
-    from_date: '2026-10-22',
-    to_date: '2026-10-23',
-    total_days: 2,
-    reason: 'Hometown visit',
-    status: 'Pending',
-    requester_role: 'Employee',
-    approver_role: 'HR',
-    reviewed_by: null,
-    reviewed_at: null,
-    hr_comment: null
-  });
-
-  insertLeave.run({
-    employee_id: 'VX005',
-    leave_type: 'Paid Leave',
-    from_date: '2026-10-14',
-    to_date: '2026-10-16',
-    total_days: 3,
-    reason: 'Vacation travel',
+    from_date: '25 Oct 2026',
+    to_date: '25 Oct 2026',
+    total_days: 1,
+    reason: 'Family function',
     status: 'Rejected',
     requester_role: 'Employee',
     approver_role: 'HR',
     reviewed_by: 'Sneha Verma (HR Lead)',
-    reviewed_at: '10 Oct 2026, 04:45 PM',
-    hr_comment: 'Rejected due to milestone release deadlines.'
+    reviewed_at: '24 Oct 2026, 04:45 PM',
+    hr_comment: 'Not approved due to release milestone'
+  });
+
+  // HR's Own Leave Request (Mockup 6: My Requests - Goes to Admin)
+  insertLeave.run({
+    employee_id: 'VX002', // Sneha Verma (HR)
+    leave_type: 'Casual Leave',
+    from_date: '10 Oct 2026',
+    to_date: '11 Oct 2026',
+    total_days: 2,
+    reason: 'Personal work',
+    status: 'Approved',
+    requester_role: 'HR',
+    approver_role: 'Admin',
+    reviewed_by: 'Vikram Singhania (Admin)',
+    reviewed_at: '09 Oct 2026',
+    hr_comment: 'Approved by Admin'
   });
 
   // 5c. Seed Announcements by HR

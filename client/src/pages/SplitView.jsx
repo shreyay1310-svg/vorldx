@@ -61,7 +61,7 @@ export default function SplitView({ setActiveTab }) {
       {/* Two Column Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1.25fr 1fr',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 480px), 1fr))',
         gap: '24px',
         alignItems: 'flex-start'
       }}>

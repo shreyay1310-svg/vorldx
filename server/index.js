@@ -44,12 +44,44 @@ app.get(['/api/download/apk', '/downloads/VorldX-Attendance.apk'], (req, res) =>
   }
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Direct Project Report PDF Download Endpoint
+app.get(['/api/download/report-pdf', '/downloads/VorldX-Project-Report.pdf', '/api/report-pdf'], (req, res) => {
+  const pdfPath = path.join(__dirname, 'downloads', 'VorldX-Project-Report.pdf');
+  const rootPdfPath = path.join(__dirname, '..', 'VorldX_Project_Report.pdf');
+  const fs = require('fs');
+  const target = fs.existsSync(pdfPath) ? pdfPath : (fs.existsSync(rootPdfPath) ? rootPdfPath : null);
+  if (target) {
+    res.download(target, 'VorldX_Project_Report.pdf');
+  } else {
+    res.status(404).json({ error: 'PDF Report file not found' });
+  }
+});
+
+// Dynamic network IP detection
+const os = require('os');
+function getLocalIp() {
+  const nets = os.networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return '192.168.1.77';
+}
+
+// Health check & Test Ping endpoints (supports mobile APK diagnostics)
+app.get(['/api/ping', '/ping', '/api/health', '/health'], (req, res) => {
+  const currentIp = getLocalIp();
   res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
+    status: 'online',
+    success: true,
+    message: 'VorldX Attendance Backend API is Online & Ready',
     service: 'VorldX Employee Attendance API',
+    timestamp: new Date().toISOString(),
+    ip: currentIp,
+    port: PORT,
     cin: 'U62099UP2026PTC245598'
   });
 });
@@ -64,10 +96,11 @@ if (require('fs').existsSync(clientDistPath)) {
 }
 
 app.listen(PORT, '0.0.0.0', () => {
+  const currentIp = getLocalIp();
   console.log(`=================================================`);
   console.log(`🚀 VorldX Attendance Server running on 0.0.0.0:${PORT}`);
   console.log(`📍 Headquarters: Lucknow, U.P., India (CIN: U62099UP2026PTC245598)`);
   console.log(`🌐 Local API Health Check: http://localhost:${PORT}/api/health`);
-  console.log(`🌐 Network LAN API: http://192.168.1.141:${PORT}/api/health`);
+  console.log(`🌐 Network LAN API: http://${currentIp}:${PORT}/api/health`);
   console.log(`=================================================`);
 });

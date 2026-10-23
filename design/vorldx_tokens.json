@@ -1,0 +1,117 @@
+{
+  "name": "VorldX Attendance 360 Design Tokens",
+  "version": "2.0.0",
+  "author": "VorldX Industries Pvt Ltd",
+  "color": {
+    "background": {
+      "root": { "value": "#090e1a", "type": "color", "description": "Deep obsidian main page background" },
+      "surface": { "value": "#0d1527", "type": "color", "description": "Card and table surface background" },
+      "surfaceLight": { "value": "#162035", "type": "color", "description": "Card hover and modal surface" },
+      "topbar": { "value": "rgba(11, 19, 36, 0.95)", "type": "color", "description": "Blurred sticky topbar" },
+      "sidebar": { "value": "#070c16", "type": "color", "description": "Sidebar navigation background" }
+    },
+    "brand": {
+      "purple": {
+        "100": { "value": "#f3e8ff", "type": "color" },
+        "300": { "value": "#d8b4fe", "type": "color" },
+        "400": { "value": "#c084fc", "type": "color" },
+        "500": { "value": "#a855f7", "type": "color", "description": "Primary interactive accent" },
+        "600": { "value": "#9333ea", "type": "color" },
+        "700": { "value": "#7c3aed", "type": "color", "description": "Primary button fill" }
+      },
+      "cyan": {
+        "400": { "value": "#38bdf8", "type": "color", "description": "Info and links accent" },
+        "500": { "value": "#0ea5e9", "type": "color" }
+      },
+      "emerald": {
+        "400": { "value": "#34d399", "type": "color" },
+        "500": { "value": "#10b981", "type": "color", "description": "Present and approved status" }
+      },
+      "amber": {
+        "400": { "value": "#fbbf24", "type": "color" },
+        "500": { "value": "#f59e0b", "type": "color", "description": "Pending and warning status" }
+      },
+      "rose": {
+        "400": { "value": "#f87171", "type": "color" },
+        "500": { "value": "#ef4444", "type": "color", "description": "Absent and rejection status" }
+      }
+    },
+    "text": {
+      "primary": { "value": "#ffffff", "type": "color" },
+      "secondary": { "value": "#cbd5e1", "type": "color" },
+      "muted": { "value": "#94a3b8", "type": "color" },
+      "dim": { "value": "#64748b", "type": "color" }
+    },
+    "border": {
+      "subtle": { "value": "rgba(255, 255, 255, 0.08)", "type": "color" },
+      "medium": { "value": "rgba(255, 255, 255, 0.15)", "type": "color" },
+      "accent": { "value": "rgba(168, 85, 247, 0.4)", "type": "color" }
+    }
+  },
+  "borderRadius": {
+    "sm": { "value": "4px", "type": "borderRadius" },
+    "md": { "value": "8px", "type": "borderRadius" },
+    "lg": { "value": "12px", "type": "borderRadius" },
+    "xl": { "value": "16px", "type": "borderRadius" },
+    "full": { "value": "9999px", "type": "borderRadius" }
+  },
+  "spacing": {
+    "xs": { "value": "4px", "type": "spacing" },
+    "sm": { "value": "8px", "type": "spacing" },
+    "md": { "value": "16px", "type": "spacing" },
+    "lg": { "value": "24px", "type": "spacing" },
+    "xl": { "value": "32px", "type": "spacing" }
+  },
+  "boxShadow": {
+    "purpleGlow": {
+      "value": {
+        "x": "0",
+        "y": "4px",
+        "blur": "14px",
+        "spread": "0",
+        "color": "rgba(124, 58, 237, 0.4)",
+        "type": "dropShadow"
+      }
+    },
+    "cardElevation": {
+      "value": {
+        "x": "0",
+        "y": "8px",
+        "blur": "24px",
+        "spread": "0",
+        "color": "rgba(0, 0, 0, 0.4)",
+        "type": "dropShadow"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": { "value": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", "type": "fontFamilies" }
+    },
+    "header1": {
+      "fontFamily": "'Inter'",
+      "fontWeight": "800",
+      "fontSize": "24px",
+      "lineHeight": "32px",
+      "letterSpacing": "-0.01em"
+    },
+    "cardTitle": {
+      "fontFamily": "'Inter'",
+      "fontWeight": "700",
+      "fontSize": "16px",
+      "lineHeight": "24px"
+    },
+    "bodyRegular": {
+      "fontFamily": "'Inter'",
+      "fontWeight": "400",
+      "fontSize": "13px",
+      "lineHeight": "18px"
+    },
+    "badgeSmall": {
+      "fontFamily": "'Inter'",
+      "fontWeight": "700",
+      "fontSize": "11px",
+      "lineHeight": "14px"
+    }
+  }
+}

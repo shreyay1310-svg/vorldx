@@ -86,9 +86,14 @@ const AVATAR_PRESETS = [
   'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=128&q=80'
 ];
 
-export default function EmployeeApp({ isEmbedded = false, isNativeApp = false }) {
+export default function EmployeeApp({
+  isEmbedded = false,
+  isNativeApp = false,
+  initialEmployee,
+  onLogout
+} = {}) {
   const [showServerModal, setShowServerModal] = useState(false);
-  const [serverUrlInput, setServerUrlInput] = useState(() => getServerUrl() || 'http://192.168.1.141:5000');
+  const [serverUrlInput, setServerUrlInput] = useState(() => getServerUrl() || 'http://192.168.1.77:5000');
   const [serverSavedMsg, setServerSavedMsg] = useState('');
   const [serverOnline, setServerOnline] = useState(true);
   const [testingPing, setTestingPing] = useState(false);
@@ -104,7 +109,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
   const [mobileScreen, setMobileScreen] = useState('home');
 
   // Active employee state (Rohit Sharma VX001 default)
-  const [activeEmployee, setActiveEmployee] = useState({
+  const [activeEmployee, setActiveEmployee] = useState(initialEmployee || {
     id: 'VX001',
     name: 'Rohit Sharma',
     department: 'Development',
@@ -387,6 +392,10 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
       created_at: '01 Oct 2026'
     }
   ]);
+
+  // Derived helper arrays for WFH & Leave requests (used by Attendance History & Calendar)
+  const leaveRequests = (requestsHistory || []).filter(r => r.type === 'leave');
+  const wfhRequests = (requestsHistory || []).filter(r => r.type === 'wfh');
 
   // 4. Announcements by HR state (Screen 13)
   const [announcements, setAnnouncements] = useState([
@@ -862,8 +871,8 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     // 1. Check if there's an explicit record in HISTORY_MONTHS
     const directRecord = (monthObj.records || []).find(r => r.date === dateFormatted);
     if (directRecord) {
-      const matchingWfh = wfhRequests.find(w => w.from_date <= isoDate && isoDate <= w.to_date);
-      const matchingLeave = leaveRequests.find(l => l.from_date <= isoDate && isoDate <= l.to_date);
+      const matchingWfh = (wfhRequests || []).find(w => w.from_date <= isoDate && isoDate <= w.to_date);
+      const matchingLeave = (leaveRequests || []).find(l => l.from_date <= isoDate && isoDate <= l.to_date);
       return {
         ...directRecord,
         hrApproval: matchingWfh || matchingLeave || null
@@ -871,7 +880,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     }
 
     // 2. Check if employee has an active/approved WFH or Leave on this date
-    const matchingWfh = wfhRequests.find(w => w.from_date <= isoDate && isoDate <= w.to_date);
+    const matchingWfh = (wfhRequests || []).find(w => w.from_date <= isoDate && isoDate <= w.to_date);
     if (matchingWfh) {
       const isAppr = matchingWfh.status === 'Approved';
       return {
@@ -888,7 +897,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
       };
     }
 
-    const matchingLeave = leaveRequests.find(l => l.from_date <= isoDate && isoDate <= l.to_date);
+    const matchingLeave = (leaveRequests || []).find(l => l.from_date <= isoDate && isoDate <= l.to_date);
     if (matchingLeave) {
       const isAppr = matchingLeave.status === 'Approved';
       return {
@@ -1635,26 +1644,32 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
     setTestingPing(true);
     setPingResult('Testing backend connection...');
     try {
-      const ok = await api.pingServer(serverUrlInput);
+      const res = await api.pingServer(serverUrlInput);
       setTestingPing(false);
-      if (ok) {
-        setPingResult('🟢 Server reachable! Status: 200 OK');
+      if (res && res.ok) {
+        setPingResult(`🟢 Connected! Status: 200 OK (${res.latency || 15}ms) • VorldX Backend Online`);
         setServerOnline(true);
       } else {
-        setPingResult('🔴 Unreachable. Check host IP and ensure server is running.');
+        setPingResult(`🔴 Unreachable (${res?.error || 'Timed out'}). Ensure phone is on same Wi-Fi & PC server is running.`);
         setServerOnline(false);
       }
     } catch (e) {
       setTestingPing(false);
-      setPingResult('🔴 Connection failed.');
+      setPingResult('🔴 Connection failed. Check host IP or switch Wi-Fi.');
       setServerOnline(false);
     }
   };
 
-  const handleSaveServerUrl = () => {
+  const handleSaveServerUrl = async () => {
     setCustomServerUrl(serverUrlInput);
-    setServerSavedMsg('Server IP updated successfully!');
-    checkConnection();
+    setServerSavedMsg('Server IP saved! Connecting...');
+    const res = await api.pingServer(serverUrlInput);
+    if (res && res.ok) {
+      setServerOnline(true);
+      setServerSavedMsg(`Connected to ${serverUrlInput} (${res.latency || 10}ms)!`);
+    } else {
+      setServerSavedMsg('Saved! (Make sure phone is connected to Wi-Fi)');
+    }
     setTimeout(() => {
       setServerSavedMsg('');
       setShowServerModal(false);
@@ -1664,8 +1679,8 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
 
   const handleResetServerUrl = () => {
     setCustomServerUrl('');
-    setServerUrlInput('http://192.168.1.141:5000');
-    setServerSavedMsg('Reset to default LAN IP!');
+    setServerUrlInput('http://192.168.1.77:5000');
+    setServerSavedMsg('Reset to default LAN IP (192.168.1.77:5000)!');
     checkConnection();
     setTimeout(() => {
       setServerSavedMsg('');
@@ -1770,7 +1785,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   type="text"
                   value={serverUrlInput}
                   onChange={(e) => setServerUrlInput(e.target.value)}
-                  placeholder="http://192.168.1.141:5000"
+                  placeholder="http://192.168.1.77:5000"
                   className="input-control"
                   style={{ fontSize: '0.85rem', flex: 1 }}
                 />
@@ -1819,16 +1834,16 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               <button
                 type="button"
-                onClick={() => setServerUrlInput('http://192.168.1.141:5000')}
+                onClick={() => setServerUrlInput('http://192.168.1.77:5000')}
                 style={{
                   flex: 1,
-                  padding: '7px 8px',
+                  padding: '8px 8px',
                   borderRadius: '8px',
-                  background: serverUrlInput === 'http://192.168.1.141:5000' ? 'rgba(56, 189, 248, 0.2)' : '#111c34',
-                  border: serverUrlInput === 'http://192.168.1.141:5000' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.08)',
-                  color: serverUrlInput === 'http://192.168.1.141:5000' ? '#38bdf8' : '#cbd5e1',
+                  background: serverUrlInput.includes('192.168.1.') ? 'rgba(56, 189, 248, 0.2)' : '#111c34',
+                  border: serverUrlInput.includes('192.168.1.') ? '1.5px solid #38bdf8' : '1px solid rgba(255,255,255,0.08)',
+                  color: serverUrlInput.includes('192.168.1.') ? '#38bdf8' : '#cbd5e1',
                   fontSize: '0.72rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: 'pointer'
                 }}
               >
@@ -1836,16 +1851,16 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
               </button>
               <button
                 type="button"
-                onClick={() => setServerUrlInput('https://easy-doors-exist.loca.lt')}
+                onClick={() => setServerUrlInput('https://client-mauve-eight-72.vercel.app')}
                 style={{
                   flex: 1,
-                  padding: '7px 8px',
+                  padding: '8px 8px',
                   borderRadius: '8px',
-                  background: serverUrlInput === 'https://easy-doors-exist.loca.lt' ? 'rgba(16, 185, 129, 0.2)' : '#111c34',
-                  border: serverUrlInput === 'https://easy-doors-exist.loca.lt' ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.08)',
-                  color: serverUrlInput === 'https://easy-doors-exist.loca.lt' ? '#34d399' : '#cbd5e1',
+                  background: serverUrlInput.includes('vercel.app') ? 'rgba(16, 185, 129, 0.2)' : '#111c34',
+                  border: serverUrlInput.includes('vercel.app') ? '1.5px solid #10b981' : '1px solid rgba(255,255,255,0.08)',
+                  color: serverUrlInput.includes('vercel.app') ? '#34d399' : '#cbd5e1',
                   fontSize: '0.72rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: 'pointer'
                 }}
               >
@@ -1859,13 +1874,13 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
               background: 'rgba(255, 255, 255, 0.04)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               fontSize: '0.72rem',
-              color: '#94a3b8',
-              lineHeight: 1.45,
+              color: '#cbd5e1',
+              lineHeight: 1.5,
               marginBottom: '14px'
             }}>
-              💡 <strong>Network Guide:</strong><br />
-              • Agar phone <strong>5G Mobile Data</strong> par hai: <strong>Cloud 5G</strong> select karein.<br />
-              • Agar phone <strong>Wi-Fi</strong> par hai: phone ko computer wale same Wi-Fi se connect karein.
+              💡 <strong>Connectivity Guide:</strong><br />
+              • <strong>Same Wi-Fi:</strong> Phone ka Wi-Fi ON karein aur computer wale same Wi-Fi router se connect karein. URL: <span style={{ color: '#38bdf8', fontWeight: 700 }}>http://192.168.1.77:5000</span><br />
+              • <strong>5G Mobile Data:</strong> Agar phone 5G mobile data par hai, Cloud 5G select karein ya phone ko Wi-Fi se connect karein.
             </div>
 
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
@@ -3487,10 +3502,11 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                 const startDayOfWeek = currentMonth.startDayOfWeek !== undefined ? currentMonth.startDayOfWeek : 4;
                 const isCurrentMonth = historyMonthIdx === 0;
 
-                const selectedDateObj = new Date(activeYear, activeMonthNum - 1, selectedCalDay);
+                const validDay = Math.min(Math.max(1, selectedCalDay || 1), totalDays);
+                const selectedDateObj = new Date(activeYear, activeMonthNum - 1, validDay);
                 const dayNameShort = selectedDateObj.toLocaleDateString('en-US', { weekday: 'short' });
                 const monthShort = selectedDateObj.toLocaleDateString('en-US', { month: 'short' });
-                const activeAttendance = getSelectedDayAttendance(currentMonth, selectedCalDay);
+                const activeAttendance = getSelectedDayAttendance(currentMonth, validDay);
 
                 const isPresent = activeAttendance?.status === 'Present';
                 const isLate = activeAttendance?.status === 'Late';
@@ -4013,7 +4029,7 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
 
                   {/* Clickable Attendance Records List */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '20px' }}>
-                    {currentMonth.records.map((item, idx) => {
+                    {(currentMonth?.records || []).map((item, idx) => {
                       const isPresent = item.status === 'Present';
                       const isLate = item.status === 'Late';
                       const isAbsent = item.status === 'Absent';
@@ -4179,8 +4195,8 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                       marginBottom: '14px'
                     }}>
                       <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Attendance Status</span>
-                      <span className={`badge badge-${selectedHistoryItem.status.toLowerCase()}`}>
-                        {selectedHistoryItem.status}
+                      <span className={`badge badge-${(selectedHistoryItem?.status || 'present').toLowerCase()}`}>
+                        {selectedHistoryItem?.status}
                       </span>
                     </div>
 
@@ -4452,34 +4468,213 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const idx = HISTORY_MONTHS.findIndex(m => m.key === selectedMonthKey);
-                    if (idx !== -1) setHistoryMonthIdx(idx);
-                    setHistoryViewMode('calendar');
-                    setMobileScreen('history');
-                  }}
-                  style={{
-                    marginTop: '12px',
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    background: 'rgba(0, 137, 123, 0.15)',
-                    border: '1px solid rgba(0, 137, 123, 0.4)',
-                    color: '#2dd4bf',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <Calendar size={13} color="#2dd4bf" />
-                  <span>Open in Material Calendar ({currentStats.short}) →</span>
-                </button>
+                {/* ==============================================================
+                    EMBEDDED INTERACTIVE CLICKABLE CALENDAR (Inside Active Overview)
+                   ============================================================== */}
+                {(() => {
+                  const currentMonthObj = HISTORY_MONTHS.find(m => m.key === selectedMonthKey) || HISTORY_MONTHS[0];
+                  const totalMonthDays = currentMonthObj?.daysInMonth || 31;
+                  const startDayOfWeek = currentMonthObj?.startDayOfWeek !== undefined ? currentMonthObj.startDayOfWeek : 4;
+                  const activeCalDay = Math.min(Math.max(1, selectedCalDay || 16), totalMonthDays);
+                  const activeRecord = getSelectedDayAttendance(currentMonthObj, activeCalDay);
+
+                  return (
+                    <div style={{
+                      marginTop: '14px',
+                      background: 'rgba(7, 13, 25, 0.75)',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      border: '1px solid rgba(0, 137, 123, 0.4)',
+                      boxShadow: '0 6px 18px rgba(0,0,0,0.35)'
+                    }}>
+                      {/* Calendar Top Header */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Calendar size={15} color="#00897b" />
+                          <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#ffffff' }}>
+                            {currentMonthObj.label} Interactive Calendar
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '0.66rem', color: '#2dd4bf', fontWeight: 700 }}>
+                          Tap any date to inspect
+                        </span>
+                      </div>
+
+                      {/* Weekday Row (S M T W T F S) */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(7, 1fr)',
+                        textAlign: 'center',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        color: '#94a3b8',
+                        marginBottom: '6px'
+                      }}>
+                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((dayChar, i) => (
+                          <div key={i}>{dayChar}</div>
+                        ))}
+                      </div>
+
+                      {/* 7-Column Interactive Days Grid */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(7, 1fr)',
+                        gap: '4px',
+                        textAlign: 'center'
+                      }}>
+                        {/* Blank cells */}
+                        {Array.from({ length: startDayOfWeek }).map((_, i) => (
+                          <div key={`blank-stats-${i}`} style={{ height: '35px' }} />
+                        ))}
+
+                        {/* Day numbers 1 to totalMonthDays */}
+                        {Array.from({ length: totalMonthDays }).map((_, i) => {
+                          const dayNum = i + 1;
+                          const isSelected = activeCalDay === dayNum;
+                          const dayRecord = getSelectedDayAttendance(currentMonthObj, dayNum);
+                          const dStatus = dayRecord?.status;
+                          const dotColor = 
+                            dStatus === 'Present' ? '#10b981' :
+                            dStatus === 'WFH' ? '#0284c7' :
+                            dStatus === 'Leave' ? '#fbbf24' :
+                            dStatus === 'Late' ? '#f59e0b' :
+                            dStatus === 'Absent' ? '#ef4444' :
+                            dStatus === 'Holiday' ? '#94a3b8' :
+                            '#475569';
+
+                          return (
+                            <div
+                              key={dayNum}
+                              onClick={() => setSelectedCalDay(dayNum)}
+                              style={{
+                                height: '36px',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                background: isSelected ? '#00897b' : 'rgba(255, 255, 255, 0.03)',
+                                border: isSelected ? '1.5px solid #2dd4bf' : '1px solid rgba(255, 255, 255, 0.05)',
+                                boxShadow: isSelected ? '0 0 10px rgba(0, 137, 123, 0.6)' : 'none',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <span style={{
+                                fontSize: '0.78rem',
+                                fontWeight: isSelected ? 800 : 600,
+                                color: isSelected ? '#ffffff' : '#e2e8f0'
+                              }}>
+                                {dayNum}
+                              </span>
+                              <span style={{
+                                width: '4px',
+                                height: '4px',
+                                borderRadius: '50%',
+                                background: isSelected ? '#ffffff' : dotColor,
+                                marginTop: '1px'
+                              }} />
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Clicked Date Live Record Inspection Card */}
+                      {activeRecord && (
+                        <div style={{
+                          marginTop: '12px',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(56, 189, 248, 0.25)',
+                          borderRadius: '10px',
+                          padding: '10px 12px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Clock size={13} color="#38bdf8" />
+                              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#ffffff' }}>
+                                {activeRecord.date} ({activeRecord.dayName})
+                              </span>
+                            </div>
+                            <span className={`badge badge-${(activeRecord.status || 'present').toLowerCase()}`}>
+                              {activeRecord.status}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '0.7rem' }}>
+                            <div>
+                              <span style={{ color: '#94a3b8' }}>Check-in: </span>
+                              <strong style={{ color: '#34d399' }}>{activeRecord.check_in}</strong>
+                            </div>
+                            <div>
+                              <span style={{ color: '#94a3b8' }}>Check-out: </span>
+                              <strong style={{ color: '#38bdf8' }}>{activeRecord.check_out}</strong>
+                            </div>
+                            <div>
+                              <span style={{ color: '#94a3b8' }}>Duration: </span>
+                              <strong style={{ color: '#ffffff' }}>{activeRecord.duration}</strong>
+                            </div>
+                            <div>
+                              <span style={{ color: '#94a3b8' }}>Mode: </span>
+                              <strong style={{ color: '#cbd5e1' }}>{activeRecord.mode}</strong>
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: '0.71rem', color: '#cbd5e1', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '6px' }}>
+                            <strong style={{ color: '#ffffff' }}>Reason: </strong>
+                            {activeRecord.reason}
+                          </div>
+
+                          {activeRecord.hrApproval && (
+                            <div style={{
+                              padding: '6px 8px',
+                              borderRadius: '6px',
+                              background: 'rgba(16, 185, 129, 0.1)',
+                              border: '1px solid rgba(16, 185, 129, 0.25)',
+                              fontSize: '0.68rem',
+                              color: '#34d399'
+                            }}>
+                              HR Review: {activeRecord.hrApproval.status} by {activeRecord.hrApproval.reviewed_by || 'Sneha Verma'} • "{activeRecord.hrApproval.hr_comment || 'Approved'}"
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Button to open fullscreen Material dialog if desired */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const idx = HISTORY_MONTHS.findIndex(m => m.key === selectedMonthKey);
+                          if (idx !== -1) setHistoryMonthIdx(idx);
+                          setHistoryViewMode('calendar');
+                          setMobileScreen('history');
+                        }}
+                        style={{
+                          marginTop: '10px',
+                          width: '100%',
+                          padding: '7px 10px',
+                          borderRadius: '8px',
+                          background: 'rgba(0, 137, 123, 0.15)',
+                          border: '1px solid rgba(0, 137, 123, 0.4)',
+                          color: '#2dd4bf',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '5px'
+                        }}
+                      >
+                        <ExternalLink size={12} color="#2dd4bf" />
+                        <span>Open in Full-Screen Material View ({currentStats.short}) →</span>
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* 4 Key Metric Cards (Present, WFH, Absent, Leaves) */}
@@ -4990,7 +5185,10 @@ export default function EmployeeApp({ isEmbedded = false, isNativeApp = false })
             </div>
 
             <button
-              onClick={() => setMobileScreen('login')}
+              onClick={() => {
+                if (onLogout) onLogout();
+                else setMobileScreen('login');
+              }}
               style={{
                 marginTop: 'auto',
                 display: 'flex',

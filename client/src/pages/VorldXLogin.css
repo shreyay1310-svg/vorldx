@@ -1,0 +1,1160 @@
+/* ==========================================================================
+   VorldX Login & Welcome Portal - Pixel-Perfect UI
+   HR & Admin Management Portal | Lucknow HQ v2.0
+   ========================================================================== */
+
+.vx-login-page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  font-family: var(--font-body, 'Inter', -apple-system, sans-serif);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light Theme (Mockup Default) */
+.vx-login-page.theme-light {
+  background: linear-gradient(135deg, #e8f2ff 0%, #dbeafe 35%, #e2eeff 70%, #d0e4ff 100%);
+  color: #0f172a;
+}
+
+/* Dark Theme */
+.vx-login-page.theme-dark {
+  background: radial-gradient(circle at 50% 20%, #0d1b38 0%, #060a14 85%);
+  color: #f8fafc;
+}
+
+/* --------------------------------------------------------------------------
+   ORGANIC BACKGROUND WAVE OVERLAYS
+   -------------------------------------------------------------------------- */
+.vx-bg-waves {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.vx-wave-top-left {
+  position: absolute;
+  top: -100px;
+  left: -80px;
+  width: 520px;
+  height: 520px;
+  border-radius: 48% 52% 60% 40% / 45% 55% 45% 55%;
+  background: radial-gradient(circle, rgba(186, 230, 253, 0.65) 0%, rgba(219, 234, 254, 0.2) 70%, transparent 100%);
+  filter: blur(40px);
+}
+
+.vx-wave-bottom-right {
+  position: absolute;
+  bottom: -150px;
+  right: -100px;
+  width: 650px;
+  height: 650px;
+  border-radius: 50% 50% 45% 55% / 60% 40% 60% 40%;
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.5) 0%, rgba(191, 219, 254, 0.25) 60%, transparent 100%);
+  filter: blur(50px);
+}
+
+.vx-wave-center-curve {
+  position: absolute;
+  top: 15%;
+  left: 32%;
+  width: 480px;
+  height: 600px;
+  background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+  filter: blur(60px);
+}
+
+.theme-dark .vx-wave-top-left {
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, transparent 70%);
+}
+
+.theme-dark .vx-wave-bottom-right {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+}
+
+/* --------------------------------------------------------------------------
+   HEADER NAVIGATION (Top Bar)
+   -------------------------------------------------------------------------- */
+.vx-header {
+  height: 68px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.theme-dark .vx-header {
+  background: rgba(11, 19, 36, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.vx-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vx-header-logo {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0b1329;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.theme-dark .vx-header-logo {
+  color: #ffffff;
+}
+
+.vx-header-logo .vx-accent-x {
+  color: #2563eb;
+  position: relative;
+  display: inline-block;
+  margin-left: 1px;
+}
+
+.vx-header-divider {
+  width: 1px;
+  height: 22px;
+  background-color: #cbd5e1;
+}
+
+.theme-dark .vx-header-divider {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.vx-header-portal-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.theme-dark .vx-header-portal-title {
+  color: #e2e8f0;
+}
+
+.vx-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vx-location-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(203, 213, 225, 0.6);
+}
+
+.theme-dark .vx-location-badge {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.vx-version-tag {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.theme-dark .vx-version-tag {
+  color: #94a3b8;
+}
+
+.vx-theme-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  background: rgba(255, 255, 255, 0.8);
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.vx-theme-btn:hover {
+  background: #ffffff;
+  transform: rotate(20deg) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.theme-dark .vx-theme-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+}
+
+/* --------------------------------------------------------------------------
+   MAIN HERO & LOGIN GRID
+   -------------------------------------------------------------------------- */
+.vx-main-content {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1360px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 30px 48px;
+  gap: 40px;
+}
+
+/* --------------------------------------------------------------------------
+   LEFT HERO SECTION
+   -------------------------------------------------------------------------- */
+.vx-hero-left {
+  flex: 0 0 480px;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+}
+
+.vx-hero-welcome {
+  font-size: 1.45rem;
+  font-weight: 500;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+
+.theme-dark .vx-hero-welcome {
+  color: #94a3b8;
+}
+
+.vx-hero-brand {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 4.4rem;
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: #090e17;
+  margin-bottom: 6px;
+}
+
+.theme-dark .vx-hero-brand {
+  color: #ffffff;
+}
+
+.vx-hero-brand .vx-brand-x {
+  color: #2563eb;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.vx-hero-subtitle {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.theme-dark .vx-hero-subtitle {
+  color: #f1f5f9;
+}
+
+.vx-hero-pillars {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 16px;
+}
+
+.theme-dark .vx-hero-pillars {
+  color: #94a3b8;
+}
+
+.vx-hero-pillars span {
+  opacity: 0.6;
+}
+
+.vx-hero-description {
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: #475569;
+  max-width: 440px;
+  margin-bottom: 28px;
+}
+
+.theme-dark .vx-hero-description {
+  color: #cbd5e1;
+}
+
+/* 2x2 Feature Grid */
+.vx-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 28px;
+  margin-bottom: 30px;
+  max-width: 380px;
+}
+
+.vx-feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  transition: transform 0.25s ease;
+}
+
+.vx-feature-card:hover {
+  transform: translateY(-3px);
+}
+
+.vx-feature-icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.12);
+  transition: all 0.25s ease;
+}
+
+.vx-icon-shield {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.vx-icon-users {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.vx-icon-insights {
+  background: #ede9fe;
+  color: #6366f1;
+}
+
+.vx-icon-settings {
+  background: #f3e8ff;
+  color: #9333ea;
+}
+
+.theme-dark .vx-icon-shield {
+  background: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+}
+
+.theme-dark .vx-icon-users {
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+}
+
+.theme-dark .vx-icon-insights {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+}
+
+.theme-dark .vx-icon-settings {
+  background: rgba(147, 51, 234, 0.2);
+  color: #c084fc;
+}
+
+.vx-feature-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.theme-dark .vx-feature-label {
+  color: #f1f5f9;
+}
+
+/* Quote Badge at bottom left */
+.vx-quote-badge {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+  padding: 16px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 380px;
+  box-shadow: 0 10px 30px -8px rgba(30, 58, 138, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+.theme-dark .vx-quote-badge {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.5);
+}
+
+.vx-quote-mark {
+  color: #2563eb;
+  font-size: 2.6rem;
+  font-weight: 900;
+  line-height: 0.8;
+  font-family: Georgia, serif;
+}
+
+.vx-quote-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.vx-quote-line1 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.theme-dark .vx-quote-line1 {
+  color: #e2e8f0;
+}
+
+.vx-quote-line2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 2px;
+}
+
+.theme-dark .vx-quote-line2 {
+  color: #ffffff;
+}
+
+.vx-quote-line2::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: #3b82f6;
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   CENTER ARCHITECTURAL BUILDING BACKDROP
+   -------------------------------------------------------------------------- */
+.vx-building-backdrop {
+  position: absolute;
+  left: 45%;
+  right: 180px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 86%;
+  max-height: 740px;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -15px rgba(30, 58, 138, 0.15);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.98;
+  transition: opacity 0.3s ease;
+}
+
+.vx-building-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 25% center;
+  filter: contrast(1.05) saturate(1.1);
+}
+
+.vx-building-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(238, 245, 255, 0.45) 0%,
+    rgba(219, 234, 254, 0.1) 40%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  mix-blend-mode: overlay;
+}
+
+.theme-dark .vx-building-backdrop {
+  opacity: 0.55;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+}
+
+.theme-dark .vx-building-overlay {
+  background: linear-gradient(135deg, rgba(11, 19, 36, 0.8) 0%, rgba(6, 10, 20, 0.6) 100%);
+  mix-blend-mode: multiply;
+}
+
+/* --------------------------------------------------------------------------
+   RIGHT SIGN-IN CARD
+   -------------------------------------------------------------------------- */
+.vx-login-card-wrapper {
+  flex: 0 0 460px;
+  max-width: 460px;
+  width: 100%;
+  z-index: 3;
+}
+
+.vx-login-card {
+  background: #ffffff;
+  border-radius: 26px;
+  padding: 34px 32px 30px;
+  box-shadow: 0 25px 60px -10px rgba(15, 23, 42, 0.14), 0 0 1px 1px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.theme-dark .vx-login-card {
+  background: rgba(15, 23, 42, 0.92);
+  border-color: rgba(56, 189, 248, 0.25);
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(37, 99, 235, 0.15);
+  backdrop-filter: blur(16px);
+}
+
+/* Card Top Branding */
+.vx-card-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.vx-card-app-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.4);
+  margin-bottom: 12px;
+}
+
+.vx-card-brand-title {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1.85rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0b1329;
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+}
+
+.theme-dark .vx-card-brand-title {
+  color: #ffffff;
+}
+
+.vx-card-brand-title .vx-card-x {
+  color: #2563eb;
+}
+
+.vx-card-portal-badge {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2563eb;
+  margin-top: 2px;
+  letter-spacing: -0.01em;
+}
+
+.vx-card-subtext {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.theme-dark .vx-card-subtext {
+  color: #94a3b8;
+}
+
+/* Role Selector Tabs */
+.vx-role-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 4px;
+}
+
+.theme-dark .vx-role-tabs {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.vx-role-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 8px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.vx-role-tab-btn:hover:not(.active) {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.theme-dark .vx-role-tab-btn {
+  color: #94a3b8;
+}
+
+.theme-dark .vx-role-tab-btn:hover:not(.active) {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.vx-role-tab-btn.active {
+  background: #1d4ed8;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
+}
+
+/* Form Styles */
+.vx-form-group {
+  margin-bottom: 16px;
+}
+
+.vx-input-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.theme-dark .vx-input-label {
+  color: #e2e8f0;
+}
+
+.vx-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 11px;
+  padding: 0 14px;
+  transition: all 0.2s ease;
+}
+
+.vx-input-wrapper:focus-within {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.theme-dark .vx-input-wrapper {
+  background: rgba(11, 19, 36, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.theme-dark .vx-input-wrapper:focus-within {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.vx-input-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.vx-input-field {
+  width: 100%;
+  height: 44px;
+  border: none;
+  background: transparent;
+  font-size: 0.92rem;
+  color: #0f172a;
+  outline: none;
+  font-family: inherit;
+}
+
+.theme-dark .vx-input-field {
+  color: #f8fafc;
+}
+
+.vx-input-field::placeholder {
+  color: #94a3b8;
+}
+
+.vx-eye-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.vx-eye-btn:hover {
+  color: #1e293b;
+}
+
+.theme-dark .vx-eye-btn:hover {
+  color: #ffffff;
+}
+
+/* Options Row: Remember Me & Forgot Password */
+.vx-form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 20px;
+  font-size: 0.86rem;
+}
+
+.vx-remember-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #334155;
+  font-weight: 600;
+  user-select: none;
+}
+
+.theme-dark .vx-remember-box {
+  color: #cbd5e1;
+}
+
+.vx-custom-checkbox {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.vx-custom-checkbox.checked {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.theme-dark .vx-custom-checkbox {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .vx-custom-checkbox.checked {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.vx-forgot-link {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.vx-forgot-link:hover {
+  text-decoration: underline;
+  color: #1d4ed8;
+}
+
+.theme-dark .vx-forgot-link {
+  color: #38bdf8;
+}
+
+/* Primary Submit Button */
+.vx-submit-btn {
+  width: 100%;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.45);
+  transition: all 0.25s ease;
+}
+
+.vx-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px -4px rgba(37, 99, 235, 0.55);
+}
+
+.vx-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Error Banner */
+.vx-login-error {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Divider "Or continue with" */
+.vx-divider {
+  display: flex;
+  align-items: center;
+  margin: 22px 0 18px;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.theme-dark .vx-divider {
+  color: #94a3b8;
+}
+
+.vx-divider::before,
+.vx-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.theme-dark .vx-divider::before,
+.theme-dark .vx-divider::after {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.vx-divider span {
+  padding: 0 12px;
+}
+
+/* Alternate Login Buttons (SSO & Biometric) */
+.vx-alt-login-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.vx-alt-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vx-alt-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.theme-dark .vx-alt-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+}
+
+.theme-dark .vx-alt-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Quick 1-Click Demo Credentials Bar */
+.vx-demo-bar {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  text-align: center;
+}
+
+.theme-dark .vx-demo-bar {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.vx-demo-bar-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.vx-demo-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.vx-demo-pill {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  background: rgba(37, 99, 235, 0.05);
+  color: #2563eb;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vx-demo-pill:hover {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.theme-dark .vx-demo-pill {
+  border-color: rgba(56, 189, 248, 0.3);
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+}
+
+.theme-dark .vx-demo-pill:hover {
+  background: #38bdf8;
+  color: #0b1329;
+}
+
+/* --------------------------------------------------------------------------
+   INTERACTIVE SIMULATION MODALS (SSO & BIOMETRIC)
+   -------------------------------------------------------------------------- */
+.vx-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 24, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: vxFadeIn 0.2s ease-out;
+}
+
+.vx-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.theme-dark .vx-modal-card {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.vx-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f1f5f9;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.theme-dark .vx-modal-close {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.vx-fingerprint-pulse {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.1);
+  border: 2px solid #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px auto;
+  color: #2563eb;
+  animation: vxPulse 1.8s infinite;
+}
+
+@keyframes vxPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 16px rgba(37, 99, 235, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+@keyframes vxFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Quick Explorer Pill */
+.vx-quick-nav-pill {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(12px);
+  padding: 6px 16px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.vx-quick-nav-pill button {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vx-quick-nav-pill button:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE BREAKPOINTS
+   -------------------------------------------------------------------------- */
+@media (max-width: 1120px) {
+  .vx-building-backdrop {
+    display: none;
+  }
+  .vx-main-content {
+    justify-content: center;
+    gap: 40px;
+    padding: 24px;
+  }
+}
+
+@media (max-width: 860px) {
+  .vx-header {
+    padding: 0 20px;
+  }
+  .vx-main-content {
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+  }
+  .vx-hero-left {
+    max-width: 100%;
+    text-align: center;
+    align-items: center;
+  }
+  .vx-hero-brand {
+    font-size: 3.4rem;
+  }
+  .vx-hero-subtitle {
+    font-size: 1.4rem;
+  }
+  .vx-features-grid {
+    max-width: 360px;
+  }
+  .vx-quote-badge {
+    max-width: 100%;
+    width: 100%;
+  }
+  .vx-login-card-wrapper {
+    flex: auto;
+    max-width: 100%;
+  }
+}

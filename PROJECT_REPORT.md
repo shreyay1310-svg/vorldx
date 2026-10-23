@@ -129,9 +129,27 @@ The **VorldX Employee Attendance System** is an enterprise full-stack attendance
 
 ---
 
-## 7. Conclusion
+## 7. Enterprise Database Architecture (Microsoft SQL Server)
 
-The **VorldX Employee Attendance System** fully implements the 18 user interface screens, role-based access control matrix, hierarchical WFH workflow, and full-stack integration required by VorldX Industries Private Limited.
+To support enterprise-grade high availability, concurrency, and corporate compliance, the entire database schema has been designed and implemented in **Microsoft SQL Server (T-SQL)** with complete parity across all 7 Admin Portal screens and 6 Employee Portal screens:
+
+- **Master Database Name:** `WorldX_Attendance360`
+- **One-Click Master Setup Script:** [`WorldX_Complete_Master_Setup.sql`](file:///c:/Users/shrey/OneDrive/Desktop/vorldx/database/WorldX_Complete_Master_Setup.sql)
+- **Modular Schema Script:** [`WorldX_SQLServer_Schema.sql`](file:///c:/Users/shrey/OneDrive/Desktop/vorldx/database/WorldX_SQLServer_Schema.sql)
+- **Production Seed Data Script:** [`WorldX_SQLServer_SeedData.sql`](file:///c:/Users/shrey/OneDrive/Desktop/vorldx/database/WorldX_SQLServer_SeedData.sql)
+- **Node.js Connection Adapter:** [`mssql_adapter.js`](file:///c:/Users/shrey/OneDrive/Desktop/vorldx/database/mssql_adapter.js)
+- **Comprehensive Setup Guide:** [`SQL_SERVER_SETUP_GUIDE.md`](file:///c:/Users/shrey/OneDrive/Desktop/vorldx/database/SQL_SERVER_SETUP_GUIDE.md)
+
+### Key SQL Server Database Objects:
+1. **12 Enterprise Tables:** `Departments`, `Designations`, `Employees` (50 master roster), `Company_Policies`, `Kiosk_Displays`, `HR_Members`, `Attendance`, `WFH_Requests`, `Leave_Requests`, `Verification_Tokens`, `Announcements`, `Audit_Logs`.
+2. **4 Reporting Views:** `vw_AdminDashboardKPIs`, `vw_DepartmentWiseAttendance`, `vw_RecentActivities`, `vw_EmployeeMonthlyAttendanceSummary`.
+3. **3 Atomic Stored Procedures:** `sp_MarkAttendance` (late mark calculation & audit log), `sp_ApproveWFHRequest` (automatic attendance sync), `sp_ApproveLeaveRequest` (date-range multi-day attendance sync).
+
+---
+
+## 8. Conclusion
+
+The **VorldX Employee Attendance System** fully implements the 18 user interface screens, role-based access control matrix, hierarchical WFH workflow, Microsoft SQL Server enterprise database, and full-stack integration required by VorldX Industries Private Limited.
 
 **VORLDX INDUSTRIES PRIVATE LIMITED**  
 *Building Virtual World with Simplicity*  
