@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import SplitView from './pages/SplitView';
 import AdminPortal from './pages/AdminPortal';
@@ -21,25 +21,6 @@ export default function App() {
 
   const [loggedInUser, setLoggedInUser] = useState(null);
 
-  // Dynamic responsive detection for mobile vs desktop automatic adjustment
-  const [isMobileScreen, setIsMobileScreen] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-      setIsMobileScreen(mobile);
-    };
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-    };
-  }, []);
-
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
@@ -53,17 +34,18 @@ export default function App() {
     if (params.get('split')) {
       return 'split';
     }
-    if (params.get('hr')) {
-      return 'hr';
-    }
-    if (params.get('admin')) {
-      return 'admin';
-    }
     // If native Android APK -> Dedicated Employee Mobile App
     if (isNativeApp) {
       return 'employee';
     }
-    // Default View: Always the responsive Welcome & Authentication Gateway
+    // If on mobile browser directly without params -> Employee App
+    if (typeof window !== 'undefined') {
+      const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+      if (isMobileDevice && window.innerWidth <= 600) {
+        return 'employee';
+      }
+    }
+    // Default Website view: Welcome & Authentication Portal (exact mockup!)
     return 'login';
   });
 
@@ -88,7 +70,7 @@ export default function App() {
   if (activeTab === 'login') {
     return (
       <ErrorBoundary onReset={handleResetDemo}>
-        <div key={refreshKey} style={{ minHeight: '100vh', width: '100%' }}>
+        <div key={refreshKey} style={{ minHeight: '100vh' }}>
           <VorldXLogin
             onLoginSuccess={(user, portal) => {
               setLoggedInUser(user);
@@ -107,105 +89,7 @@ export default function App() {
     );
   }
 
-  // Employee Mobile App View (Camera QR Scanner, Today Status, WFH, Calendar, Profile)
-  if (activeTab === 'employee') {
-    return (
-      <ErrorBoundary onReset={handleResetDemo}>
-        <div key={refreshKey} style={{ minHeight: '100vh', width: '100%', background: '#090e17' }}>
-          <EmployeeApp
-            isEmbedded={false}
-            isNativeApp={false}
-            initialEmployee={loggedInUser}
-            onLogout={() => {
-              setLoggedInUser(null);
-              setActiveTab('login');
-            }}
-          />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  // OfficeNova HR Portal (16 modules) with built-in responsive off-canvas drawer
-  if (activeTab === 'hr') {
-    return (
-      <ErrorBoundary onReset={handleResetDemo}>
-        <div key={refreshKey} style={{ minHeight: '100vh', width: '100%' }}>
-          <HRPortal
-            onLogout={() => {
-              setLoggedInUser(null);
-              setActiveTab('login');
-            }}
-            onSwitchToAdmin={() => setActiveTab('admin')}
-            onSwitchToEmployee={() => setActiveTab('employee')}
-          />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  // Admin Control Center
-  if (activeTab === 'admin') {
-    return (
-      <ErrorBoundary onReset={handleResetDemo}>
-        <div key={refreshKey} style={{ minHeight: '100vh', width: '100%' }}>
-          <AdminPortal
-            initialUser={loggedInUser || {
-              id: 'EMP000',
-              name: 'Rahul Verma',
-              role: 'Admin • HR Management',
-              designation: 'Admin • HR Management',
-              email: 'rahul.verma@worldx.com',
-              avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=128&q=80'
-            }}
-            externalIsLoggedIn={true}
-            onLogout={() => {
-              setLoggedInUser(null);
-              setActiveTab('login');
-            }}
-            onSwitchToEmployee={(emp) => {
-              if (emp) setLoggedInUser(emp);
-              setActiveTab('employee');
-            }}
-          />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  // Fullscreen Kiosk Display
-  if (activeTab === 'kiosk') {
-    return (
-      <ErrorBoundary onReset={handleResetDemo}>
-        <div key={refreshKey} style={{ minHeight: '100vh', width: '100%', position: 'relative' }}>
-          {/* Quick Exit floating button */}
-          <button
-            onClick={() => setActiveTab('login')}
-            style={{
-              position: 'fixed',
-              top: '12px',
-              right: '12px',
-              zIndex: 9999,
-              background: 'rgba(15, 23, 42, 0.85)',
-              color: '#ffffff',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '20px',
-              padding: '6px 14px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              backdropFilter: 'blur(8px)'
-            }}
-          >
-            ← Exit Kiosk
-          </button>
-          <KioskDisplay isEmbedded={false} />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  // Split View & Project Report with optional Navbar
+  // Web Browser: HR & Admin Website with full portal navigation & APK downloads
   return (
     <ErrorBoundary onReset={handleResetDemo}>
       <div key={refreshKey} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -216,7 +100,59 @@ export default function App() {
         />
 
         <main style={{ flex: 1 }}>
+          {activeTab === 'hr' && (
+            <HRPortal
+              onLogout={() => {
+                setLoggedInUser(null);
+                setActiveTab('login');
+              }}
+              onSwitchToAdmin={() => setActiveTab('admin')}
+              onSwitchToEmployee={() => setActiveTab('employee')}
+            />
+          )}
+          {activeTab === 'admin' && (
+            <AdminPortal
+              initialUser={loggedInUser || {
+                id: 'EMP000',
+                name: 'Rahul Verma',
+                role: 'Admin • HR Management',
+                designation: 'Admin • HR Management',
+                email: 'rahul.verma@worldx.com',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=128&q=80'
+              }}
+              externalIsLoggedIn={true}
+              onLogout={() => {
+                setLoggedInUser(null);
+                setActiveTab('login');
+              }}
+              onSwitchToEmployee={(emp) => {
+                if (emp) setLoggedInUser(emp);
+                setActiveTab('employee');
+              }}
+            />
+          )}
+          {activeTab === 'kiosk' && <KioskDisplay isEmbedded={false} />}
           {activeTab === 'split' && <SplitView setActiveTab={setActiveTab} />}
+          {activeTab === 'employee' && (
+            <EmployeePortal
+              initialEmployee={loggedInUser || {
+                id: 'EMP005',
+                name: 'Rohit S.',
+                role: 'Employee',
+                designation: 'Employee',
+                department: 'Engineering',
+                email: 'rohit.s@vorldx.com',
+                phone: '+91 9876543210',
+                joining_date: '10 Jan 2024',
+                reporting_manager: 'Amit Kumar',
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80'
+              }}
+              onLogout={() => {
+                setLoggedInUser(null);
+                setActiveTab('login');
+              }}
+            />
+          )}
           {activeTab === 'report' && <ProjectReport />}
         </main>
       </div>

@@ -1121,47 +1121,33 @@
   }
   .vx-main-content {
     justify-content: center;
-    gap: 32px;
-    padding: 24px 16px;
+    gap: 40px;
+    padding: 24px;
   }
 }
 
 @media (max-width: 860px) {
   .vx-header {
-    padding: 0 14px;
-    height: 54px;
-  }
-  .vx-header-logo {
-    font-size: 1.35rem;
-  }
-  .vx-header-portal-title {
-    font-size: 0.82rem;
+    padding: 0 20px;
   }
   .vx-main-content {
-    flex-direction: column-reverse; /* Direct access & Login card immediately at the top on mobile! */
+    flex-direction: column;
     align-items: center;
-    padding: 14px 12px 60px 12px;
-    gap: 20px;
-    width: 100%;
-    box-sizing: border-box;
-    overflow-x: hidden;
+    padding: 20px 16px;
   }
   .vx-hero-left {
     max-width: 100%;
     text-align: center;
     align-items: center;
-    padding: 10px 0;
   }
   .vx-hero-brand {
-    font-size: 2.4rem;
+    font-size: 3.4rem;
   }
   .vx-hero-subtitle {
-    font-size: 1.15rem;
+    font-size: 1.4rem;
   }
   .vx-features-grid {
-    max-width: 100%;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    max-width: 360px;
   }
   .vx-quote-badge {
     max-width: 100%;
@@ -1170,50 +1156,5 @@
   .vx-login-card-wrapper {
     flex: auto;
     max-width: 100%;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .vx-login-card {
-    padding: 20px 16px;
-    border-radius: 16px;
-    width: 100%;
-    box-sizing: border-box;
   }
 }
-
-@media (max-width: 480px) {
-  .vx-header {
-    padding: 0 10px;
-  }
-  .vx-header-left {
-    gap: 8px;
-  }
-  .vx-header-portal-title {
-    font-size: 0.75rem;
-  }
-  .vx-location-badge,
-  .vx-version-tag,
-  .vx-header-divider {
-    display: none !important;
-  }
-  .vx-hero-brand {
-    font-size: 2rem;
-  }
-  .vx-hero-pillars {
-    font-size: 0.75rem;
-  }
-  .vx-features-grid {
-    grid-template-columns: 1fr;
-  }
-  .vx-login-card {
-    padding: 16px 12px;
-  }
-  .vx-role-tabs {
-    gap: 4px;
-  }
-  .vx-role-tab-btn {
-    padding: 8px 6px;
-    font-size: 0.76rem;
-  }
-}
-
