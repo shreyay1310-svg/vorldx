@@ -23,19 +23,70 @@ This document defines the complete UI design system, color hierarchy, typography
 
 ---
 
-## 📐 Layout Grids & Screen Specifications
+## 📐 Core Portal Layouts & Figma Frame Architecture
 
-### Desktop Web Layout (HR & Admin Portals)
-* **Canvas Frame:** `1440px` (or `1920px`) × `1024px` auto-height
-* **Sidebar Navigation:** Fixed width `240px`, height `100vh`, padding `16px 12px`
-* **Topbar:** Fixed height `60px`, fluid width
-* **Main Content Viewport:** Fluid width (`calc(100vw - 240px)`), padding `24px`
-* **Grid System:** 12-column grid, `24px` gutter, `24px` margin
+### 🏢 Layout 1: OfficeNova HR Portal (`Frame: 1440 × 900 px`)
+Designed for HR Managers, Payroll Officers, and Department Leads.
+* **Navigation Sidebar (`200px` fixed width):**
+  - Brand header: OfficeNova HR with purple lightning logo.
+  - 8 Direct Navigation Items: Real-Time Attendance (Active), Employee Directory (24 staff), WFH Approvals (4 pending), Leave Ledger, Geofence Zones, Compliance & Audit, Payroll Management, HR Settings.
+* **Header / Topbar (`60px` height):**
+  - Section title: "Attendance & Roster Center" + Real-Time Sync Indicator (`● Cloud Sync Active`).
+  - Search Bar: Global employee name & ID search filter (`Ctrl + K`).
+* **KPI Metrics Row (Auto-Layout Horizontal Stack, 4 Cards):**
+  - Total Workforce (`24` / Neutral)
+  - Present Today (`18` / Emerald `#10b981`)
+  - Remote / WFH (`4` / Amber `#f59e0b`)
+  - Absent / Leave (`2` / Rose `#ef4444`)
+* **Live Roster Data Table:**
+  - 5-Column Grid: Employee ID, Full Name, Status Pill (Present / WFH / Leave), Punch In Time, Verification Terminal (Dynamic QR Kiosk / Geofence GPS).
 
-### Mobile Layout (Employee Native App)
-* **Canvas Frame:** `390px × 844px` (iPhone 14/15 & Android standard viewport)
-* **Touch Targets:** Minimum `44px × 44px` for buttons, tabs, and interactive rows
-* **Bottom Navigation Bar:** Height `68px`, 4 tabs (Dashboard, Punch, Calendar, Profile)
+---
+
+### 👤 Layout 2: Employee Portal (`Desktop Frame: 1440 × 900 px` & `Mobile App: 390 × 844 px`)
+Self-service workforce hub tailored for individual employees (e.g., Rohit Sharma `VX001`).
+* **Desktop Employee Viewport:**
+  - **Hero Welcome Banner:** Personalized greeting (`"Hello, Rohit Sharma! 👋"`), motivational quote, and checked-in timestamp pill (`✓ Checked In Today at 09:05 AM`).
+  - **4 Employee KPI Cards:** Today's Status (`Present ✓`), Working Hours (`6h 25m`), Monthly Attendance Rate (`18 / 26 days • 69%`), Leave Balance (`12 days available`).
+  - **Quick Action Matrix (3 Cards):**
+    1. Mark Attendance (Camera QR scanner trigger)
+    2. Apply WFH Request (GPS Geofenced workflow)
+    3. Apply Leave Request (Casual, Sick, Earned Leave)
+  - **Attendance Overview Chart:** Dynamic monthly trend line with punctuality ratings (`92% Top Performer`).
+  - **Side Deck:** Upcoming Corporate Holidays, Team Meetings, and Company Announcements.
+* **Mobile Employee Viewport (`390 × 844 px` iPhone 15 / Android):**
+  - CameraX Barcode Scanner card with animated scanning target.
+  - Large Touch Punch Button (`height: 52px`, `border-radius: 12px`, purple gradient).
+  - Bottom Navigation Bar (`56px` height): Home, Requests, Stats, History, Profile.
+
+---
+
+### 🛡️ Layout 3: Admin Management & Control Center (`Frame: 1440 × 900 px`)
+Executive administration console for System Administrators and CTO Muba Khan Sir.
+* **Admin Navigation Sidebar (`200px` fixed width):**
+  - Brand header: Admin Center with blue shield badge (`#0284c7`).
+  - Navigation Items: Control Center (Active), Role & RBAC (3-Tier), MSSQL 2022 DB Sync, Shift Schedules, Department Hierarchy, Security & Audit Logs.
+* **Database & Engine Status Banner:**
+  - Dual Persistence Indicator: `Microsoft SQL Server 2022 Enterprise + Local SQLite Dual Sync`.
+  - Replication Status: `● Replication In-Sync (Latency: 4ms)`.
+* **System Health KPI Cards (4 Cards):**
+  - Active Users: `24 Active`
+  - Server CPU: `12% Normal`
+  - RAM Heap: `256 MB`
+  - Security Audit Logs: `1,420 Entries`
+* **3-Tier RBAC Management Table:**
+  - Super Admin (`EMP000` Rahul Verma - Full Module Authority, 2FA Enabled)
+  - HR Manager (`HR001` Pooja Saxena - Approvals, Payroll & Directory)
+  - Employee (`VX001` Rohit Sharma - Self-Service Punch)
+
+---
+
+### 📱 Layout 4: Dynamic QR Kiosk Terminal (`Frame: 1080 × 1920 px` Portrait)
+Public check-in kiosk terminal stationed at company physical entrances.
+* High-contrast OLED dark background (`#050811`).
+* Rotating 45-second HMAC-SHA256 encrypted QR Code with circular progress countdown.
+* Real-time synchronized digital clock (`HH:MM:SS AM/PM`).
+* Instant punch confirmation chime with audio-visual feedback wave.
 
 ---
 

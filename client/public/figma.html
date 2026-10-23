@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VorldX Attendance 360 & OfficeNova HR — Figma Design Canvas & Interactive Spec</title>
+  <title>VorldX Attendance 360 & OfficeNova HR — Figma Design Canvas (HR / Employee / Admin Layouts)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -11,13 +11,14 @@
     :root {
       --figma-bg: #1e1e1e;
       --figma-canvas: #121212;
-      --figma-panel: #2c2c2c;
-      --figma-border: #383838;
+      --figma-panel: #242424;
+      --figma-border: #333333;
       --figma-text: #ffffff;
       --figma-text-muted: #8e8e8e;
       --figma-blue: #0d99ff;
       --figma-purple: #9747ff;
       --figma-green: #14ae5c;
+      --figma-amber: #e5a000;
       --figma-red: #f24822;
 
       /* VorldX Tokens */
@@ -55,7 +56,7 @@
       border-bottom: 1px solid var(--figma-border);
       display: flex;
       align-items: center;
-      justifyContent: space-between;
+      justify-content: space-between;
       padding: 0 16px;
       z-index: 100;
       user-select: none;
@@ -109,10 +110,10 @@
     .figma-header-center {
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: #1e1e1e;
+      gap: 4px;
+      background: #181818;
       padding: 3px 6px;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid var(--figma-border);
     }
 
@@ -121,16 +122,22 @@
       border: none;
       color: var(--figma-text-muted);
       padding: 5px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      border-radius: 4px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s;
+      white-space: nowrap;
     }
 
     .figma-tab-btn.active, .figma-tab-btn:hover {
       color: #ffffff;
       background: var(--figma-panel);
+    }
+
+    .figma-tab-btn.active {
+      background: #2a2a2a;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     }
 
     .figma-header-right {
@@ -165,7 +172,7 @@
       border: 1px solid var(--figma-border);
       border-radius: 6px;
       padding: 6px 12px;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
@@ -188,7 +195,7 @@
 
     /* LEFT LAYERS PANEL */
     .figma-layers-panel {
-      width: 240px;
+      width: 250px;
       background: var(--figma-panel);
       border-right: 1px solid var(--figma-border);
       display: flex;
@@ -199,11 +206,11 @@
 
     .panel-header {
       padding: 10px 14px;
-      font-size: 0.74rem;
-      font-weight: 700;
+      font-size: 0.72rem;
+      font-weight: 800;
       color: var(--figma-text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
       border-bottom: 1px solid var(--figma-border);
       display: flex;
       justify-content: space-between;
@@ -220,7 +227,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 7px 14px;
+      padding: 8px 14px;
       font-size: 0.78rem;
       color: #cbd5e1;
       cursor: pointer;
@@ -228,26 +235,31 @@
     }
 
     .layer-item:hover, .layer-item.active {
-      background: rgba(13, 153, 255, 0.15);
+      background: rgba(13, 153, 255, 0.16);
       color: #38bdf8;
     }
 
+    .layer-item.active {
+      font-weight: 700;
+      border-left: 3px solid var(--figma-blue);
+    }
+
     .layer-icon {
-      font-size: 0.9rem;
-      opacity: 0.8;
+      font-size: 0.95rem;
+      opacity: 0.9;
     }
 
     /* CANVAS AREA */
     .figma-canvas-area {
       flex: 1;
       background-color: #121212;
-      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.2px, transparent 1.2px);
       background-size: 24px 24px;
       overflow: auto;
       position: relative;
-      padding: 40px;
+      padding: 48px;
       display: flex;
-      gap: 48px;
+      gap: 52px;
       align-items: flex-start;
       scroll-behavior: smooth;
     }
@@ -255,7 +267,7 @@
     /* ARTBOARD FRAMES */
     .artboard-frame {
       background: var(--vx-bg-root);
-      border-radius: 14px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.12);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
       flex-shrink: 0;
@@ -269,40 +281,45 @@
 
     .artboard-tag {
       position: absolute;
-      top: -26px;
+      top: -28px;
       left: 0;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--figma-text-muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: #cbd5e1;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       user-select: none;
     }
 
     .artboard-tag span.badge-dim {
       color: #38bdf8;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
+      font-size: 0.66rem;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
     }
 
-    /* DESKTOP HR PORTAL FRAME */
-    .frame-desktop-hr {
-      width: 860px;
-      height: 560px;
+    /* -------------------------------------------------------------
+       FRAME 1: HR PORTAL LAYOUT (OFFICENOVA)
+       ------------------------------------------------------------- */
+    .frame-hr-portal {
+      width: 900px;
+      height: 580px;
       overflow: hidden;
       display: flex;
-      border-radius: 12px;
     }
 
     .mock-sidebar {
-      width: 190px;
+      width: 200px;
       background: #070c16;
       border-right: 1px solid rgba(255, 255, 255, 0.08);
       padding: 16px 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .mock-brand {
@@ -313,6 +330,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      margin-bottom: 6px;
     }
 
     .mock-nav-item {
@@ -363,7 +381,7 @@
     }
 
     .mock-stat-val {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 800;
       color: #fff;
       font-family: 'Outfit', sans-serif;
@@ -397,10 +415,117 @@
       background: rgba(255, 255, 255, 0.02);
     }
 
-    /* MOBILE APP FRAME */
+    /* -------------------------------------------------------------
+       FRAME 2: EMPLOYEE PORTAL LAYOUT (DESKTOP)
+       ------------------------------------------------------------- */
+    .frame-emp-desktop {
+      width: 900px;
+      height: 580px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .mock-emp-sidebar {
+      width: 190px;
+      background: #090e17;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mock-emp-main {
+      flex: 1;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .mock-emp-hero {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.1));
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mock-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .mock-action-card {
+      background: #0d1527;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .mock-chart-container {
+      background: #0d1527;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* -------------------------------------------------------------
+       FRAME 3: ADMIN CONTROL CENTER LAYOUT
+       ------------------------------------------------------------- */
+    .frame-admin-portal {
+      width: 900px;
+      height: 580px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .mock-admin-sidebar {
+      width: 200px;
+      background: #0a0f1d;
+      border-right: 1px solid rgba(2, 132, 199, 0.2);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mock-admin-main {
+      flex: 1;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .mock-db-banner {
+      background: rgba(2, 132, 199, 0.12);
+      border: 1px solid rgba(2, 132, 199, 0.35);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+    }
+
+    /* -------------------------------------------------------------
+       FRAME 4: EMPLOYEE MOBILE APP LAYOUT
+       ------------------------------------------------------------- */
     .frame-mobile-app {
       width: 320px;
-      height: 560px;
+      height: 580px;
       background: #090e17;
       border-radius: 36px;
       border: 8px solid #1a253e;
@@ -465,10 +590,12 @@
       color: #94a3b8;
     }
 
-    /* DESIGN TOKENS FRAME */
+    /* -------------------------------------------------------------
+       FRAME 5: DESIGN TOKENS & UI SPEC
+       ------------------------------------------------------------- */
     .frame-tokens {
-      width: 520px;
-      height: 560px;
+      width: 480px;
+      height: 580px;
       background: #0d1527;
       padding: 20px;
       overflow-y: auto;
@@ -525,7 +652,7 @@
 
     /* RIGHT INSPECTOR PANEL */
     .figma-inspector-panel {
-      width: 260px;
+      width: 270px;
       background: var(--figma-panel);
       border-left: 1px solid var(--figma-border);
       display: flex;
@@ -544,10 +671,10 @@
 
     .inspector-title {
       font-size: 0.72rem;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--figma-text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
     }
 
     .inspector-row {
@@ -564,7 +691,7 @@
     .inspector-val {
       font-family: 'JetBrains Mono', monospace;
       color: #ffffff;
-      background: #1e1e1e;
+      background: #181818;
       padding: 3px 6px;
       border-radius: 4px;
       border: 1px solid var(--figma-border);
@@ -577,13 +704,13 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: #2c2c2c;
+      background: #242424;
       border: 1px solid var(--figma-border);
       border-radius: 30px;
-      padding: 6px 14px;
+      padding: 6px 16px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
       z-index: 50;
     }
@@ -597,13 +724,14 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .control-btn:hover {
       color: #38bdf8;
     }
 
+    /* RESPONSIVE VIEWPORT */
     @media (max-width: 960px) {
       .figma-layers-panel,
       .figma-inspector-panel {
@@ -614,15 +742,15 @@
       }
       .figma-canvas-area {
         padding: 24px 12px;
-        gap: 20px;
+        gap: 24px;
       }
-      .frame-desktop-hr {
-        width: calc(100vw - 24px);
+      .artboard-frame {
+        width: calc(100vw - 24px) !important;
         max-width: 760px;
         height: auto;
         min-height: 480px;
       }
-      .mock-sidebar {
+      .mock-sidebar, .mock-emp-sidebar, .mock-admin-sidebar {
         display: none;
       }
       .mock-stats-row {
@@ -635,18 +763,7 @@
         display: none;
       }
       .frame-mobile-app {
-        width: calc(100vw - 32px);
         max-width: 320px;
-      }
-      .frame-tokens {
-        width: calc(100vw - 24px);
-        max-width: 520px;
-      }
-      .tokens-swatch-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .figma-header-right a:not(:last-child) {
-        display: none;
       }
     }
   </style>
@@ -664,30 +781,33 @@
           <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"/>
           <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"/>
         </svg>
-        <span>Figma Spec Canvas</span>
+        <span>Figma Design Canvas</span>
       </div>
       <div class="figma-file-info">
-        <span class="figma-file-title">VorldX Attendance 360 & OfficeNova HR</span>
-        <span class="figma-badge">v2.0 Verified</span>
+        <span class="figma-file-title">VorldX • HR, Employee & Admin Layouts</span>
+        <span class="figma-badge">Enterprise v2.0</span>
       </div>
     </div>
 
+    <!-- TABS TO FILTER EXACT LAYOUTS -->
     <div class="figma-header-center">
-      <button class="figma-tab-btn active" onclick="filterArtboards('all')">All Artboards</button>
-      <button class="figma-tab-btn" onclick="filterArtboards('hr')">HR Portal</button>
-      <button class="figma-tab-btn" onclick="filterArtboards('mobile')">Mobile App</button>
-      <button class="figma-tab-btn" onclick="filterArtboards('tokens')">Tokens</button>
+      <button class="figma-tab-btn active" onclick="filterArtboards('all')">All Layouts</button>
+      <button class="figma-tab-btn" onclick="filterArtboards('hr')">🏢 HR Portal</button>
+      <button class="figma-tab-btn" onclick="filterArtboards('emp')">👤 Employee Portal</button>
+      <button class="figma-tab-btn" onclick="filterArtboards('admin')">🛡️ Admin Portal</button>
+      <button class="figma-tab-btn" onclick="filterArtboards('mobile')">📱 Mobile App</button>
+      <button class="figma-tab-btn" onclick="filterArtboards('tokens')">🎨 Tokens</button>
     </div>
 
     <div class="figma-header-right">
       <a href="https://www.figma.com/community/search?q=HR+Attendance+Dashboard" target="_blank" rel="noopener noreferrer" class="btn-figma-secondary">
-        🔍 Figma Community Hub
+        🔍 Community Hub
       </a>
       <a href="/vorldx_tokens.json" download class="btn-figma-secondary">
-        📥 Download Tokens JSON
+        📥 Tokens JSON
       </a>
       <a href="/" class="btn-figma-share">
-        🚀 Open Live App
+        🚀 Live App
       </a>
     </div>
   </header>
@@ -698,45 +818,52 @@
     <!-- LEFT LAYERS TREE -->
     <aside class="figma-layers-panel">
       <div class="panel-header">
-        <span>Artboards & Layers</span>
-        <span>4 Frames</span>
+        <span>Artboards & Layouts</span>
+        <span>5 Frames</span>
       </div>
       <div class="layers-list">
         <div class="layer-item active" onclick="focusArtboard('frame-hr')">
-          <span class="layer-icon">🖥️</span>
-          <span>Desktop — OfficeNova HR</span>
+          <span class="layer-icon">🏢</span>
+          <span>1. OfficeNova HR Portal</span>
+        </div>
+        <div class="layer-item" onclick="focusArtboard('frame-emp-desktop')">
+          <span class="layer-icon">👤</span>
+          <span>2. Employee Portal (Desktop)</span>
+        </div>
+        <div class="layer-item" onclick="focusArtboard('frame-admin')">
+          <span class="layer-icon">🛡️</span>
+          <span>3. Admin Control Center</span>
         </div>
         <div class="layer-item" onclick="focusArtboard('frame-mobile')">
           <span class="layer-icon">📱</span>
-          <span>Mobile — Attendance 360</span>
-        </div>
-        <div class="layer-item" onclick="focusArtboard('frame-kiosk')">
-          <span class="layer-icon">🏢</span>
-          <span>Kiosk — Dynamic QR Display</span>
+          <span>4. Employee App (Mobile)</span>
         </div>
         <div class="layer-item" onclick="focusArtboard('frame-tokens')">
           <span class="layer-icon">🎨</span>
-          <span>Tokens — Colors & Styles</span>
+          <span>5. Design Tokens & UI Kit</span>
         </div>
       </div>
+
       <div class="panel-header" style="margin-top: auto;">
-        <span>Technical Sponsor</span>
+        <span>Corporate Governance</span>
       </div>
-      <div style="padding: 12px 14px; font-size: 0.72rem; color: #94a3b8; line-height: 1.4;">
-        <strong style="color: #ffffff;">CTO: Muba Khan Sir</strong><br>
-        VorldX Industries Private Limited<br>
-        Lucknow HQ • CIN: U62099UP2026PTC245598
+      <div style="padding: 12px 14px; font-size: 0.72rem; color: #94a3b8; line-height: 1.45;">
+        <strong style="color: #ffffff;">VORLDX INDUSTRIES PRIVATE LIMITED</strong><br>
+        CIN: U62099UP2026PTC245598 • Lucknow HQ<br>
+        <strong style="color: #a855f7;">CTO: Muba Khan Sir</strong> (System Architect)
       </div>
     </aside>
 
-    <!-- CENTER CANVAS WITH ARTBOARDS -->
+    <!-- CENTER CANVAS WITH ALL ARTBOARDS -->
     <main class="figma-canvas-area" id="canvasArea">
 
-      <!-- ARTBOARD 1: DESKTOP HR PORTAL -->
-      <div class="artboard-frame frame-desktop-hr" id="frame-hr">
+      <!-- =========================================================
+           FRAME 1: HR PORTAL LAYOUT (OFFICENOVA HR)
+           ========================================================= -->
+      <div class="artboard-frame frame-hr-portal" id="frame-hr" onclick="selectFrame('HR Portal Layout (1440 × 900)', 'Glassmorphism Sidebar & Live Roster', '#7C3AED')">
         <div class="artboard-tag">
-          <span>🖥️ Frame 1: OfficeNova HR Portal</span>
-          <span class="badge-dim">1440 × 900</span>
+          <span>🏢 Frame 1: OfficeNova HR Portal Layout</span>
+          <span class="badge-dim">1440 × 900 px</span>
         </div>
         <div class="mock-sidebar">
           <div class="mock-brand">
@@ -744,21 +871,23 @@
             <span>OfficeNova HR</span>
           </div>
           <div class="mock-nav-item active">📊 Real-Time Attendance</div>
-          <div class="mock-nav-item">👥 Employee Directory</div>
-          <div class="mock-nav-item">🏠 WFH Approvals</div>
+          <div class="mock-nav-item">👥 Employee Directory (24)</div>
+          <div class="mock-nav-item">🏠 WFH Approvals (4)</div>
           <div class="mock-nav-item">📅 Leave Ledger</div>
           <div class="mock-nav-item">📍 Geofence Zones</div>
-          <div class="mock-nav-item">📑 Compliance Audit</div>
-          <div class="mock-nav-item">⚙️ Settings</div>
+          <div class="mock-nav-item">📑 Compliance & Audit</div>
+          <div class="mock-nav-item">💰 Payroll Management</div>
+          <div class="mock-nav-item">⚙️ HR Settings</div>
         </div>
         <div class="mock-main">
           <div class="mock-topbar">
             <div>
               <div style="font-size: 0.95rem; font-weight: 800; color: #ffffff;">Attendance & Roster Center</div>
-              <div style="font-size: 0.65rem; color: #94a3b8;">VorldX Industries Pvt Ltd • Live Sync</div>
+              <div style="font-size: 0.65rem; color: #94a3b8;">VorldX Industries • Real-Time Attendance 360</div>
             </div>
-            <div style="display: flex; gap: 6px;">
+            <div style="display: flex; gap: 6px; align-items: center;">
               <span style="font-size: 0.7rem; background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 4px 8px; border-radius: 6px; font-weight: 700;">● Cloud Sync Active</span>
+              <span style="font-size: 0.7rem; background: #1e293b; color: #cbd5e1; padding: 4px 8px; border-radius: 6px;">HR Lead</span>
             </div>
           </div>
           <div class="mock-stats-row">
@@ -766,22 +895,23 @@
               <div class="mock-stat-label">Total Staff</div>
               <div class="mock-stat-val">24</div>
             </div>
-            <div class="mock-stat-card" style="border-color: rgba(16, 185, 129, 0.3);">
+            <div class="mock-stat-card" style="border-color: rgba(16, 185, 129, 0.35);">
               <div class="mock-stat-label" style="color: #34d399;">Present Today</div>
               <div class="mock-stat-val" style="color: #34d399;">18</div>
             </div>
-            <div class="mock-stat-card" style="border-color: rgba(245, 158, 11, 0.3);">
+            <div class="mock-stat-card" style="border-color: rgba(245, 158, 11, 0.35);">
               <div class="mock-stat-label" style="color: #fbbf24;">Remote / WFH</div>
               <div class="mock-stat-val" style="color: #fbbf24;">4</div>
             </div>
-            <div class="mock-stat-card" style="border-color: rgba(239, 68, 68, 0.3);">
+            <div class="mock-stat-card" style="border-color: rgba(239, 68, 68, 0.35);">
               <div class="mock-stat-label" style="color: #f87171;">Absent / Leave</div>
               <div class="mock-stat-val" style="color: #f87171;">2</div>
             </div>
           </div>
           <div class="mock-table">
-            <div style="font-size: 0.72rem; font-weight: 700; color: #cbd5e1; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
-              Live Employee Roster
+            <div style="font-size: 0.72rem; font-weight: 800; color: #cbd5e1; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between;">
+              <span>Live Attendance Ledger</span>
+              <span style="color: #38bdf8;">Auto-Refreshes every 5s</span>
             </div>
             <div class="mock-tr">
               <strong style="color: #38bdf8;">VX001</strong>
@@ -795,7 +925,7 @@
               <span>Priya Patel</span>
               <span style="color: #fbbf24; font-weight: 700;">● WFH Active</span>
               <span>09:30 AM</span>
-              <span style="color: #94a3b8;">GPS Verified (Lucknow)</span>
+              <span style="color: #94a3b8;">GPS Geofenced (Lucknow)</span>
             </div>
             <div class="mock-tr">
               <strong style="color: #38bdf8;">VX003</strong>
@@ -815,11 +945,185 @@
         </div>
       </div>
 
-      <!-- ARTBOARD 2: MOBILE EMPLOYEE APP -->
-      <div class="artboard-frame frame-mobile-app" id="frame-mobile">
+      <!-- =========================================================
+           FRAME 2: EMPLOYEE PORTAL LAYOUT (DESKTOP)
+           ========================================================= -->
+      <div class="artboard-frame frame-emp-desktop" id="frame-emp-desktop" onclick="selectFrame('Employee Portal Layout (Desktop)', 'Card Deck & Attendance Overview', '#059669')">
         <div class="artboard-tag">
-          <span>📱 Frame 2: Employee Mobile App</span>
-          <span class="badge-dim">390 × 844</span>
+          <span>👤 Frame 2: Employee Portal Layout (Desktop)</span>
+          <span class="badge-dim">1440 × 900 px</span>
+        </div>
+        <div class="mock-emp-sidebar">
+          <div class="mock-brand">
+            <span style="color: #38bdf8;">👤</span>
+            <span>VorldX Employee</span>
+          </div>
+          <div class="mock-nav-item active">📊 Dashboard</div>
+          <div class="mock-nav-item">📅 My Attendance</div>
+          <div class="mock-nav-item">📍 Mark Attendance</div>
+          <div class="mock-nav-item">🏠 Apply WFH</div>
+          <div class="mock-nav-item">📝 Apply Leave</div>
+          <div class="mock-nav-item">👤 My Profile</div>
+          <div class="mock-nav-item">🗓️ Team Calendar</div>
+        </div>
+        <div class="mock-emp-main">
+          <!-- Hero greeting -->
+          <div class="mock-emp-hero">
+            <div>
+              <div style="font-size: 0.95rem; font-weight: 800; color: #ffffff;">Hello, Rohit Sharma! 👋</div>
+              <div style="font-size: 0.68rem; color: #cbd5e1; margin-top: 2px;">"Success begins with consistent effort." • SDE, Development</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.4);">
+              ✓ Checked In Today at 09:05 AM
+            </div>
+          </div>
+
+          <!-- 4 Stats Cards -->
+          <div class="mock-stats-row">
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Today's Status</div>
+              <div class="mock-stat-val" style="color: #34d399;">Present ✓</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Working Hours</div>
+              <div class="mock-stat-val" style="color: #38bdf8;">6h 25m</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Monthly Rate</div>
+              <div class="mock-stat-val" style="color: #a855f7;">18 / 26 d</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Leave Balance</div>
+              <div class="mock-stat-val" style="color: #fbbf24;">12 Days</div>
+            </div>
+          </div>
+
+          <!-- Quick Actions & Timeline -->
+          <div class="mock-actions-grid">
+            <div class="mock-action-card">
+              <div style="font-size: 1.2rem;">📍</div>
+              <div style="font-size: 0.75rem; font-weight: 700; color: #fff; margin-top: 4px;">Mark Attendance</div>
+              <div style="font-size: 0.62rem; color: #94a3b8;">Scan Kiosk QR Code</div>
+            </div>
+            <div class="mock-action-card">
+              <div style="font-size: 1.2rem;">🏠</div>
+              <div style="font-size: 0.75rem; font-weight: 700; color: #fff; margin-top: 4px;">Apply WFH</div>
+              <div style="font-size: 0.62rem; color: #94a3b8;">Geofence Verified</div>
+            </div>
+            <div class="mock-action-card">
+              <div style="font-size: 1.2rem;">📝</div>
+              <div style="font-size: 0.75rem; font-weight: 700; color: #fff; margin-top: 4px;">Apply Leave</div>
+              <div style="font-size: 0.62rem; color: #94a3b8;">Casual / Sick / Earned</div>
+            </div>
+          </div>
+
+          <!-- Bottom Chart Mock -->
+          <div class="mock-chart-container">
+            <div style="font-size: 0.72rem; font-weight: 700; color: #cbd5e1; display: flex; justify-content: space-between;">
+              <span>Monthly Attendance Trend</span>
+              <span style="color: #34d399;">92% Punctuality Rating</span>
+            </div>
+            <div style="display: flex; align-items: flex-end; gap: 8px; height: 50px; padding: 4px 0;">
+              <div style="flex: 1; height: 70%; background: #2563eb; border-radius: 4px;"></div>
+              <div style="flex: 1; height: 90%; background: #2563eb; border-radius: 4px;"></div>
+              <div style="flex: 1; height: 85%; background: #2563eb; border-radius: 4px;"></div>
+              <div style="flex: 1; height: 100%; background: #10b981; border-radius: 4px;"></div>
+              <div style="flex: 1; height: 75%; background: #2563eb; border-radius: 4px;"></div>
+              <div style="flex: 1; height: 95%; background: #10b981; border-radius: 4px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           FRAME 3: ADMIN MANAGEMENT & CONTROL CENTER LAYOUT
+           ========================================================= -->
+      <div class="artboard-frame frame-admin-portal" id="frame-admin" onclick="selectFrame('Admin Control Center Layout', 'Enterprise RBAC & Dual DB Management', '#0284c7')">
+        <div class="artboard-tag">
+          <span>🛡️ Frame 3: Admin Management & Control Center</span>
+          <span class="badge-dim">1440 × 900 px</span>
+        </div>
+        <div class="mock-admin-sidebar">
+          <div class="mock-brand">
+            <span style="color: #0284c7;">🛡️</span>
+            <span>Admin Center</span>
+          </div>
+          <div class="mock-nav-item active">⚙️ Control Center</div>
+          <div class="mock-nav-item">👥 Role & RBAC (3-Tier)</div>
+          <div class="mock-nav-item">🗄️ MSSQL 2022 DB Sync</div>
+          <div class="mock-nav-item">⏱️ Shift Schedules</div>
+          <div class="mock-nav-item">🏢 Department Hierarchy</div>
+          <div class="mock-nav-item">📜 Security & Audit Logs</div>
+        </div>
+        <div class="mock-admin-main">
+          <!-- DB & Server banner -->
+          <div class="mock-db-banner">
+            <div>
+              <strong style="color: #38bdf8;">Database Status:</strong> Microsoft SQL Server 2022 Enterprise + Local SQLite Dual Sync
+            </div>
+            <div style="color: #34d399; font-weight: 700;">
+              ● Replication In-Sync (Latency: 4ms)
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="mock-stats-row">
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Active Users</div>
+              <div class="mock-stat-val">24 Active</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Server CPU</div>
+              <div class="mock-stat-val" style="color: #34d399;">12% Normal</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">RAM Heap</div>
+              <div class="mock-stat-val" style="color: #38bdf8;">256 MB</div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Audit Logs</div>
+              <div class="mock-stat-val" style="color: #c084fc;">1,420 Entries</div>
+            </div>
+          </div>
+
+          <!-- RBAC User Management Table -->
+          <div class="mock-table">
+            <div style="font-size: 0.72rem; font-weight: 800; color: #cbd5e1; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between;">
+              <span>Role-Based Access Control (RBAC)</span>
+              <span style="color: #0284c7;">Admin Authority Override</span>
+            </div>
+            <div class="mock-tr">
+              <strong style="color: #0284c7;">EMP000</strong>
+              <span>Rahul Verma</span>
+              <span style="color: #0284c7; font-weight: 700;">● Admin (Full)</span>
+              <span>All 16 Modules</span>
+              <span style="color: #34d399;">2FA Enabled</span>
+            </div>
+            <div class="mock-tr">
+              <strong style="color: #a855f7;">HR001</strong>
+              <span>Pooja Saxena</span>
+              <span style="color: #a855f7; font-weight: 700;">● HR Manager</span>
+              <span>Approvals & Payroll</span>
+              <span style="color: #34d399;">Active</span>
+            </div>
+            <div class="mock-tr">
+              <strong style="color: #38bdf8;">VX001</strong>
+              <span>Rohit Sharma</span>
+              <span style="color: #38bdf8; font-weight: 700;">● Employee</span>
+              <span>Self-Service Punch</span>
+              <span style="color: #94a3b8;">Standard</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           FRAME 4: EMPLOYEE APP MOBILE LAYOUT
+           ========================================================= -->
+      <div class="artboard-frame frame-mobile-app" id="frame-mobile" onclick="selectFrame('Employee Mobile App Frame', 'CameraX QR Scanner & Mobile Punch', '#2563eb')">
+        <div class="artboard-tag">
+          <span>📱 Frame 4: Employee Mobile App</span>
+          <span class="badge-dim">390 × 844 px</span>
         </div>
         <div class="mock-mobile-notch">
           <span>09:41</span>
@@ -866,10 +1170,12 @@
         </div>
       </div>
 
-      <!-- ARTBOARD 3: DESIGN TOKENS -->
-      <div class="artboard-frame frame-tokens" id="frame-tokens">
+      <!-- =========================================================
+           FRAME 5: DESIGN TOKENS & UI SPEC
+           ========================================================= -->
+      <div class="artboard-frame frame-tokens" id="frame-tokens" onclick="selectFrame('Design Tokens & UI Component Spec', 'Atomic Colors, Fonts & Radii', '#A855F7')">
         <div class="artboard-tag">
-          <span>🎨 Frame 3: Design Tokens & Palette</span>
+          <span>🎨 Frame 5: Design Tokens & UI Kit</span>
           <span class="badge-dim">Auto-Layout</span>
         </div>
         <div class="tokens-section-title">
@@ -946,12 +1252,12 @@
       <div class="inspector-section">
         <div class="inspector-title">Active Selection</div>
         <div class="inspector-row">
-          <span class="inspector-label">Element</span>
-          <span class="inspector-val">Frame / Container</span>
+          <span class="inspector-label">Layout Name</span>
+          <span class="inspector-val" id="ins-name">HR Portal Layout</span>
         </div>
         <div class="inspector-row">
           <span class="inspector-label">Framework</span>
-          <span class="inspector-val">Glassmorphism</span>
+          <span class="inspector-val" id="ins-desc">1440 × 900 px</span>
         </div>
       </div>
 
@@ -967,7 +1273,7 @@
         </div>
         <div class="inspector-row">
           <span class="inspector-label">Corner Radius</span>
-          <span class="inspector-val">14 px / 36 px</span>
+          <span class="inspector-val">12 px / 36 px</span>
         </div>
       </div>
 
@@ -979,7 +1285,7 @@
         </div>
         <div class="inspector-row">
           <span class="inspector-label">Primary Fill</span>
-          <span class="inspector-val">#7C3AED</span>
+          <span class="inspector-val" id="ins-color">#7C3AED</span>
         </div>
         <div class="inspector-row">
           <span class="inspector-label">Accent Highlight</span>
@@ -1025,7 +1331,15 @@
       const el = document.getElementById(id);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        document.querySelectorAll('.artboard-frame').forEach(f => f.style.boxShadow = '');
+        el.style.boxShadow = '0 0 0 3px #0d99ff, 0 25px 60px rgba(0,0,0,0.9)';
       }
+    }
+
+    function selectFrame(name, desc, color) {
+      document.getElementById('ins-name').innerText = name;
+      document.getElementById('ins-desc').innerText = desc;
+      document.getElementById('ins-color').innerText = color;
     }
 
     function filterArtboards(type) {
@@ -1033,26 +1347,33 @@
       event.target.classList.add('active');
 
       const hr = document.getElementById('frame-hr');
+      const emp = document.getElementById('frame-emp-desktop');
+      const admin = document.getElementById('frame-admin');
       const mobile = document.getElementById('frame-mobile');
       const tokens = document.getElementById('frame-tokens');
 
+      const allFrames = [hr, emp, admin, mobile, tokens];
+
       if (type === 'all') {
-        hr.style.display = 'flex';
-        mobile.style.display = 'flex';
-        tokens.style.display = 'flex';
+        allFrames.forEach(f => f.style.display = 'flex');
       } else if (type === 'hr') {
+        allFrames.forEach(f => f.style.display = 'none');
         hr.style.display = 'flex';
-        mobile.style.display = 'none';
-        tokens.style.display = 'none';
         hr.scrollIntoView({ behavior: 'smooth' });
+      } else if (type === 'emp') {
+        allFrames.forEach(f => f.style.display = 'none');
+        emp.style.display = 'flex';
+        emp.scrollIntoView({ behavior: 'smooth' });
+      } else if (type === 'admin') {
+        allFrames.forEach(f => f.style.display = 'none');
+        admin.style.display = 'flex';
+        admin.scrollIntoView({ behavior: 'smooth' });
       } else if (type === 'mobile') {
-        hr.style.display = 'none';
+        allFrames.forEach(f => f.style.display = 'none');
         mobile.style.display = 'flex';
-        tokens.style.display = 'none';
         mobile.scrollIntoView({ behavior: 'smooth' });
       } else if (type === 'tokens') {
-        hr.style.display = 'none';
-        mobile.style.display = 'none';
+        allFrames.forEach(f => f.style.display = 'none');
         tokens.style.display = 'flex';
         tokens.scrollIntoView({ behavior: 'smooth' });
       }
