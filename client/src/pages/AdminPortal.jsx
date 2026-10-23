@@ -918,7 +918,7 @@ Designation   : ${emp.designation}
 Joining Date  : ${emp.joining_date}
 Official Email: ${emp.name.toLowerCase().replace(/\s+/g, '.')}@vorldx.com
 Status        : ${emp.status.toUpperCase()}
-Issued By     : HR & Admin Management Portal
+Issued By     : OfficeNova Portal
 Timestamp     : ${new Date().toLocaleString()}
 ========================================================
 `;

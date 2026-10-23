@@ -249,7 +249,7 @@ export default function VorldXLogin({ onLoginSuccess, onNavigate }) {
           </div>
           <div className="vx-header-divider" />
           <div className="vx-header-portal-title">
-            HR & Admin Management Portal
+            OfficeNova Portal
           </div>
         </div>
 
@@ -287,7 +287,7 @@ export default function VorldXLogin({ onLoginSuccess, onNavigate }) {
           </h1>
 
           <div className="vx-hero-subtitle">
-            HR & Admin Management Portal
+            OfficeNova Portal
           </div>
 
           <div className="vx-hero-pillars">
