@@ -603,6 +603,52 @@
     .control-btn:hover {
       color: #38bdf8;
     }
+
+    @media (max-width: 960px) {
+      .figma-layers-panel,
+      .figma-inspector-panel {
+        display: none !important;
+      }
+      .figma-file-info {
+        display: none !important;
+      }
+      .figma-canvas-area {
+        padding: 24px 12px;
+        gap: 20px;
+      }
+      .frame-desktop-hr {
+        width: calc(100vw - 24px);
+        max-width: 760px;
+        height: auto;
+        min-height: 480px;
+      }
+      .mock-sidebar {
+        display: none;
+      }
+      .mock-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .mock-tr {
+        grid-template-columns: 60px 1fr 80px;
+      }
+      .mock-tr > :nth-child(4), .mock-tr > :nth-child(5) {
+        display: none;
+      }
+      .frame-mobile-app {
+        width: calc(100vw - 32px);
+        max-width: 320px;
+      }
+      .frame-tokens {
+        width: calc(100vw - 24px);
+        max-width: 520px;
+      }
+      .tokens-swatch-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .figma-header-right a:not(:last-child) {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
