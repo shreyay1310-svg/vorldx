@@ -1,13 +1,13 @@
 # VorldX Attendance 360 & OfficeNova Portal
-## Master Technical Project Report & Implementation Specification
+## Master 20-Page Technical Project Report & Implementation Specification
 
 **Company:** VORLDX INDUSTRIES PRIVATE LIMITED (VorldX)  
 **CIN:** U62099UP2026PTC245598  
 **Headquarters:** Lucknow, Uttar Pradesh, India  
 **Technical Head & Executive Sponsor:** CTO: Muba Khan Sir (Chief Technology Officer & System Architect)  
-**Specification Reference:** 18 UI Screens • OfficeNova HR Portal (16 Modules) • Role-Based Access Control (RBAC) • Dual-Tier WFH Workflow  
+**Specification Reference:** 20 Structured Chapters • 18 UI Screens • OfficeNova HR Portal (16 Modules) • Role-Based Access Control (RBAC) • Dual-Tier WFH Workflow  
 **Release:** October 2026 • Version 2.0 (Production Verified)  
-**Direct PDF Download:** [`VorldX_Project_Report.pdf`](./VorldX_Project_Report.pdf) | Web: [`https://client-mauve-eight-72.vercel.app`](https://client-mauve-eight-72.vercel.app)
+**Direct PDF Download (20-Page Master PDF):** [`VorldX_Project_Report.pdf`](./VorldX_Project_Report.pdf) | GitHub: [`https://github.com/shreyay1310-svg/vorldx/blob/main/VorldX_Project_Report.pdf`](https://github.com/shreyay1310-svg/vorldx/blob/main/VorldX_Project_Report.pdf) | Web: [`https://client-mauve-eight-72.vercel.app`](https://client-mauve-eight-72.vercel.app)
 
 ---
 
