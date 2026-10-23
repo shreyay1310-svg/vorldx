@@ -4,14 +4,19 @@
 
 The VorldX Attendance 360 design adheres to the **Modern Dark Enterprise Glassmorphism UI Framework**.
 
-### 1. Direct Design System File Access
-* **Figma Community Modern Dashboard Kit:**  
-  [https://www.figma.com/community/file/1169300676662758156](https://www.figma.com/community/file/1169300676662758156) (Enterprise HR & Admin Dark UI)
+### 1. Direct Design System File & Canvas Access
+* **Interactive Figma Canvas Spec (Web):**  
+  [https://client-mauve-eight-72.vercel.app/figma.html](https://client-mauve-eight-72.vercel.app/figma.html) (Instant Canvas Spec & Variable Inspector)
+* **Figma Community HR & Dashboard Search Hub:**  
+  [https://www.figma.com/community/search?q=HR+Attendance+Dashboard](https://www.figma.com/community/search?q=HR+Attendance+Dashboard) (Official duplicate-ready community templates)
+* **Verified Data Viz Community Kit:**  
+  [https://www.figma.com/community/file/1029955624567963869/kiss-data-a-data-visualization-design-system](https://www.figma.com/community/file/1029955624567963869/kiss-data-a-data-visualization-design-system)
 * **Tokens JSON Import:**  
   Use [`vorldx_tokens.json`](./vorldx_tokens.json) to generate all Figma variables instantly.
 
 ### 2. Figma Web Inspector & Live Prototype
 * **Vercel Live Preview:** [https://client-mauve-eight-72.vercel.app](https://client-mauve-eight-72.vercel.app)
+* **Local Figma Canvas Prototype:** Open [`FIGMA_CANVAS_PREVIEW.html`](./FIGMA_CANVAS_PREVIEW.html) in your browser.
 * You can inspect all CSS properties directly from the live application via Chrome DevTools or Figma Inspect panel.
 
 ---

@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VorldX Attendance 360 & OfficeNova HR — Figma Design Canvas & Interactive Spec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --figma-bg: #1e1e1e;
+      --figma-canvas: #121212;
+      --figma-panel: #2c2c2c;
+      --figma-border: #383838;
+      --figma-text: #ffffff;
+      --figma-text-muted: #8e8e8e;
+      --figma-blue: #0d99ff;
+      --figma-purple: #9747ff;
+      --figma-green: #14ae5c;
+      --figma-red: #f24822;
+
+      /* VorldX Tokens */
+      --vx-bg-root: #090e1a;
+      --vx-bg-surface: #0d1527;
+      --vx-bg-card: #111c34;
+      --vx-purple-primary: #7c3aed;
+      --vx-purple-accent: #a855f7;
+      --vx-cyan-accent: #38bdf8;
+      --vx-emerald-status: #10b981;
+      --vx-amber-status: #f59e0b;
+      --vx-rose-status: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--figma-canvas);
+      color: var(--figma-text);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP FIGMA HEADER */
+    .figma-header {
+      height: 48px;
+      background: var(--figma-panel);
+      border-bottom: 1px solid var(--figma-border);
+      display: flex;
+      align-items: center;
+      justifyContent: space-between;
+      padding: 0 16px;
+      z-index: 100;
+      user-select: none;
+    }
+
+    .figma-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .figma-logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: -0.3px;
+    }
+
+    .figma-icon-svg {
+      width: 20px;
+      height: 28px;
+    }
+
+    .figma-file-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 1px solid var(--figma-border);
+      padding-left: 12px;
+    }
+
+    .figma-file-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .figma-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(151, 71, 255, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(151, 71, 255, 0.4);
+    }
+
+    .figma-header-center {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e1e1e;
+      padding: 3px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--figma-border);
+    }
+
+    .figma-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--figma-text-muted);
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .figma-tab-btn.active, .figma-tab-btn:hover {
+      color: #ffffff;
+      background: var(--figma-panel);
+    }
+
+    .figma-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-figma-share {
+      background: var(--figma-blue);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-figma-share:hover {
+      opacity: 0.9;
+    }
+
+    .btn-figma-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid var(--figma-border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-figma-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    /* MAIN WORKSPACE */
+    .figma-workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* LEFT LAYERS PANEL */
+    .figma-layers-panel {
+      width: 240px;
+      background: var(--figma-panel);
+      border-right: 1px solid var(--figma-border);
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      z-index: 10;
+    }
+
+    .panel-header {
+      padding: 10px 14px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--figma-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--figma-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .layers-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .layer-item:hover, .layer-item.active {
+      background: rgba(13, 153, 255, 0.15);
+      color: #38bdf8;
+    }
+
+    .layer-icon {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    /* CANVAS AREA */
+    .figma-canvas-area {
+      flex: 1;
+      background-color: #121212;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 24px 24px;
+      overflow: auto;
+      position: relative;
+      padding: 40px;
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+      scroll-behavior: smooth;
+    }
+
+    /* ARTBOARD FRAMES */
+    .artboard-frame {
+      background: var(--vx-bg-root);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .artboard-frame:hover {
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 0 2px var(--figma-blue);
+    }
+
+    .artboard-tag {
+      position: absolute;
+      top: -26px;
+      left: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--figma-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .artboard-tag span.badge-dim {
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+    }
+
+    /* DESKTOP HR PORTAL FRAME */
+    .frame-desktop-hr {
+      width: 860px;
+      height: 560px;
+      overflow: hidden;
+      display: flex;
+      border-radius: 12px;
+    }
+
+    .mock-sidebar {
+      width: 190px;
+      background: #070c16;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mock-brand {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mock-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .mock-nav-item.active {
+      background: rgba(124, 58, 237, 0.25);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+
+    .mock-main {
+      flex: 1;
+      padding: 16px 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .mock-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mock-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .mock-stat-card {
+      background: #0d1527;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .mock-stat-val {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .mock-stat-label {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .mock-table {
+      flex: 1;
+      background: #0d1527;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mock-tr {
+      display: grid;
+      grid-template-columns: 80px 140px 100px 90px 1fr;
+      padding: 6px 8px;
+      font-size: 0.72rem;
+      align-items: center;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* MOBILE APP FRAME */
+    .frame-mobile-app {
+      width: 320px;
+      height: 560px;
+      background: #090e17;
+      border-radius: 36px;
+      border: 8px solid #1a253e;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .mock-mobile-notch {
+      height: 24px;
+      background: #090e17;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 0.62rem;
+      color: #94a3b8;
+    }
+
+    .mock-mobile-body {
+      flex: 1;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .mock-qr-scanner-card {
+      background: #0d1527;
+      border: 1.5px dashed #38bdf8;
+      border-radius: 14px;
+      height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .mock-punch-btn {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+    }
+
+    .mock-mobile-nav {
+      height: 48px;
+      background: #070d19;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 0.65rem;
+      color: #94a3b8;
+    }
+
+    /* DESIGN TOKENS FRAME */
+    .frame-tokens {
+      width: 520px;
+      height: 560px;
+      background: #0d1527;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tokens-section-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #a855f7;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 6px;
+    }
+
+    .tokens-swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .token-swatch {
+      background: #111c34;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .swatch-color {
+      height: 32px;
+      border-radius: 4px;
+    }
+
+    .swatch-name {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .swatch-hex {
+      font-size: 0.6rem;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* RIGHT INSPECTOR PANEL */
+    .figma-inspector-panel {
+      width: 260px;
+      background: var(--figma-panel);
+      border-left: 1px solid var(--figma-border);
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      z-index: 10;
+    }
+
+    .inspector-section {
+      padding: 14px;
+      border-bottom: 1px solid var(--figma-border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .inspector-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--figma-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .inspector-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+    }
+
+    .inspector-label {
+      color: #94a3b8;
+    }
+
+    .inspector-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: #ffffff;
+      background: #1e1e1e;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--figma-border);
+      font-size: 0.72rem;
+    }
+
+    /* BOTTOM FLOATING CONTROLS */
+    .figma-canvas-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2c2c2c;
+      border: 1px solid var(--figma-border);
+      border-radius: 30px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      z-index: 50;
+    }
+
+    .control-btn {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+    }
+
+    .control-btn:hover {
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP FIGMA TOOLBAR -->
+  <header class="figma-header">
+    <div class="figma-header-left">
+      <div class="figma-logo-badge">
+        <svg class="figma-icon-svg" viewBox="0 0 38 57" fill="none">
+          <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE"/>
+          <path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83"/>
+          <path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262"/>
+          <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"/>
+          <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"/>
+        </svg>
+        <span>Figma Spec Canvas</span>
+      </div>
+      <div class="figma-file-info">
+        <span class="figma-file-title">VorldX Attendance 360 & OfficeNova HR</span>
+        <span class="figma-badge">v2.0 Verified</span>
+      </div>
+    </div>
+
+    <div class="figma-header-center">
+      <button class="figma-tab-btn active" onclick="filterArtboards('all')">All Artboards</button>
+      <button class="figma-tab-btn" onclick="filterArtboards('hr')">HR Portal</button>
+      <button class="figma-tab-btn" onclick="filterArtboards('mobile')">Mobile App</button>
+      <button class="figma-tab-btn" onclick="filterArtboards('tokens')">Tokens</button>
+    </div>
+
+    <div class="figma-header-right">
+      <a href="https://www.figma.com/community/search?q=HR+Attendance+Dashboard" target="_blank" rel="noopener noreferrer" class="btn-figma-secondary">
+        🔍 Figma Community Hub
+      </a>
+      <a href="/vorldx_tokens.json" download class="btn-figma-secondary">
+        📥 Download Tokens JSON
+      </a>
+      <a href="/" class="btn-figma-share">
+        🚀 Open Live App
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="figma-workspace">
+
+    <!-- LEFT LAYERS TREE -->
+    <aside class="figma-layers-panel">
+      <div class="panel-header">
+        <span>Artboards & Layers</span>
+        <span>4 Frames</span>
+      </div>
+      <div class="layers-list">
+        <div class="layer-item active" onclick="focusArtboard('frame-hr')">
+          <span class="layer-icon">🖥️</span>
+          <span>Desktop — OfficeNova HR</span>
+        </div>
+        <div class="layer-item" onclick="focusArtboard('frame-mobile')">
+          <span class="layer-icon">📱</span>
+          <span>Mobile — Attendance 360</span>
+        </div>
+        <div class="layer-item" onclick="focusArtboard('frame-kiosk')">
+          <span class="layer-icon">🏢</span>
+          <span>Kiosk — Dynamic QR Display</span>
+        </div>
+        <div class="layer-item" onclick="focusArtboard('frame-tokens')">
+          <span class="layer-icon">🎨</span>
+          <span>Tokens — Colors & Styles</span>
+        </div>
+      </div>
+      <div class="panel-header" style="margin-top: auto;">
+        <span>Technical Sponsor</span>
+      </div>
+      <div style="padding: 12px 14px; font-size: 0.72rem; color: #94a3b8; line-height: 1.4;">
+        <strong style="color: #ffffff;">CTO: Muba Khan Sir</strong><br>
+        VorldX Industries Private Limited<br>
+        Lucknow HQ • CIN: U62099UP2026PTC245598
+      </div>
+    </aside>
+
+    <!-- CENTER CANVAS WITH ARTBOARDS -->
+    <main class="figma-canvas-area" id="canvasArea">
+
+      <!-- ARTBOARD 1: DESKTOP HR PORTAL -->
+      <div class="artboard-frame frame-desktop-hr" id="frame-hr">
+        <div class="artboard-tag">
+          <span>🖥️ Frame 1: OfficeNova HR Portal</span>
+          <span class="badge-dim">1440 × 900</span>
+        </div>
+        <div class="mock-sidebar">
+          <div class="mock-brand">
+            <span style="color: #a855f7;">⚡</span>
+            <span>OfficeNova HR</span>
+          </div>
+          <div class="mock-nav-item active">📊 Real-Time Attendance</div>
+          <div class="mock-nav-item">👥 Employee Directory</div>
+          <div class="mock-nav-item">🏠 WFH Approvals</div>
+          <div class="mock-nav-item">📅 Leave Ledger</div>
+          <div class="mock-nav-item">📍 Geofence Zones</div>
+          <div class="mock-nav-item">📑 Compliance Audit</div>
+          <div class="mock-nav-item">⚙️ Settings</div>
+        </div>
+        <div class="mock-main">
+          <div class="mock-topbar">
+            <div>
+              <div style="font-size: 0.95rem; font-weight: 800; color: #ffffff;">Attendance & Roster Center</div>
+              <div style="font-size: 0.65rem; color: #94a3b8;">VorldX Industries Pvt Ltd • Live Sync</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <span style="font-size: 0.7rem; background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 4px 8px; border-radius: 6px; font-weight: 700;">● Cloud Sync Active</span>
+            </div>
+          </div>
+          <div class="mock-stats-row">
+            <div class="mock-stat-card">
+              <div class="mock-stat-label">Total Staff</div>
+              <div class="mock-stat-val">24</div>
+            </div>
+            <div class="mock-stat-card" style="border-color: rgba(16, 185, 129, 0.3);">
+              <div class="mock-stat-label" style="color: #34d399;">Present Today</div>
+              <div class="mock-stat-val" style="color: #34d399;">18</div>
+            </div>
+            <div class="mock-stat-card" style="border-color: rgba(245, 158, 11, 0.3);">
+              <div class="mock-stat-label" style="color: #fbbf24;">Remote / WFH</div>
+              <div class="mock-stat-val" style="color: #fbbf24;">4</div>
+            </div>
+            <div class="mock-stat-card" style="border-color: rgba(239, 68, 68, 0.3);">
+              <div class="mock-stat-label" style="color: #f87171;">Absent / Leave</div>
+              <div class="mock-stat-val" style="color: #f87171;">2</div>
+            </div>
+          </div>
+          <div class="mock-table">
+            <div style="font-size: 0.72rem; font-weight: 700; color: #cbd5e1; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+              Live Employee Roster
+            </div>
+            <div class="mock-tr">
+              <strong style="color: #38bdf8;">VX001</strong>
+              <span>Rohit Sharma</span>
+              <span style="color: #34d399; font-weight: 700;">● Present</span>
+              <span>09:12 AM</span>
+              <span style="color: #94a3b8;">Dynamic QR Kiosk #1</span>
+            </div>
+            <div class="mock-tr">
+              <strong style="color: #38bdf8;">VX002</strong>
+              <span>Priya Patel</span>
+              <span style="color: #fbbf24; font-weight: 700;">● WFH Active</span>
+              <span>09:30 AM</span>
+              <span style="color: #94a3b8;">GPS Verified (Lucknow)</span>
+            </div>
+            <div class="mock-tr">
+              <strong style="color: #38bdf8;">VX003</strong>
+              <span>Amit Verma</span>
+              <span style="color: #34d399; font-weight: 700;">● Present</span>
+              <span>08:58 AM</span>
+              <span style="color: #94a3b8;">Dynamic QR Kiosk #2</span>
+            </div>
+            <div class="mock-tr">
+              <strong style="color: #38bdf8;">VX004</strong>
+              <span>Neha Gupta</span>
+              <span style="color: #f87171; font-weight: 700;">● Leave</span>
+              <span>—</span>
+              <span style="color: #94a3b8;">Medical Leave Approved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARTBOARD 2: MOBILE EMPLOYEE APP -->
+      <div class="artboard-frame frame-mobile-app" id="frame-mobile">
+        <div class="artboard-tag">
+          <span>📱 Frame 2: Employee Mobile App</span>
+          <span class="badge-dim">390 × 844</span>
+        </div>
+        <div class="mock-mobile-notch">
+          <span>09:41</span>
+          <span style="background: #1e293b; width: 60px; height: 10px; border-radius: 8px;"></span>
+          <span>5G 100%</span>
+        </div>
+        <div class="mock-mobile-body">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.85rem; font-weight: 800; color: #fff;">Hello, Rohit!</div>
+              <div style="font-size: 0.65rem; color: #94a3b8;">ID: VX001 • Development</div>
+            </div>
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800;">RS</div>
+          </div>
+
+          <!-- Camera QR Box -->
+          <div class="mock-qr-scanner-card">
+            <span style="font-size: 1.6rem;">📷</span>
+            <div style="font-size: 0.72rem; font-weight: 700; color: #38bdf8;">CameraX Dynamic Scanner</div>
+            <div style="font-size: 0.62rem; color: #94a3b8;">Scan Kiosk QR Code to Punch</div>
+          </div>
+
+          <div class="mock-punch-btn">
+            ⚡ Punch Attendance Now
+          </div>
+
+          <!-- Quick Actions -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div style="background: #0d1527; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 0.74rem; font-weight: 700; color: #fbbf24;">🏠 Request WFH</div>
+              <div style="font-size: 0.62rem; color: #94a3b8;">GPS Geofenced</div>
+            </div>
+            <div style="background: #0d1527; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 0.74rem; font-weight: 700; color: #38bdf8;">📅 Leave Ledger</div>
+              <div style="font-size: 0.62rem; color: #94a3b8;">14 Remaining</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-mobile-nav">
+          <span style="color: #38bdf8; font-weight: 700;">🏠 Home</span>
+          <span>📋 Punch</span>
+          <span>📅 History</span>
+          <span>👤 Profile</span>
+        </div>
+      </div>
+
+      <!-- ARTBOARD 3: DESIGN TOKENS -->
+      <div class="artboard-frame frame-tokens" id="frame-tokens">
+        <div class="artboard-tag">
+          <span>🎨 Frame 3: Design Tokens & Palette</span>
+          <span class="badge-dim">Auto-Layout</span>
+        </div>
+        <div class="tokens-section-title">
+          <span>Primary Brand Palette</span>
+        </div>
+        <div class="tokens-swatch-grid">
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: #7c3aed;"></div>
+            <div class="swatch-name">Purple 700</div>
+            <div class="swatch-hex">#7C3AED</div>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: #a855f7;"></div>
+            <div class="swatch-name">Purple 500</div>
+            <div class="swatch-hex">#A855F7</div>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: #38bdf8;"></div>
+            <div class="swatch-name">Cyan Accent</div>
+            <div class="swatch-hex">#38BDF8</div>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: #10b981;"></div>
+            <div class="swatch-name">Status Green</div>
+            <div class="swatch-hex">#10B981</div>
+          </div>
+        </div>
+
+        <div class="tokens-section-title">
+          <span>Dark Surface Hierarchy</span>
+        </div>
+        <div class="tokens-swatch-grid">
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: #090e1a; border: 1px solid #333;"></div>
+            <div class="swatch-name">Root BG</div>
+            <div class="swatch-hex">#090E1A</div>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: #0d1527; border: 1px solid #333;"></div>
+            <div class="swatch-name">Surface Card</div>
+            <div class="swatch-hex">#0D1527</div>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: #111c34; border: 1px solid #333;"></div>
+            <div class="swatch-name">Modal Elev.</div>
+            <div class="swatch-hex">#111C34</div>
+          </div>
+          <div class="token-swatch">
+            <div class="swatch-color" style="background: #070c16; border: 1px solid #333;"></div>
+            <div class="swatch-name">Sidebar Dark</div>
+            <div class="swatch-hex">#070C16</div>
+          </div>
+        </div>
+
+        <div class="tokens-section-title">
+          <span>Typography Tokens</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.72rem; color: #cbd5e1;">
+          <div><strong>Display Title:</strong> <span style="font-family: 'Outfit'; font-size: 1rem; font-weight: 800; color: #fff;">Outfit ExtraBold 800</span></div>
+          <div><strong>Body / Tables:</strong> <span style="font-family: 'Inter'; font-size: 0.85rem;">Inter Regular 400 / SemiBold 600</span></div>
+          <div><strong>Code / Badges:</strong> <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #38bdf8;">JetBrains Mono 500</span></div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- RIGHT INSPECTOR PANEL -->
+    <aside class="figma-inspector-panel">
+      <div class="panel-header">
+        <span>Inspect Properties</span>
+        <span>CSS / Spec</span>
+      </div>
+
+      <div class="inspector-section">
+        <div class="inspector-title">Active Selection</div>
+        <div class="inspector-row">
+          <span class="inspector-label">Element</span>
+          <span class="inspector-val">Frame / Container</span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Framework</span>
+          <span class="inspector-val">Glassmorphism</span>
+        </div>
+      </div>
+
+      <div class="inspector-section">
+        <div class="inspector-title">Layout & Dimensions</div>
+        <div class="inspector-row">
+          <span class="inspector-label">Desktop Viewport</span>
+          <span class="inspector-val">1440 × 900 px</span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Mobile Frame</span>
+          <span class="inspector-val">390 × 844 px</span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Corner Radius</span>
+          <span class="inspector-val">14 px / 36 px</span>
+        </div>
+      </div>
+
+      <div class="inspector-section">
+        <div class="inspector-title">Color Tokens</div>
+        <div class="inspector-row">
+          <span class="inspector-label">Background</span>
+          <span class="inspector-val">#090E1A</span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Primary Fill</span>
+          <span class="inspector-val">#7C3AED</span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Accent Highlight</span>
+          <span class="inspector-val">#38BDF8</span>
+        </div>
+      </div>
+
+      <div class="inspector-section">
+        <div class="inspector-title">Export Assets</div>
+        <button onclick="downloadJson()" style="width: 100%; padding: 8px; background: rgba(13, 153, 255, 0.15); border: 1px solid var(--figma-blue); color: var(--figma-blue); border-radius: 6px; font-weight: 700; font-size: 0.74rem; cursor: pointer;">
+          📥 Export Tokens JSON
+        </button>
+      </div>
+    </aside>
+
+    <!-- BOTTOM FLOATING CONTROLS -->
+    <div class="figma-canvas-controls">
+      <button class="control-btn" onclick="zoomCanvas(0.8)">🔍 80%</button>
+      <button class="control-btn" onclick="zoomCanvas(1.0)">🔍 100%</button>
+      <button class="control-btn" onclick="zoomCanvas(1.2)">🔍 120%</button>
+      <button class="control-btn" onclick="scrollLeftCanvas()">← Scroll</button>
+      <button class="control-btn" onclick="scrollRightCanvas()">Scroll →</button>
+    </div>
+
+  </div>
+
+  <script>
+    function zoomCanvas(scale) {
+      const area = document.getElementById('canvasArea');
+      area.style.transformOrigin = 'top left';
+      area.style.zoom = scale;
+    }
+
+    function scrollLeftCanvas() {
+      document.getElementById('canvasArea').scrollBy({ left: -300, behavior: 'smooth' });
+    }
+
+    function scrollRightCanvas() {
+      document.getElementById('canvasArea').scrollBy({ left: 300, behavior: 'smooth' });
+    }
+
+    function focusArtboard(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+      }
+    }
+
+    function filterArtboards(type) {
+      document.querySelectorAll('.figma-tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const hr = document.getElementById('frame-hr');
+      const mobile = document.getElementById('frame-mobile');
+      const tokens = document.getElementById('frame-tokens');
+
+      if (type === 'all') {
+        hr.style.display = 'flex';
+        mobile.style.display = 'flex';
+        tokens.style.display = 'flex';
+      } else if (type === 'hr') {
+        hr.style.display = 'flex';
+        mobile.style.display = 'none';
+        tokens.style.display = 'none';
+        hr.scrollIntoView({ behavior: 'smooth' });
+      } else if (type === 'mobile') {
+        hr.style.display = 'none';
+        mobile.style.display = 'flex';
+        tokens.style.display = 'none';
+        mobile.scrollIntoView({ behavior: 'smooth' });
+      } else if (type === 'tokens') {
+        hr.style.display = 'none';
+        mobile.style.display = 'none';
+        tokens.style.display = 'flex';
+        tokens.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function downloadJson() {
+      window.location.href = '/vorldx_tokens.json';
+    }
+  </script>
+
+</body>
+</html>

@@ -9,7 +9,9 @@
 
 | Asset / File | Format | Direct Public Link | Description |
 |---|---|---|---|
-| **Figma Community Modern UI Kit** | Web / Figma Canvas | 👉 **[Open Figma Community Workspace](https://www.figma.com/community/file/1169300676662758156)** | Complete Dark Glassmorphic Enterprise Design Kit (Screens, Components, Icons, Auto-Layout). |
+| **Interactive Figma Canvas Spec** | Web / Interactive Spec | 👉 **[Open Live Figma Spec Canvas](https://client-mauve-eight-72.vercel.app/figma.html)** | Interactive Dark Glassmorphic canvas with inspect panel, artboards, and token exports. |
+| **Figma Community HR & Dashboard Hub** | Figma Community | 👉 **[Open Figma Community Workspace](https://www.figma.com/community/search?q=HR+Attendance+Dashboard)** | Official Figma Community hub with duplicate-ready HRMS & Attendance templates. |
+| **Verified Data Viz Community Kit** | Figma Community File | 👉 **[Kiss Data Viz Kit](https://www.figma.com/community/file/1029955624567963869/kiss-data-a-data-visualization-design-system)** | Verified live 360 data visualization system on Figma Community. |
 | **GitHub Design Directory** | GitHub Folder | 👉 **[GitHub `/design` Directory](https://github.com/shreyay1310-svg/vorldx/tree/main/design)** | Master source repository for all design assets and documentation. |
 | **Figma Design Tokens JSON** | W3C Standard JSON | 👉 **[`vorldx_tokens.json`](https://github.com/shreyay1310-svg/vorldx/blob/main/design/vorldx_tokens.json)** | Direct import for Tokens Studio for Figma or native Figma Variables (Colors, Typography, Elevations). |
 | **Full Design System Specs** | Markdown | 👉 **[`FIGMA_DESIGN_SYSTEM.md`](https://github.com/shreyay1310-svg/vorldx/blob/main/design/FIGMA_DESIGN_SYSTEM.md)** | Component architecture, 12-column grid, 16 screens specs, touch target measurements. |

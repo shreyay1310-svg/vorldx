@@ -1219,6 +1219,16 @@
   color: #ffffff;
 }
 
+.vx-direct-chip.chip-figma {
+  background: rgba(242, 78, 30, 0.12);
+  color: #ea580c;
+  border-color: rgba(242, 78, 30, 0.3);
+}
+.vx-direct-chip.chip-figma:hover {
+  background: #ea580c;
+  color: #ffffff;
+}
+
 /* --------------------------------------------------------------------------
    RESPONSIVE BREAKPOINTS
    -------------------------------------------------------------------------- */

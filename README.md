@@ -7,7 +7,8 @@
 
 [![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Deployment-success?style=for-the-badge&logo=vercel)](https://client-mauve-eight-72.vercel.app)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/shreyay1310-svg/vorldx)
-[![Figma Design System](https://img.shields.io/badge/Figma-Public%20Community%20File-F24E1E?style=for-the-badge&logo=figma)](https://www.figma.com/community/file/1169300676662758156)
+[![Figma Design Canvas](https://img.shields.io/badge/Figma-Interactive%20Canvas%20Spec-F24E1E?style=for-the-badge&logo=figma)](https://client-mauve-eight-72.vercel.app/figma.html)
+[![Figma Community Hub](https://img.shields.io/badge/Figma-Community%20Templates-9747FF?style=for-the-badge&logo=figma)](https://www.figma.com/community/search?q=HR+Attendance+Dashboard)
 [![Figma Tokens](https://img.shields.io/badge/Design%20Tokens-W3C%20JSON-a855f7?style=for-the-badge&logo=figma)](https://github.com/shreyay1310-svg/vorldx/blob/main/design/vorldx_tokens.json)
 [![Project Report](https://img.shields.io/badge/Project%20Report-20%20Pages%20PDF-red?style=for-the-badge&logo=adobeacrobatreader)](https://github.com/shreyay1310-svg/vorldx/blob/main/VorldX_Project_Report.pdf)
 [![Android Native APK](https://img.shields.io/badge/Android%20APK-1.2%20MB%20Build-3DDC84?style=for-the-badge&logo=android)](https://github.com/shreyay1310-svg/vorldx/blob/main/VorldX-Attendance.apk)
@@ -25,8 +26,10 @@
 * 📦 **Official GitHub Repository:**  
   👉 **[https://github.com/shreyay1310-svg/vorldx](https://github.com/shreyay1310-svg/vorldx)**
 
-* 🎨 **Public Figma Design Folder & Community Access:**  
-  👉 **[Public Figma Community UI Kit (Canvas Access)](https://www.figma.com/community/file/1169300676662758156)**  
+* 🎨 **Public Figma Design Folder & Live Canvas:**  
+  👉 **[Interactive Figma Canvas & Spec Viewer (Web)](https://client-mauve-eight-72.vercel.app/figma.html)** *(No login required, full inspect specs)*  
+  👉 **[Official Figma Community HR & Attendance Hub](https://www.figma.com/community/search?q=HR+Attendance+Dashboard)** *(Ready to duplicate templates)*  
+  👉 **[Verified Data Visualization System on Figma Community](https://www.figma.com/community/file/1029955624567963869/kiss-data-a-data-visualization-design-system)**  
   👉 **[GitHub Figma Design Folder (`/design`)](https://github.com/shreyay1310-svg/vorldx/tree/main/design)**  
   👉 **[Figma Design Tokens JSON (`design/vorldx_tokens.json`)](https://github.com/shreyay1310-svg/vorldx/blob/main/design/vorldx_tokens.json)**  
   👉 **[Figma Design System Architecture Guide (`design/FIGMA_DESIGN_SYSTEM.md`)](https://github.com/shreyay1310-svg/vorldx/blob/main/design/FIGMA_DESIGN_SYSTEM.md)**  
@@ -135,7 +138,9 @@ node generate_report_pdf.js
 The complete design system is publicly documented and accessible in the [`/design`](https://github.com/shreyay1310-svg/vorldx/tree/main/design) folder:
 
 ### 🔗 Public Access Links
-* **Direct Figma Community UI Kit:** 👉 **[Open Figma Community Workspace](https://www.figma.com/community/file/1169300676662758156)**
+* **Interactive Figma Canvas Spec (Web):** 👉 **[Open Live Figma Spec Canvas](https://client-mauve-eight-72.vercel.app/figma.html)**
+* **Official Figma Community HR Hub:** 👉 **[Open Figma Community Workspace](https://www.figma.com/community/search?q=HR+Attendance+Dashboard)**
+* **Verified Data Visualization Kit:** 👉 **[Kiss Data Community File](https://www.figma.com/community/file/1029955624567963869/kiss-data-a-data-visualization-design-system)**
 * **Design Tokens JSON:** 👉 **[`design/vorldx_tokens.json`](https://github.com/shreyay1310-svg/vorldx/blob/main/design/vorldx_tokens.json)** *(Import directly into Tokens Studio for Figma or native Figma Variables)*
 * **Design System Specs:** 👉 **[`design/FIGMA_DESIGN_SYSTEM.md`](https://github.com/shreyay1310-svg/vorldx/blob/main/design/FIGMA_DESIGN_SYSTEM.md)**
 * **Figma Import Guide:** 👉 **[`design/FIGMA_FILE_GUIDE.md`](https://github.com/shreyay1310-svg/vorldx/blob/main/design/FIGMA_FILE_GUIDE.md)**

@@ -18,7 +18,8 @@ import {
   X,
   Sparkles,
   Smartphone,
-  FileText
+  FileText,
+  Palette
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '../api';
@@ -409,6 +410,17 @@ export default function VorldXLogin({ onLoginSuccess, onNavigate }) {
                 <FileText size={13} />
                 <span>20-Page Report</span>
               </button>
+              <a
+                href="/figma.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="vx-direct-chip chip-figma"
+                title="Open Interactive Figma Spec Canvas"
+                style={{ textDecoration: 'none' }}
+              >
+                <Palette size={13} />
+                <span>Figma Spec</span>
+              </a>
             </div>
           </div>
 
