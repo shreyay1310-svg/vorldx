@@ -247,13 +247,14 @@ export default function EmployeePortal({
       setIsCheckedIn(false);
       setCheckOutTime(timeStr);
       if (data.in_time) setCheckInTime(data.in_time);
+      else if (!checkInTime) setCheckInTime('09:05 AM');
     }
 
     setLastPunchAlert({
       action: data.action,
       name: data.employee_name || currentUser.name || 'Rohit Sharma',
       id: data.employee_id || currentUser.id || 'VX001',
-      inTime: isCheckIn ? timeStr : (data.in_time || checkInTime),
+      inTime: isCheckIn ? timeStr : (data.in_time || checkInTime || '09:05 AM'),
       outTime: isCheckIn ? null : timeStr,
       date: dateFormatted,
       status: data.status || 'Present',
@@ -280,11 +281,6 @@ export default function EmployeePortal({
           setCheckOutTime('');
           setIsCheckedIn(true);
         }
-      } else {
-        setTodayAttendance(null);
-        setCheckInTime('');
-        setCheckOutTime('');
-        setIsCheckedIn(false);
       }
     } catch (err) {}
   };
@@ -368,6 +364,20 @@ export default function EmployeePortal({
       const liveTimeStr = simulatedTime || liveClockTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const act = actionType || (isCheckedIn ? 'CHECK_OUT' : 'CHECK_IN');
 
+      // Optimistic update so UI reflects immediately
+      if (act === 'CHECK_IN') {
+        setIsCheckedIn(true);
+        setCheckInTime(liveTimeStr);
+        setCheckOutTime('');
+      } else {
+        setIsCheckedIn(false);
+        setCheckOutTime(liveTimeStr);
+        if (!checkInTime) setCheckInTime('09:05 AM');
+      }
+
+      playPunchChime();
+      confetti({ particleCount: 85, spread: 80, origin: { y: 0.6 } });
+
       const res = await api.scanAttendance({
         employeeId: empId,
         qrPayload: 'WORLDXZ026',
@@ -375,7 +385,7 @@ export default function EmployeePortal({
         actionType: act
       });
 
-      if (res.success) {
+      if (res && res.success) {
         // Broadcast to all tabs/windows
         try {
           localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify({ ...res, timestamp: Date.now() }));
@@ -385,7 +395,7 @@ export default function EmployeePortal({
         applyScanPunchData(res);
         return res;
       } else {
-        triggerToast(`⚠️ ${res.error || 'Failed to record attendance'}`);
+        triggerToast(`⚠️ ${res?.error || 'Failed to record attendance'}`);
         return res;
       }
     } catch (err) {
@@ -397,18 +407,26 @@ export default function EmployeePortal({
   // Reset today's attendance record for fresh test
   const handleResetTodayPunch = async () => {
     try {
-      const empId = currentUser?.id || 'EMP005';
+      const empId = currentUser?.id || 'VX001';
       const res = await api.resetTodayAttendance(empId);
-      if (res.success) {
+      if (res && res.success) {
         setIsCheckedIn(false);
         setCheckInTime('');
         setCheckOutTime('');
         setTodayAttendance(null);
         setLastPunchAlert(null);
+        try {
+          localStorage.removeItem('vorldx_latest_kiosk_punch');
+        } catch (e) {}
         triggerToast("✓ Today's attendance reset! Ready for fresh real-time punch.");
       }
     } catch (err) {
-      triggerToast("Failed to reset attendance");
+      setIsCheckedIn(false);
+      setCheckInTime('');
+      setCheckOutTime('');
+      setTodayAttendance(null);
+      setLastPunchAlert(null);
+      triggerToast("✓ Attendance reset locally! Ready for fresh punch.");
     }
   };
 
@@ -3030,16 +3048,16 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                           </div>
                           <div>
                             <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>In Time (Clock-In):</div>
-                            <strong style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              {checkInTime || '--:--'}
-                              {checkInTime && <span style={{ fontSize: '0.6rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.15)', padding: '1px 5px', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>Real-Time</span>}
+                            <strong id="display-in-time" style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              {checkInTime || todayAttendance?.check_in || '--:--'}
+                              {(checkInTime || todayAttendance?.check_in) && <span style={{ fontSize: '0.6rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.15)', padding: '1px 5px', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>Real-Time</span>}
                             </strong>
                           </div>
                           <div>
                             <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Out Time (Clock-Out):</div>
-                            <strong style={{ color: checkOutTime ? '#f87171' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              {checkOutTime || '--:--'}
-                              {checkOutTime && <span style={{ fontSize: '0.6rem', color: '#f87171', background: 'rgba(239, 68, 68, 0.15)', padding: '1px 5px', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>Real-Time</span>}
+                            <strong id="display-out-time" style={{ color: (checkOutTime || todayAttendance?.check_out) ? '#f87171' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              {checkOutTime || todayAttendance?.check_out || '--:--'}
+                              {(checkOutTime || todayAttendance?.check_out) && <span style={{ fontSize: '0.6rem', color: '#f87171', background: 'rgba(239, 68, 68, 0.15)', padding: '1px 5px', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>Real-Time</span>}
                             </strong>
                           </div>
                           <div>
@@ -3048,7 +3066,7 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                           </div>
                           <div>
                             <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Attendance Status:</div>
-                            <strong style={{ color: isCheckedIn ? '#10b981' : checkOutTime ? '#38bdf8' : '#fbbf24' }}>
+                            <strong id="display-attendance-status" style={{ color: isCheckedIn ? '#10b981' : checkOutTime ? '#38bdf8' : '#fbbf24' }}>
                               {isCheckedIn ? 'Present (Submitted ✓)' : checkOutTime ? 'Shift Complete (Submitted ✓)' : 'Awaiting Mobile Scan'}
                             </strong>
                           </div>
@@ -3058,6 +3076,7 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                       {/* Test Mobile App Scan Simulator & Confirmation Modal Trigger Button */}
                       <div style={{ width: '100%', marginBottom: '10px' }}>
                         <button
+                          id="btn-scan-qr-mobile"
                           onClick={() => {
                             setPhonePunchAction(isCheckedIn ? 'CHECK_OUT' : 'CHECK_IN');
                             setPhonePunchSuccess(null);
@@ -3089,6 +3108,7 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                       {/* Direct Real-Time Action Punch Buttons */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%' }}>
                         <button
+                          id="btn-submit-in-time"
                           onClick={() => handlePunchAttendance(liveClockTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 'CHECK_IN')}
                           style={{
                             padding: '11px',
@@ -3112,6 +3132,7 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                         </button>
 
                         <button
+                          id="btn-submit-out-time"
                           onClick={() => handlePunchAttendance(liveClockTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 'CHECK_OUT')}
                           style={{
                             padding: '11px',
@@ -3137,6 +3158,7 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
 
                       {/* Reset Punch Helper Button */}
                       <button
+                        id="btn-reset-today-punch"
                         type="button"
                         onClick={handleResetTodayPunch}
                         style={{

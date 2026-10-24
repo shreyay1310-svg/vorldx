@@ -144,12 +144,12 @@ export default function App() {
           {activeTab === 'employee' && (
             <EmployeePortal
               initialEmployee={loggedInUser || {
-                id: 'EMP005',
-                name: 'Rohit S.',
+                id: 'VX001',
+                name: 'Rohit Sharma',
                 role: 'Employee',
-                designation: 'Employee',
+                designation: 'Senior Software Engineer',
                 department: 'Engineering',
-                email: 'rohit.s@vorldx.com',
+                email: 'rohit.sharma@vorldx.com',
                 phone: '+91 9876543210',
                 joining_date: '10 Jan 2024',
                 reporting_manager: 'Amit Kumar',

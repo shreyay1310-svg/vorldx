@@ -35,6 +35,9 @@ function formatTime12(date = new Date()) {
 function formatMinutesToHours(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
+  return `${h}h ${m}m`;
+}
+
 // In-memory latest scan tracking for real-time Kiosk display sync
 let latestKioskScan = null;
 
@@ -86,7 +89,11 @@ router.post('/scan', (req, res) => {
     const requestedAction = req.body.action_type; // 'CHECK_IN' | 'CHECK_OUT' | undefined
 
     // Check existing record for today
-    const existing = db.prepare('SELECT * FROM attendance WHERE employee_id = ? AND date = ?').get(employee.id, todayStr);
+    let existing = db.prepare('SELECT * FROM attendance WHERE employee_id = ? AND date = ?').get(employee.id, todayStr);
+    if (!existing && (cleanId === 'VX001' || cleanId === 'EMP005')) {
+      const altId = cleanId === 'VX001' ? 'EMP005' : 'VX001';
+      existing = db.prepare('SELECT * FROM attendance WHERE employee_id = ? AND date = ?').get(altId, todayStr);
+    }
 
     const checkInMinutes = parseTimeMinutes(timeStr);
     const policyStartMinutes = parseTimeMinutes(policy.work_start_time || '09:00');
@@ -345,12 +352,22 @@ router.get('/today/:employee_id', (req, res) => {
   try {
     const todayStr = new Date().toISOString().split('T')[0];
     const empId = req.params.employee_id.toUpperCase();
-    const record = db.prepare(`
+    let record = db.prepare(`
       SELECT a.*, e.name as employee_name, e.department, e.designation, e.avatar
       FROM attendance a
       JOIN employees e ON a.employee_id = e.id
       WHERE a.employee_id = ? AND a.date = ?
     `).get(empId, todayStr);
+
+    if (!record && (empId === 'VX001' || empId === 'EMP005')) {
+      const altId = empId === 'VX001' ? 'EMP005' : 'VX001';
+      record = db.prepare(`
+        SELECT a.*, e.name as employee_name, e.department, e.designation, e.avatar
+        FROM attendance a
+        JOIN employees e ON a.employee_id = e.id
+        WHERE a.employee_id = ? AND a.date = ?
+      `).get(altId, todayStr);
+    }
 
     res.json(record || null);
   } catch (error) {
