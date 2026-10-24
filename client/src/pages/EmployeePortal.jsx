@@ -208,11 +208,26 @@ export default function EmployeePortal({
   const [attendanceListFilter, setAttendanceListFilter] = useState('All');
   const [kioskTab, setKioskTab] = useState('QR Code Kiosk');
 
-  // Live attendance state synced with SQLite DB
-  const [todayAttendance, setTodayAttendance] = useState(null);
-  const [checkInTime, setCheckInTime] = useState('');
-  const [checkOutTime, setCheckOutTime] = useState('');
-  const [lastPunchAlert, setLastPunchAlert] = useState(null);
+  // Persistent attendance state helper
+  const getSavedPunchData = () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const raw = localStorage.getItem('vorldx_saved_kiosk_punch');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.date === today) return parsed;
+      }
+    } catch (e) {}
+    return null;
+  };
+
+  const initialSaved = getSavedPunchData();
+
+  // Live attendance state synced with SQLite DB & persistent local storage
+  const [todayAttendance, setTodayAttendance] = useState(initialSaved);
+  const [checkInTime, setCheckInTime] = useState(() => initialSaved?.check_in || initialSaved?.in_time || '09:05 AM');
+  const [checkOutTime, setCheckOutTime] = useState(() => initialSaved?.check_out || initialSaved?.out_time || '');
+  const [lastPunchAlert, setLastPunchAlert] = useState(initialSaved);
   const [isResettingPunch, setIsResettingPunch] = useState(false);
   const qrCanvasRef = useRef(null);
   const [networkIp, setNetworkIp] = useState('192.168.1.77');
@@ -239,6 +254,10 @@ export default function EmployeePortal({
       setCheckOutTime('');
       setTodayAttendance(null);
       setLastPunchAlert(null);
+      try {
+        localStorage.removeItem('vorldx_saved_kiosk_punch');
+        localStorage.removeItem('vorldx_latest_kiosk_punch');
+      } catch (e) {}
       return;
     }
     const isCheckIn = data.action === 'CHECK_IN';
@@ -248,30 +267,47 @@ export default function EmployeePortal({
     playPunchChime();
     confetti({ particleCount: 85, spread: 80, origin: { y: 0.6 } });
 
+    let finalInTime = checkInTime || '09:05 AM';
+    let finalOutTime = checkOutTime || '';
+
     if (isCheckIn) {
       setIsCheckedIn(true);
-      setCheckInTime(timeStr);
-      setCheckOutTime('');
+      finalInTime = timeStr || checkInTime || '09:05 AM';
+      setCheckInTime(finalInTime);
     } else {
       setIsCheckedIn(false);
-      setCheckOutTime(timeStr);
-      if (data.in_time) setCheckInTime(data.in_time);
-      else if (!checkInTime) setCheckInTime('09:05 AM');
+      finalOutTime = timeStr || checkOutTime || '06:02 PM';
+      setCheckOutTime(finalOutTime);
+      if (data.in_time) finalInTime = data.in_time;
+      setCheckInTime(finalInTime);
     }
 
-    setLastPunchAlert({
+    const punchRecordToSave = {
       action: data.action,
       name: data.employee_name || currentUser.name || 'Rohit Sharma',
       id: data.employee_id || currentUser.id || 'VX001',
-      inTime: isCheckIn ? timeStr : (data.in_time || checkInTime || '09:05 AM'),
-      outTime: isCheckIn ? null : timeStr,
-      date: dateFormatted,
+      employee_id: data.employee_id || currentUser.id || 'VX001',
+      employee_name: data.employee_name || currentUser.name || 'Rohit Sharma',
+      check_in: finalInTime,
+      in_time: finalInTime,
+      check_out: finalOutTime,
+      out_time: finalOutTime,
+      date: new Date().toISOString().split('T')[0],
+      date_formatted: dateFormatted,
       status: data.status || 'Present',
       message: data.message || `Attendance Successfully Recorded (${timeStr})`,
       timestamp: Date.now()
-    });
+    };
 
-    triggerToast(`✓ Real-Time Attendance Submitted: ${data.employee_name || 'Rohit Sharma'} (${data.employee_id || 'VX001'}) at ${timeStr}`);
+    setLastPunchAlert(punchRecordToSave);
+
+    // Save permanently to localStorage so timings are NEVER lost
+    try {
+      localStorage.setItem('vorldx_saved_kiosk_punch', JSON.stringify(punchRecordToSave));
+      localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify(punchRecordToSave));
+    } catch (e) {}
+
+    triggerToast(`✓ Real-Time Attendance Saved: ${punchRecordToSave.name} (In: ${finalInTime}${finalOutTime ? ` | Out: ${finalOutTime}` : ''})`);
     refreshTodayAttendance();
   };
 
@@ -287,16 +323,20 @@ export default function EmployeePortal({
           setCheckOutTime(record.check_out);
           setIsCheckedIn(false);
         } else {
-          setCheckOutTime('');
           setIsCheckedIn(true);
         }
-      } else {
-        setTodayAttendance(null);
-        setCheckInTime('');
-        setCheckOutTime('');
-        setIsCheckedIn(false);
-        setLastPunchAlert(null);
+        // Save to persistent storage
+        try {
+          const toSave = {
+            ...record,
+            in_time: record.check_in,
+            out_time: record.check_out || '',
+            date: new Date().toISOString().split('T')[0]
+          };
+          localStorage.setItem('vorldx_saved_kiosk_punch', JSON.stringify(toSave));
+        } catch (e) {}
       }
+      // Note: If record is null, we DO NOT wipe state so scanned timing stays permanently saved!
     } catch (err) {}
   };
 
@@ -458,6 +498,7 @@ export default function EmployeePortal({
 
       // 2. Clear storage & broadcast reset event to all tabs
       try {
+        localStorage.removeItem('vorldx_saved_kiosk_punch');
         localStorage.removeItem('vorldx_latest_kiosk_punch');
         window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { action: 'RESET', reset: true } }));
       } catch (e) {}
