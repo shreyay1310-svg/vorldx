@@ -43,6 +43,23 @@ export default function ProjectReport() {
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <a
+            href="/VorldX_Project_Report_15Pages.pdf"
+            download="VorldX_Project_Report_15Pages.pdf"
+            className="btn btn-sm"
+            style={{ 
+              textDecoration: 'none', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              fontSize: '0.8rem',
+              background: '#059669',
+              color: '#ffffff',
+              border: '1px solid #10b981'
+            }}
+          >
+            <Download size={14} /> 15-Page Report (PDF)
+          </a>
+          <a
             href="/VorldX_Project_Report.pdf"
             download="VorldX_Project_Report.pdf"
             className="btn btn-primary btn-sm"
