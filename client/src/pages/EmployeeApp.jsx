@@ -117,17 +117,17 @@ export default function EmployeeApp({
   // 'wfh' (Screen 15), 'history' (Screen 16), 'profile' (Screen 17)
   const [mobileScreen, setMobileScreen] = useState('home');
 
-  // Active employee state (Rohit S. EMP005 default matching Employee Portal)
+  // Active employee state (Rohit Sharma VX001 default matching Employee Portal)
   const [activeEmployee, setActiveEmployee] = useState(initialEmployee || {
-    id: 'EMP005',
-    name: 'Rohit S.',
+    id: 'VX001',
+    name: 'Rohit Sharma',
     department: 'Engineering',
     designation: 'Senior Software Engineer',
     shift: 'General (9:00 AM - 6:00 PM)',
     work_type: 'Office',
     joining_date: '10 Jan 2024',
     address: 'Flat 402, Shalimar Heights, Gomti Nagar Ext., Lucknow, UP - 226010',
-    email: 'rohit.s@vorldx.com',
+    email: 'rohit.sharma@vorldx.com',
     phone: '9876543210',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80',
     verified: 1
@@ -137,7 +137,7 @@ export default function EmployeeApp({
   const [scanPunchDetails, setScanPunchDetails] = useState(null);
 
   // Screen 11: Employee ID Input (HR creates accounts, Employee logs in)
-  const [inputEmpId, setInputEmpId] = useState('EMP005');
+  const [inputEmpId, setInputEmpId] = useState('VX001');
 
   // Screen 17: Employee Profile Edit State
   const [showEditModal, setShowEditModal] = useState(false);
@@ -1382,54 +1382,86 @@ export default function EmployeeApp({
         }
       }
 
+      const act = appPunchType || (todayRecord?.check_in && !todayRecord?.check_out ? 'CHECK_OUT' : 'CHECK_IN');
+      const nowStr = appLiveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
       const res = await api.scanAttendance({
         employeeId: activeEmployee.id,
-        qrPayload: token || 'WORLDXZ026'
+        qrPayload: token || 'WORLDXZ026',
+        simulatedTime: nowStr,
+        actionType: act
       });
 
       if (res.success) {
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.65 } });
+        confetti({ particleCount: 85, spread: 75, origin: { y: 0.65 } });
         setScanPunchDetails(res);
         setScanStatusMsg({ type: 'success', text: res.message || 'Attendance Punched Successfully!' });
+        
+        // Sync with Kiosk / other open tabs
+        try {
+          localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify({ ...res, timestamp: Date.now() }));
+          window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { ...res, timestamp: Date.now() } }));
+        } catch (e) {}
+
         setTodayRecord({
           status: res.status,
-          check_in: res.in_time || res.check_in_time || '09:05 AM',
-          check_out: res.out_time || res.check_out_time || ''
+          check_in: res.in_time || res.check_in_time || (act === 'CHECK_IN' ? nowStr : (todayRecord?.check_in || '09:05 AM')),
+          check_out: res.out_time || res.check_out_time || (act === 'CHECK_OUT' ? nowStr : '')
         });
         setTimeout(() => setMobileScreen('home'), 2200);
       } else {
         // Fallback: still mark punch so employee is not blocked
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-        const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setScanPunchDetails({
+        const fallbackData = {
+          success: true,
+          action: act,
+          status: 'Present',
           employee_name: activeEmployee.name,
           employee_id: activeEmployee.id,
-          in_time: nowStr,
-          out_time: null,
-          status: 'Present'
-        });
+          in_time: act === 'CHECK_IN' ? nowStr : (todayRecord?.check_in || '09:05 AM'),
+          out_time: act === 'CHECK_OUT' ? nowStr : null,
+          date: appLiveTime.toISOString().split('T')[0],
+          date_formatted: appLiveTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+          message: `Real-Time Attendance Submitted (${nowStr})`
+        };
+
+        setScanPunchDetails(fallbackData);
+        try {
+          localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify({ ...fallbackData, timestamp: Date.now() }));
+          window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { ...fallbackData, timestamp: Date.now() } }));
+        } catch (e) {}
+
         setTodayRecord({
           status: 'Present',
-          check_in: nowStr,
-          check_out: '06:00 PM'
+          check_in: act === 'CHECK_IN' ? nowStr : (todayRecord?.check_in || '09:05 AM'),
+          check_out: act === 'CHECK_OUT' ? nowStr : ''
         });
         setScanStatusMsg({ type: 'success', text: `Punch Recorded (${nowStr})` });
         setTimeout(() => setMobileScreen('home'), 2200);
       }
     } catch (err) {
       confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setScanPunchDetails({
+      const nowStr = appLiveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const act = appPunchType || (todayRecord?.check_in && !todayRecord?.check_out ? 'CHECK_OUT' : 'CHECK_IN');
+      const fallbackData = {
+        success: true,
+        action: act,
+        status: 'Present',
         employee_name: activeEmployee.name,
         employee_id: activeEmployee.id,
-        in_time: nowStr,
-        out_time: null,
-        status: 'Present'
-      });
+        in_time: act === 'CHECK_IN' ? nowStr : (todayRecord?.check_in || '09:05 AM'),
+        out_time: act === 'CHECK_OUT' ? nowStr : null,
+        date_formatted: appLiveTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+      };
+      setScanPunchDetails(fallbackData);
+      try {
+        localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify({ ...fallbackData, timestamp: Date.now() }));
+        window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { ...fallbackData, timestamp: Date.now() } }));
+      } catch (e) {}
       setTodayRecord({
         status: 'Present',
-        check_in: nowStr,
-        check_out: '06:00 PM'
+        check_in: act === 'CHECK_IN' ? nowStr : (todayRecord?.check_in || '09:05 AM'),
+        check_out: act === 'CHECK_OUT' ? nowStr : ''
       });
       setScanStatusMsg({ type: 'success', text: `Punch Recorded Offline (${nowStr})` });
       setTimeout(() => setMobileScreen('home'), 2200);
@@ -1458,9 +1490,16 @@ export default function EmployeeApp({
       });
 
       if (res.success) {
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.65 } });
+        confetti({ particleCount: 85, spread: 75, origin: { y: 0.65 } });
         setScanPunchDetails(res);
         setScanStatusMsg({ type: 'success', text: res.message });
+        
+        // Sync with Kiosk / other tabs
+        try {
+          localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify({ ...res, timestamp: Date.now() }));
+          window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { ...res, timestamp: Date.now() } }));
+        } catch (e) {}
+
         setTodayRecord({
           status: res.status,
           check_in: res.in_time || res.check_in_time || punchTime,
@@ -1470,13 +1509,24 @@ export default function EmployeeApp({
       } else {
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
         const punchStatus = simulatedTime ? 'Late' : 'Present';
-        setScanPunchDetails({
+        const fallbackData = {
+          success: true,
+          action: act,
+          status: punchStatus,
           employee_name: activeEmployee.name,
           employee_id: activeEmployee.id,
           in_time: act === 'CHECK_IN' ? punchTime : (todayRecord?.check_in || '09:05 AM'),
           out_time: act === 'CHECK_OUT' ? punchTime : null,
-          status: punchStatus
-        });
+          date_formatted: appLiveTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+          message: `Attendance Successfully Submitted (${punchTime})`
+        };
+
+        setScanPunchDetails(fallbackData);
+        try {
+          localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify({ ...fallbackData, timestamp: Date.now() }));
+          window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { ...fallbackData, timestamp: Date.now() } }));
+        } catch (e) {}
+
         setTodayRecord({
           status: punchStatus,
           check_in: act === 'CHECK_IN' ? punchTime : (todayRecord?.check_in || '09:05 AM'),
@@ -1489,10 +1539,27 @@ export default function EmployeeApp({
       confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
       const nowStr = appLiveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const punchTime = simulatedTime || nowStr;
+      const act = actionType || appPunchType;
+      const fallbackData = {
+        success: true,
+        action: act,
+        status: 'Present',
+        employee_name: activeEmployee.name,
+        employee_id: activeEmployee.id,
+        in_time: act === 'CHECK_IN' ? punchTime : (todayRecord?.check_in || '09:05 AM'),
+        out_time: act === 'CHECK_OUT' ? punchTime : null,
+        date_formatted: appLiveTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+      };
+      setScanPunchDetails(fallbackData);
+      try {
+        localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify({ ...fallbackData, timestamp: Date.now() }));
+        window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { ...fallbackData, timestamp: Date.now() } }));
+      } catch (e) {}
+
       setTodayRecord({
         status: 'Present',
-        check_in: punchTime,
-        check_out: ''
+        check_in: act === 'CHECK_IN' ? punchTime : (todayRecord?.check_in || '09:05 AM'),
+        check_out: act === 'CHECK_OUT' ? punchTime : ''
       });
       setScanStatusMsg({ type: 'success', text: `Punched Real-Time (${punchTime})` });
       setTimeout(() => setMobileScreen('home'), 1500);
@@ -2725,7 +2792,7 @@ export default function EmployeeApp({
                 </div>
               )}
 
-              {/* Scanned Details Card: Employee Name, ID, In Time, Out Time */}
+              {/* Scanned Details Card: Employee Name, ID, In Time, Out Time, Date */}
               {scanPunchDetails && (
                 <div style={{
                   marginTop: '12px',
@@ -2745,6 +2812,9 @@ export default function EmployeeApp({
                     <div><span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>ID:</span> <strong style={{ color: '#38bdf8' }}>{scanPunchDetails.employee_id || activeEmployee.id}</strong></div>
                     <div><span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>In Time:</span> <strong style={{ color: '#10b981' }}>{scanPunchDetails.in_time || scanPunchDetails.check_in_time || '09:05 AM'}</strong></div>
                     <div><span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Out Time:</span> <strong style={{ color: scanPunchDetails.out_time ? '#f87171' : '#94a3b8' }}>{scanPunchDetails.out_time || scanPunchDetails.check_out_time || '--:--'}</strong></div>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Date:</span> <strong style={{ color: '#38bdf8' }}>{scanPunchDetails.date_formatted || scanPunchDetails.date || appLiveTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                    </div>
                   </div>
                 </div>
               )}

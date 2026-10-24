@@ -35,8 +35,16 @@ function formatTime12(date = new Date()) {
 function formatMinutesToHours(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return `${h}h ${m}m`;
-}
+// In-memory latest scan tracking for real-time Kiosk display sync
+let latestKioskScan = null;
+
+// GET /api/attendance/latest-kiosk-scan
+router.get('/latest-kiosk-scan', (req, res) => {
+  res.json({
+    success: true,
+    scan: latestKioskScan
+  });
+});
 
 // POST /api/attendance/scan - Scan QR Code for Check-in / Check-out
 router.post('/scan', (req, res) => {
@@ -143,8 +151,8 @@ router.post('/scan', (req, res) => {
         `${employee.name} (${employee.id}) checked in at ${timeStr} with status "${status}" via QR Scan (Real-Time)`
       );
 
-      return res.json({
-        success: true,
+      const checkInEvent = {
+        scanId: Date.now(),
         action: 'CHECK_IN',
         status,
         employee_id: employee.id,
@@ -155,10 +163,21 @@ router.post('/scan', (req, res) => {
         out_time: null,
         check_in_time: timeStr,
         check_out_time: null,
+        date: todayStr,
+        date_formatted: now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+        kiosk_id: validation.kioskId || 'WORLDXZ026',
         late_by_minutes: lateByMinutes,
+        timestamp: Date.now(),
         message: status === 'Late'
           ? `Real-Time Check-In at ${timeStr}. Note: Arrival was ${lateByMinutes} minutes past grace period.`
           : `Welcome, ${employee.name}! Real-time Check-In recorded at ${timeStr}. Attendance marked in HR database.`
+      };
+
+      latestKioskScan = checkInEvent;
+
+      return res.json({
+        success: true,
+        ...checkInEvent
       });
 
     } else {
@@ -208,8 +227,8 @@ router.post('/scan', (req, res) => {
         `${employee.name} (${employee.id}) checked out at ${timeStr}. Total duration: ${formatMinutesToHours(duration)} (Real-Time)`
       );
 
-      return res.json({
-        success: true,
+      const checkOutEvent = {
+        scanId: Date.now(),
         action: 'CHECK_OUT',
         status: outStatus,
         employee_id: employee.id,
@@ -220,9 +239,20 @@ router.post('/scan', (req, res) => {
         out_time: timeStr,
         check_in_time: baseInTime,
         check_out_time: timeStr,
+        date: todayStr,
+        date_formatted: now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+        kiosk_id: validation.kioskId || 'WORLDXZ026',
         duration_minutes: duration,
         duration_formatted: formatMinutesToHours(duration),
+        timestamp: Date.now(),
         message: `Goodbye, ${employee.name}! Real-time Check-Out recorded at ${timeStr}. Total shift: ${formatMinutesToHours(duration)}. Attendance marked in HR database.`
+      };
+
+      latestKioskScan = checkOutEvent;
+
+      return res.json({
+        success: true,
+        ...checkOutEvent
       });
     }
 

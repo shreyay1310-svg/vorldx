@@ -25,7 +25,10 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
     if (tab) return tab;
-    if (params.get('wfoAuth') || params.get('kioskScan') || params.get('mobile')) {
+    if (params.get('view') === 'mobile' || params.get('mobile')) {
+      return 'mobile';
+    }
+    if (params.get('wfoAuth') || params.get('kioskScan')) {
       return 'employee';
     }
     if (params.get('kiosk')) {
@@ -133,6 +136,11 @@ export default function App() {
           )}
           {activeTab === 'kiosk' && <KioskDisplay isEmbedded={false} />}
           {activeTab === 'split' && <SplitView setActiveTab={setActiveTab} />}
+          {activeTab === 'mobile' && (
+            <div style={{ maxWidth: '440px', margin: '0 auto', padding: '16px 12px', minHeight: 'calc(100vh - 70px)' }}>
+              <EmployeeApp isEmbedded={false} isNativeApp={false} />
+            </div>
+          )}
           {activeTab === 'employee' && (
             <EmployeePortal
               initialEmployee={loggedInUser || {

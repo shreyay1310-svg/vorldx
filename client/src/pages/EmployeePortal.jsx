@@ -92,14 +92,14 @@ export default function EmployeePortal({
   onLogout,
   onSwitchToMobile
 } = {}) {
-  // Current logged in employee (Rohit S. matching mockup)
+  // Current logged in employee (Rohit Sharma matching Image 1 & Image 2)
   const [currentUser, setCurrentUser] = useState(initialEmployee || {
-    id: 'EMP005',
-    name: 'Rohit S.',
+    id: 'VX001',
+    name: 'Rohit Sharma',
     role: 'Employee',
     designation: 'Senior Software Engineer',
     department: 'Engineering',
-    email: 'rohit.s@vorldx.com',
+    email: 'rohit.sharma@vorldx.com',
     phone: '+91 9876543210',
     joining_date: '10 Jan 2024',
     joiningDate: '10 Jan 2024',
@@ -229,10 +229,46 @@ export default function EmployeePortal({
     }).catch(() => {});
   }, []);
 
-  // Poll today's attendance record from SQLite DB for Rohit (EMP005)
+  // Apply real-time scan punch data (from Mobile App scan or Kiosk button)
+  const applyScanPunchData = (data) => {
+    if (!data) return;
+    const isCheckIn = data.action === 'CHECK_IN';
+    const timeStr = isCheckIn ? (data.in_time || data.check_in_time) : (data.out_time || data.check_out_time);
+    const dateFormatted = data.date_formatted || data.date || liveClockTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+    playPunchChime();
+    confetti({ particleCount: 85, spread: 80, origin: { y: 0.6 } });
+
+    if (isCheckIn) {
+      setIsCheckedIn(true);
+      setCheckInTime(timeStr);
+      setCheckOutTime('');
+    } else {
+      setIsCheckedIn(false);
+      setCheckOutTime(timeStr);
+      if (data.in_time) setCheckInTime(data.in_time);
+    }
+
+    setLastPunchAlert({
+      action: data.action,
+      name: data.employee_name || currentUser.name || 'Rohit Sharma',
+      id: data.employee_id || currentUser.id || 'VX001',
+      inTime: isCheckIn ? timeStr : (data.in_time || checkInTime),
+      outTime: isCheckIn ? null : timeStr,
+      date: dateFormatted,
+      status: data.status || 'Present',
+      message: data.message || `Attendance Successfully Recorded (${timeStr})`,
+      timestamp: Date.now()
+    });
+
+    triggerToast(`✓ Real-Time Attendance Submitted: ${data.employee_name || 'Rohit Sharma'} (${data.employee_id || 'VX001'}) at ${timeStr}`);
+    refreshTodayAttendance();
+  };
+
+  // Poll today's attendance record from SQLite DB for Rohit (VX001 / EMP005)
   const refreshTodayAttendance = async () => {
     try {
-      const empId = currentUser?.id || 'EMP005';
+      const empId = currentUser?.id || 'VX001';
       const record = await api.getTodayAttendance(empId);
       if (record && record.check_in) {
         setTodayAttendance(record);
@@ -255,8 +291,50 @@ export default function EmployeePortal({
 
   useEffect(() => {
     refreshTodayAttendance();
-    const timer = setInterval(refreshTodayAttendance, 2500);
-    return () => clearInterval(timer);
+
+    // 1. Cross-component & window custom event sync
+    const handleSyncEvent = (e) => {
+      if (e.detail && (e.detail.success || e.detail.employee_id)) {
+        applyScanPunchData(e.detail);
+      }
+    };
+    window.addEventListener('vorldx_punch_sync', handleSyncEvent);
+
+    // 2. Cross-tab localStorage sync
+    const handleStorageEvent = (e) => {
+      if (e.key === 'vorldx_latest_kiosk_punch' && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          if (data && (data.success || data.employee_id)) {
+            applyScanPunchData(data);
+          }
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageEvent);
+
+    // 3. Server polling for real mobile phone scans over LAN/WiFi
+    let lastHandledScanId = null;
+    const pollServerKioskScan = async () => {
+      try {
+        const res = await api.getLatestKioskScan();
+        if (res && res.success && res.scan && res.scan.scanId && res.scan.scanId !== lastHandledScanId) {
+          lastHandledScanId = res.scan.scanId;
+          applyScanPunchData(res.scan);
+        }
+      } catch (e) {}
+    };
+
+    const timer = setInterval(() => {
+      refreshTodayAttendance();
+      pollServerKioskScan();
+    }, 1200);
+
+    return () => {
+      window.removeEventListener('vorldx_punch_sync', handleSyncEvent);
+      window.removeEventListener('storage', handleStorageEvent);
+      clearInterval(timer);
+    };
   }, [currentUser?.id]);
 
   const [qrDataUrl, setQrDataUrl] = useState('');
@@ -266,7 +344,7 @@ export default function EmployeePortal({
     const host = typeof window !== 'undefined' ? (window.location.hostname || 'localhost') : 'localhost';
     const port = typeof window !== 'undefined' ? (window.location.port ? `:${window.location.port}` : '') : ':5173';
     const ipToUse = (host !== 'localhost' && host !== '127.0.0.1') ? host : (networkIp || host);
-    const qrPayload = `http://${ipToUse}${port}/?kioskScan=WORLDXZ026&emp=${currentUser?.id || 'EMP005'}`;
+    const qrPayload = `http://${ipToUse}${port}/?kioskScan=WORLDXZ026&emp=${currentUser?.id || 'VX001'}`;
 
     QRCode.toDataURL(qrPayload, {
       width: 220,
@@ -285,42 +363,26 @@ export default function EmployeePortal({
   // Handle punch attendance via API (QR Scan or Kiosk buttons) with Real-Time marking
   const handlePunchAttendance = async (simulatedTime = null, actionType = null) => {
     try {
-      const empId = currentUser?.id || 'EMP005';
+      const empId = currentUser?.id || 'VX001';
       // Format live real-time string if not provided:
       const liveTimeStr = simulatedTime || liveClockTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const act = actionType || (isCheckedIn ? 'CHECK_OUT' : 'CHECK_IN');
+
       const res = await api.scanAttendance({
         employeeId: empId,
         qrPayload: 'WORLDXZ026',
         simulatedTime: liveTimeStr,
-        actionType
+        actionType: act
       });
 
       if (res.success) {
-        playPunchChime();
-        confetti({ particleCount: 75, spread: 75, origin: { y: 0.65 } });
+        // Broadcast to all tabs/windows
+        try {
+          localStorage.setItem('vorldx_latest_kiosk_punch', JSON.stringify({ ...res, timestamp: Date.now() }));
+          window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { ...res, timestamp: Date.now() } }));
+        } catch (e) {}
 
-        if (res.action === 'CHECK_IN') {
-          setIsCheckedIn(true);
-          setCheckInTime(res.in_time || res.check_in_time);
-          setCheckOutTime('');
-        } else if (res.action === 'CHECK_OUT') {
-          setIsCheckedIn(false);
-          setCheckOutTime(res.out_time || res.check_out_time);
-          if (res.in_time) setCheckInTime(res.in_time);
-        }
-
-        setLastPunchAlert({
-          action: res.action,
-          name: res.employee_name || currentUser.name,
-          id: res.employee_id || empId,
-          inTime: res.in_time || res.check_in_time || checkInTime,
-          outTime: res.out_time || res.check_out_time || null,
-          status: res.status || 'Present',
-          message: res.message
-        });
-
-        triggerToast(`✓ ${res.message}`);
-        refreshTodayAttendance();
+        applyScanPunchData(res);
         return res;
       } else {
         triggerToast(`⚠️ ${res.error || 'Failed to record attendance'}`);
@@ -2903,7 +2965,32 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                         Code: <strong style={{ color: '#38bdf8' }}>WORLDXZ026</strong> • GPS & HR Database Verified
                       </div>
 
-                      {/* Live Attendance Scanned Data Card (Employee Name, In Time, Out Time, Employee ID) */}
+                      {/* Real-Time Scan Notification Banner (Appears when mobile scans or punch is recorded) */}
+                      {lastPunchAlert && (
+                        <div style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          background: lastPunchAlert.action === 'CHECK_IN'
+                            ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.12))'
+                            : 'linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(220, 38, 38, 0.12))',
+                          border: `1.5px solid ${lastPunchAlert.action === 'CHECK_IN' ? '#10b981' : '#ef4444'}`,
+                          marginBottom: '12px',
+                          textAlign: 'left'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: lastPunchAlert.action === 'CHECK_IN' ? '#34d399' : '#f87171', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <CheckCircle size={15} /> {lastPunchAlert.action === 'CHECK_IN' ? '⚡ Mobile Scan Punch-In Submitted!' : '⚡ Mobile Scan Punch-Out Submitted!'}
+                            </span>
+                            <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Real-Time Synced</span>
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: '#ffffff', marginTop: '4px' }}>
+                            Employee: <strong>{lastPunchAlert.name || 'Rohit Sharma'}</strong> ({lastPunchAlert.id || 'VX001'}) • Time: <strong style={{ color: lastPunchAlert.action === 'CHECK_IN' ? '#10b981' : '#f87171' }}>{lastPunchAlert.action === 'CHECK_IN' ? (lastPunchAlert.inTime || checkInTime) : (lastPunchAlert.outTime || checkOutTime)}</strong> • Date: <strong>{lastPunchAlert.date || liveClockTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Live Attendance Scanned Data Card (Employee Name, In Time, Out Time, Employee ID, Date) */}
                       <div style={{
                         background: isCheckedIn || checkOutTime ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255, 255, 255, 0.03)',
                         border: isCheckedIn || checkOutTime ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
@@ -2935,11 +3022,11 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.78rem' }}>
                           <div>
                             <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Employee Name:</div>
-                            <strong style={{ color: '#ffffff' }}>{lastPunchAlert?.name || currentUser.name || 'Rohit S.'}</strong>
+                            <strong style={{ color: '#ffffff' }}>{lastPunchAlert?.name || currentUser.name || 'Rohit Sharma'}</strong>
                           </div>
                           <div>
                             <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Employee ID:</div>
-                            <strong style={{ color: '#38bdf8' }}>{lastPunchAlert?.id || currentUser.id || 'EMP005'}</strong>
+                            <strong style={{ color: '#38bdf8' }}>{lastPunchAlert?.id || currentUser.id || 'VX001'}</strong>
                           </div>
                           <div>
                             <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>In Time (Clock-In):</div>
@@ -2953,6 +3040,16 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                             <strong style={{ color: checkOutTime ? '#f87171' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
                               {checkOutTime || '--:--'}
                               {checkOutTime && <span style={{ fontSize: '0.6rem', color: '#f87171', background: 'rgba(239, 68, 68, 0.15)', padding: '1px 5px', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>Real-Time</span>}
+                            </strong>
+                          </div>
+                          <div>
+                            <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Punch Date:</div>
+                            <strong style={{ color: '#e2e8f0' }}>{lastPunchAlert?.date || liveClockTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                          </div>
+                          <div>
+                            <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Attendance Status:</div>
+                            <strong style={{ color: isCheckedIn ? '#10b981' : checkOutTime ? '#38bdf8' : '#fbbf24' }}>
+                              {isCheckedIn ? 'Present (Submitted ✓)' : checkOutTime ? 'Shift Complete (Submitted ✓)' : 'Awaiting Mobile Scan'}
                             </strong>
                           </div>
                         </div>
@@ -6848,19 +6945,19 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
               }}>
                 <div>
                   <div style={{ color: '#64748b', fontSize: '0.68rem' }}>Employee Name:</div>
-                  <strong style={{ color: '#ffffff' }}>Rohit S.</strong>
+                  <strong style={{ color: '#ffffff' }}>Rohit Sharma</strong>
                 </div>
                 <div>
                   <div style={{ color: '#64748b', fontSize: '0.68rem' }}>Employee ID:</div>
-                  <strong style={{ color: '#38bdf8' }}>EMP005</strong>
+                  <strong style={{ color: '#38bdf8' }}>VX001</strong>
                 </div>
                 <div>
-                  <div style={{ color: '#64748b', fontSize: '0.68rem' }}>Scanned QR Token:</div>
-                  <strong style={{ color: '#10b981' }}>WORLDXZ026</strong>
+                  <div style={{ color: '#64748b', fontSize: '0.68rem' }}>Punch Date:</div>
+                  <strong style={{ color: '#e2e8f0' }}>{liveClockTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</strong>
                 </div>
                 <div>
                   <div style={{ color: '#64748b', fontSize: '0.68rem' }}>Kiosk Location:</div>
-                  <strong style={{ color: '#e2e8f0' }}>HQ Floor 4 (Verified)</strong>
+                  <strong style={{ color: '#10b981' }}>HQ Main Entrance (Verified)</strong>
                 </div>
               </div>
 

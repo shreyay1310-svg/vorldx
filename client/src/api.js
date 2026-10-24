@@ -198,6 +198,10 @@ export const api = {
     return request('/kiosk/recent-scans');
   },
 
+  async getLatestKioskScan() {
+    return request('/attendance/latest-kiosk-scan');
+  },
+
   // Attendance
   async scanAttendance({ employeeId, qrPayload, simulatedTime, actionType }) {
     return request('/attendance/scan', {
