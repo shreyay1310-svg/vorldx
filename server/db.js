@@ -200,6 +200,16 @@ function initializeDatabase() {
       timestamp TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // 8. Verification Tokens for Employee Onboarding & OTPs
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS verification_tokens (
+      employee_id TEXT PRIMARY KEY,
+      otp TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 }
 
 initializeDatabase();

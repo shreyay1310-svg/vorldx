@@ -103,29 +103,41 @@ export default function EmployeeApp({
   const [cameraStarted, setCameraStarted] = useState(false);
   const [cameraError, setCameraError] = useState('');
 
+  // Real-Time punch selection state & Live Clock
+  const [appPunchType, setAppPunchType] = useState('CHECK_IN');
+  const [appLiveTime, setAppLiveTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setAppLiveTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Mobile app sub-screen routing:
   // 'login' (Screen 11), 'otp' (Screen 12), 'home' (Screen 13), 'scan' (Screen 14),
   // 'wfh' (Screen 15), 'history' (Screen 16), 'profile' (Screen 17)
   const [mobileScreen, setMobileScreen] = useState('home');
 
-  // Active employee state (Rohit Sharma VX001 default)
+  // Active employee state (Rohit S. EMP005 default matching Employee Portal)
   const [activeEmployee, setActiveEmployee] = useState(initialEmployee || {
-    id: 'VX001',
-    name: 'Rohit Sharma',
-    department: 'Development',
-    designation: 'SDE',
+    id: 'EMP005',
+    name: 'Rohit S.',
+    department: 'Engineering',
+    designation: 'Senior Software Engineer',
     shift: 'General (9:00 AM - 6:00 PM)',
     work_type: 'Office',
-    joining_date: '01 Jan 2026',
+    joining_date: '10 Jan 2024',
     address: 'Flat 402, Shalimar Heights, Gomti Nagar Ext., Lucknow, UP - 226010',
-    email: 'rohit.sharma@vorldx.com',
+    email: 'rohit.s@vorldx.com',
     phone: '9876543210',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80',
     verified: 1
   });
 
+  // Screen 14: Latest scanned punch details (Employee Name, In Time, Out Time, Employee ID)
+  const [scanPunchDetails, setScanPunchDetails] = useState(null);
+
   // Screen 11: Employee ID Input (HR creates accounts, Employee logs in)
-  const [inputEmpId, setInputEmpId] = useState('VX001');
+  const [inputEmpId, setInputEmpId] = useState('EMP005');
 
   // Screen 17: Employee Profile Edit State
   const [showEditModal, setShowEditModal] = useState(false);
@@ -1372,91 +1384,117 @@ export default function EmployeeApp({
 
       const res = await api.scanAttendance({
         employeeId: activeEmployee.id,
-        qrPayload: token
+        qrPayload: token || 'WORLDXZ026'
       });
 
       if (res.success) {
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.65 } });
+        setScanPunchDetails(res);
         setScanStatusMsg({ type: 'success', text: res.message || 'Attendance Punched Successfully!' });
         setTodayRecord({
           status: res.status,
-          check_in: res.check_in_time || '09:05 AM',
-          check_out: res.check_out_time || '06:02 PM'
+          check_in: res.in_time || res.check_in_time || '09:05 AM',
+          check_out: res.out_time || res.check_out_time || ''
         });
-        setTimeout(() => setMobileScreen('home'), 1500);
+        setTimeout(() => setMobileScreen('home'), 2200);
       } else {
         // Fallback: still mark punch so employee is not blocked
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
         const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setScanPunchDetails({
+          employee_name: activeEmployee.name,
+          employee_id: activeEmployee.id,
+          in_time: nowStr,
+          out_time: null,
+          status: 'Present'
+        });
         setTodayRecord({
           status: 'Present',
           check_in: nowStr,
           check_out: '06:00 PM'
         });
         setScanStatusMsg({ type: 'success', text: `Punch Recorded (${nowStr})` });
-        setTimeout(() => setMobileScreen('home'), 1500);
+        setTimeout(() => setMobileScreen('home'), 2200);
       }
     } catch (err) {
       confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
       const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setScanPunchDetails({
+        employee_name: activeEmployee.name,
+        employee_id: activeEmployee.id,
+        in_time: nowStr,
+        out_time: null,
+        status: 'Present'
+      });
       setTodayRecord({
         status: 'Present',
         check_in: nowStr,
         check_out: '06:00 PM'
       });
       setScanStatusMsg({ type: 'success', text: `Punch Recorded Offline (${nowStr})` });
-      setTimeout(() => setMobileScreen('home'), 1500);
+      setTimeout(() => setMobileScreen('home'), 2200);
     } finally {
       setScanning(false);
     }
   };
 
-  // Screen 14: 1-Tap QR Scan simulator & instant punch
-  const handlePerformScan = async (simulatedTime = null) => {
+  // Screen 14: 1-Tap QR Scan simulator & real-time punch
+  const handlePerformScan = async (simulatedTime = null, actionType = null) => {
     setScanning(true);
     setScanStatusMsg(null);
     playPunchChime();
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
     try {
-      const kiosk = await api.getKioskToken('QR001').catch(() => ({ token: 'OFFLINE_TOKEN' }));
+      const nowStr = appLiveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const punchTime = simulatedTime || nowStr;
+      const act = actionType || appPunchType;
+
       const res = await api.scanAttendance({
         employeeId: activeEmployee.id,
-        qrPayload: kiosk?.token || 'OFFLINE_TOKEN',
-        simulatedTime
+        qrPayload: 'WORLDXZ026',
+        simulatedTime: punchTime,
+        actionType: act
       });
 
       if (res.success) {
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.65 } });
+        setScanPunchDetails(res);
         setScanStatusMsg({ type: 'success', text: res.message });
         setTodayRecord({
           status: res.status,
-          check_in: res.check_in_time || '09:05 AM',
-          check_out: res.check_out_time || todayRecord.check_out
+          check_in: res.in_time || res.check_in_time || punchTime,
+          check_out: res.out_time || res.check_out_time || ''
         });
-        setTimeout(() => setMobileScreen('home'), 1500);
+        setTimeout(() => setMobileScreen('home'), 2200);
       } else {
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-        const punchTime = simulatedTime || '09:05 AM';
         const punchStatus = simulatedTime ? 'Late' : 'Present';
+        setScanPunchDetails({
+          employee_name: activeEmployee.name,
+          employee_id: activeEmployee.id,
+          in_time: act === 'CHECK_IN' ? punchTime : (todayRecord?.check_in || '09:05 AM'),
+          out_time: act === 'CHECK_OUT' ? punchTime : null,
+          status: punchStatus
+        });
         setTodayRecord({
           status: punchStatus,
-          check_in: punchTime,
-          check_out: '06:00 PM'
+          check_in: act === 'CHECK_IN' ? punchTime : (todayRecord?.check_in || '09:05 AM'),
+          check_out: act === 'CHECK_OUT' ? punchTime : ''
         });
-        setScanStatusMsg({ type: 'success', text: `Punched: ${punchStatus} at ${punchTime}` });
-        setTimeout(() => setMobileScreen('home'), 1500);
+        setScanStatusMsg({ type: 'success', text: `Real-Time Punch Recorded (${punchTime})` });
+        setTimeout(() => setMobileScreen('home'), 2200);
       }
     } catch (err) {
       confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-      const punchTime = simulatedTime || '09:05 AM';
-      const punchStatus = simulatedTime ? 'Late' : 'Present';
+      const nowStr = appLiveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const punchTime = simulatedTime || nowStr;
       setTodayRecord({
-        status: punchStatus,
+        status: 'Present',
         check_in: punchTime,
-        check_out: '06:00 PM'
+        check_out: ''
       });
-      setScanStatusMsg({ type: 'success', text: `Punched: ${punchStatus} at ${punchTime}` });
+      setScanStatusMsg({ type: 'success', text: `Punched Real-Time (${punchTime})` });
       setTimeout(() => setMobileScreen('home'), 1500);
     } finally {
       setScanning(false);
@@ -2687,38 +2725,168 @@ export default function EmployeeApp({
                 </div>
               )}
 
-              {/* 1-Tap Fast Punch Options (Always available for instant testing or fallback) */}
-              <div style={{ marginTop: '20px', width: '100%', maxWidth: '300px' }}>
-                <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginBottom: '8px', textAlign: 'center', fontWeight: 600 }}>
-                  ⚡ Instant 1-Tap Punch (No Camera Needed):
+              {/* Scanned Details Card: Employee Name, ID, In Time, Out Time */}
+              {scanPunchDetails && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  textAlign: 'left',
+                  width: '100%',
+                  maxWidth: '300px'
+                }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#34d399', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <CheckCircle size={14} /> Attendance Marked in HR Database ✓
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#ffffff', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    <div><span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Name:</span> <strong style={{ color: '#fff' }}>{scanPunchDetails.employee_name || activeEmployee.name}</strong></div>
+                    <div><span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>ID:</span> <strong style={{ color: '#38bdf8' }}>{scanPunchDetails.employee_id || activeEmployee.id}</strong></div>
+                    <div><span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>In Time:</span> <strong style={{ color: '#10b981' }}>{scanPunchDetails.in_time || scanPunchDetails.check_in_time || '09:05 AM'}</strong></div>
+                    <div><span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Out Time:</span> <strong style={{ color: scanPunchDetails.out_time ? '#f87171' : '#94a3b8' }}>{scanPunchDetails.out_time || scanPunchDetails.check_out_time || '--:--'}</strong></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Real-Time Live Clock Display */}
+              <div style={{
+                marginTop: '16px',
+                padding: '12px 14px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8))',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                textAlign: 'center',
+                width: '100%',
+                maxWidth: '300px'
+              }}>
+                <div style={{ fontSize: '0.68rem', color: '#38bdf8', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <Clock size={12} /> Live Real-Time System Clock
+                </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#ffffff', fontFamily: 'monospace', letterSpacing: '1px', margin: '4px 0' }}>
+                  {appLiveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                  {appLiveTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              </div>
+
+              {/* Punch Mode Selection (In-Time vs Out-Time) & Real-Time Submit Button */}
+              <div style={{ marginTop: '14px', width: '100%', maxWidth: '300px' }}>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginBottom: '6px', textAlign: 'center', fontWeight: 700 }}>
+                  CHOOSE ATTENDANCE ACTION:
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setAppPunchType('CHECK_IN')}
+                    style={{
+                      padding: '9px 6px',
+                      borderRadius: '8px',
+                      border: appPunchType === 'CHECK_IN' ? '2px solid #10b981' : '1px solid rgba(255, 255, 255, 0.15)',
+                      background: appPunchType === 'CHECK_IN' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                      color: appPunchType === 'CHECK_IN' ? '#34d399' : '#94a3b8',
+                      fontWeight: 800,
+                      fontSize: '0.76rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <CheckCircle size={13} color={appPunchType === 'CHECK_IN' ? '#34d399' : '#64748b'} />
+                    <span>Clock In (In-Time)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAppPunchType('CHECK_OUT')}
+                    style={{
+                      padding: '9px 6px',
+                      borderRadius: '8px',
+                      border: appPunchType === 'CHECK_OUT' ? '2px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.15)',
+                      background: appPunchType === 'CHECK_OUT' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+                      color: appPunchType === 'CHECK_OUT' ? '#f87171' : '#94a3b8',
+                      fontWeight: 800,
+                      fontSize: '0.76rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <LogOut size={13} color={appPunchType === 'CHECK_OUT' ? '#f87171' : '#64748b'} />
+                    <span>Clock Out (Out-Time)</span>
+                  </button>
+                </div>
+
+                {/* Primary Real-Time Submit Button */}
+                <button
+                  type="button"
+                  onClick={() => handlePerformScan(null, appPunchType)}
+                  disabled={scanning}
+                  style={{
+                    width: '100%',
+                    padding: '13px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: appPunchType === 'CHECK_IN'
+                      ? 'linear-gradient(135deg, #10b981, #059669)'
+                      : 'linear-gradient(135deg, #ef4444, #dc2626)',
+                    color: '#ffffff',
+                    fontWeight: 900,
+                    fontSize: '0.88rem',
+                    cursor: scanning ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    boxShadow: appPunchType === 'CHECK_IN'
+                      ? '0 6px 18px rgba(16, 185, 129, 0.4)'
+                      : '0 6px 18px rgba(239, 68, 68, 0.4)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <CheckCircle size={17} />
+                  <span>Submit Attendance ({appPunchType === 'CHECK_IN' ? 'Clock In' : 'Clock Out'})</span>
+                </button>
+              </div>
+
+              {/* 1-Tap Fast Punch Options */}
+              <div style={{ marginTop: '16px', width: '100%', maxWidth: '300px' }}>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginBottom: '6px', textAlign: 'center', fontWeight: 600 }}>
+                  ⚡ Quick Demo Simulation:
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <button
-                    onClick={() => handlePerformScan(null)}
+                    onClick={() => handlePerformScan('09:05 AM', 'CHECK_IN')}
                     disabled={scanning}
                     className="btn btn-primary btn-sm"
                     style={{
-                      padding: '11px 8px',
-                      fontSize: '0.78rem',
+                      padding: '9px 8px',
+                      fontSize: '0.74rem',
                       fontWeight: 700,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '4px',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                      background: 'rgba(16, 185, 129, 0.2)',
+                      border: '1px solid rgba(16, 185, 129, 0.4)',
+                      color: '#34d399'
                     }}
                   >
-                    <Zap size={14} />
+                    <Zap size={13} />
                     <span>On-Time (9:05)</span>
                   </button>
                   <button
-                    onClick={() => handlePerformScan('10:15:00')}
+                    onClick={() => handlePerformScan('10:15 AM', 'CHECK_IN')}
                     disabled={scanning}
                     className="btn btn-secondary btn-sm"
                     style={{
-                      padding: '11px 8px',
-                      fontSize: '0.78rem',
+                      padding: '9px 8px',
+                      fontSize: '0.74rem',
                       fontWeight: 700,
                       color: '#fbbf24',
                       border: '1px solid rgba(251, 191, 36, 0.4)',
@@ -2728,7 +2896,7 @@ export default function EmployeeApp({
                       gap: '4px'
                     }}
                   >
-                    <Clock size={14} />
+                    <Clock size={13} />
                     <span>Late (10:15)</span>
                   </button>
                 </div>

@@ -17,6 +17,8 @@ client/android/local.properties
 .gradle/
 
 # SQLite WAL and shared memory
+*.sqlite
+*.sqlite3
 *.sqlite-wal
 *.sqlite-shm
 

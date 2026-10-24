@@ -145,6 +145,40 @@ export default function AdminPortal({
     { id: 'EMP035', name: 'Naveen Jindal', department: 'Operations', date: '16 Oct 2026', arrival: '09:00 AM', departure: '06:05 PM', total_hours: '9h 05m', status: 'Present', arrival_status: 'On Time', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=128' },
     { id: 'EMP036', name: 'Suman Lata', department: 'Operations', date: '16 Oct 2026', arrival: '08:54 AM', departure: '06:00 PM', total_hours: '9h 06m', status: 'Present', arrival_status: 'On Time', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=128' }
   ]);
+
+  // Live attendance synchronization with SQLite Database for Admin
+  useEffect(() => {
+    const fetchAdminAttendance = async () => {
+      try {
+        const records = await api.getAllAttendance();
+        if (Array.isArray(records) && records.length > 0) {
+          const mapped = records.map(r => ({
+            id: r.employee_id,
+            name: r.employee_name || (r.employee_id === 'EMP005' ? 'Rohit S.' : 'Employee'),
+            department: r.department || 'Engineering',
+            date: r.date || 'Today',
+            arrival: r.check_in || '--:--',
+            departure: r.check_out || '--:--',
+            total_hours: r.duration_minutes ? `${Math.floor(r.duration_minutes / 60)}h ${r.duration_minutes % 60}m` : (r.check_in && !r.check_out ? 'In Progress' : '--'),
+            status: r.status || 'Present',
+            arrival_status: r.late_by_minutes ? `Late by ${r.late_by_minutes}m` : 'On Time',
+            avatar: r.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128'
+          }));
+
+          setPresentEmployeesList(prev => {
+            const existingIds = new Set(mapped.map(m => m.id));
+            const remaining = prev.filter(p => !existingIds.has(p.id));
+            return [...mapped, ...remaining];
+          });
+        }
+      } catch (err) {}
+    };
+
+    fetchAdminAttendance();
+    const timer = setInterval(fetchAdminAttendance, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
   const [newEmp, setNewEmp] = useState({
     id: 'EMP035',
     name: '',

@@ -7,36 +7,55 @@ const MONTH_NAMES = [
 ];
 
 export default function RealDatePickerPopover({
+  selectedDate,      // e.g. "24 October 2026"
   selectedMonthYear, // e.g. "October 2026"
   onSelectMonthYear, // callback (monthYearStr, { month, year }) => void
   onSelectDate,      // optional callback (dateStr, dateObj) => void
+  showFullDate = true,// default to true so it always displays Date Month Year
   align = 'right'
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef(null);
 
-  // Parse initial month & year from prop or default to Oct 2026 / today
+  // Parse initial day, month & year from prop or default to today's date
   const parseInitial = () => {
-    if (selectedMonthYear) {
-      const parts = selectedMonthYear.split(' ');
+    const raw = selectedDate || selectedMonthYear;
+    if (raw && typeof raw === 'string') {
+      const parts = raw.trim().split(/\s+/);
+      // Case 1: "24 October 2026" or "24 Oct 2026"
+      if (parts.length === 3) {
+        const d = parseInt(parts[0], 10);
+        const mIdx = MONTH_NAMES.findIndex(m => m.toLowerCase().startsWith(parts[1].toLowerCase()));
+        const y = parseInt(parts[2], 10);
+        if (!isNaN(d) && mIdx !== -1 && !isNaN(y)) {
+          return { day: d, month: mIdx, year: y };
+        }
+      }
+      // Case 2: "October 2026"
       if (parts.length === 2) {
         const mIdx = MONTH_NAMES.findIndex(m => m.toLowerCase().startsWith(parts[0].toLowerCase()));
         const y = parseInt(parts[1], 10);
         if (mIdx !== -1 && !isNaN(y)) {
-          return { month: mIdx, year: y };
+          return { day: new Date().getDate(), month: mIdx, year: y };
         }
       }
     }
-    return { month: 9, year: 2026 }; // October 2026 default
+    const today = new Date();
+    return { day: today.getDate(), month: today.getMonth(), year: today.getFullYear() };
   };
 
-  const [calState, setCalState] = useState(parseInitial);
-  const [selectedDay, setSelectedDay] = useState(16);
+  const [calState, setCalState] = useState(() => {
+    const init = parseInitial();
+    return { month: init.month, year: init.year };
+  });
+  const [selectedDay, setSelectedDay] = useState(() => parseInitial().day);
 
-  // Sync if selectedMonthYear changes externally
+  // Sync if selectedDate or selectedMonthYear changes externally
   useEffect(() => {
-    setCalState(parseInitial());
-  }, [selectedMonthYear]);
+    const init = parseInitial();
+    setCalState({ month: init.month, year: init.year });
+    setSelectedDay(init.day);
+  }, [selectedDate, selectedMonthYear]);
 
   // Close popover when clicking outside
   useEffect(() => {
@@ -60,7 +79,8 @@ export default function RealDatePickerPopover({
       const nextYear = prev.month === 0 ? prev.year - 1 : prev.year;
       const next = { month: nextMonth, year: nextYear };
       if (onSelectMonthYear) {
-        onSelectMonthYear(`${MONTH_NAMES[next.month]} ${next.year}`, { month: next.month, year: next.year });
+        const fullStr = `${selectedDay} ${MONTH_NAMES[next.month]} ${next.year}`;
+        onSelectMonthYear(showFullDate ? fullStr : `${MONTH_NAMES[next.month]} ${next.year}`, { month: next.month, year: next.year });
       }
       return next;
     });
@@ -73,7 +93,8 @@ export default function RealDatePickerPopover({
       const nextYear = prev.month === 11 ? prev.year + 1 : prev.year;
       const next = { month: nextMonth, year: nextYear };
       if (onSelectMonthYear) {
-        onSelectMonthYear(`${MONTH_NAMES[next.month]} ${next.year}`, { month: next.month, year: next.year });
+        const fullStr = `${selectedDay} ${MONTH_NAMES[next.month]} ${next.year}`;
+        onSelectMonthYear(showFullDate ? fullStr : `${MONTH_NAMES[next.month]} ${next.year}`, { month: next.month, year: next.year });
       }
       return next;
     });
@@ -84,11 +105,11 @@ export default function RealDatePickerPopover({
     const formattedMonthYear = `${MONTH_NAMES[calState.month]} ${calState.year}`;
     const fullDateStr = `${day} ${formattedMonthYear}`;
     
-    if (onSelectMonthYear) {
-      onSelectMonthYear(formattedMonthYear, { month: calState.month, year: calState.year });
-    }
     if (onSelectDate) {
       onSelectDate(fullDateStr, new Date(calState.year, calState.month, day));
+    }
+    if (onSelectMonthYear) {
+      onSelectMonthYear(showFullDate ? fullDateStr : formattedMonthYear, { month: calState.month, year: calState.year });
     }
     setIsOpen(false);
   };
@@ -98,19 +119,28 @@ export default function RealDatePickerPopover({
     const today = new Date();
     setCalState({ month: today.getMonth(), year: today.getFullYear() });
     setSelectedDay(today.getDate());
-    const formatted = `${MONTH_NAMES[today.getMonth()]} ${today.getFullYear()}`;
+    const formattedDate = `${today.getDate()} ${MONTH_NAMES[today.getMonth()]} ${today.getFullYear()}`;
+    const formattedMonth = `${MONTH_NAMES[today.getMonth()]} ${today.getFullYear()}`;
+    if (onSelectDate) {
+      onSelectDate(formattedDate, today);
+    }
     if (onSelectMonthYear) {
-      onSelectMonthYear(formatted, { month: today.getMonth(), year: today.getFullYear() });
+      onSelectMonthYear(showFullDate ? formattedDate : formattedMonth, { month: today.getMonth(), year: today.getFullYear() });
     }
     setIsOpen(false);
   };
 
   const handleQuickOct2026 = (e) => {
     e.stopPropagation();
-    setCalState({ month: 9, year: 2026 });
-    setSelectedDay(16);
+    const today = new Date();
+    setCalState({ month: today.getMonth(), year: today.getFullYear() });
+    setSelectedDay(today.getDate());
+    const formatted = `${today.getDate()} ${MONTH_NAMES[today.getMonth()]} ${today.getFullYear()}`;
+    if (onSelectDate) {
+      onSelectDate(formatted, today);
+    }
     if (onSelectMonthYear) {
-      onSelectMonthYear('October 2026', { month: 9, year: 2026 });
+      onSelectMonthYear(showFullDate ? formatted : `${MONTH_NAMES[today.getMonth()]} ${today.getFullYear()}`, { month: today.getMonth(), year: today.getFullYear() });
     }
     setIsOpen(false);
   };
@@ -132,7 +162,9 @@ export default function RealDatePickerPopover({
   const nextDaysCount = totalGridCells - totalOccupied;
   const nextDays = Array.from({ length: nextDaysCount }, (_, i) => i + 1);
 
-  const displayLabel = selectedMonthYear || `${MONTH_NAMES[calState.month]} ${calState.year}`;
+  const displayLabel = showFullDate
+    ? (selectedDate || `${selectedDay} ${MONTH_NAMES[calState.month]} ${calState.year}`)
+    : (selectedMonthYear || `${MONTH_NAMES[calState.month]} ${calState.year}`);
 
   return (
     <div style={{ position: 'relative', display: 'inline-block' }} ref={popoverRef}>
@@ -329,7 +361,8 @@ export default function RealDatePickerPopover({
             {Array.from({ length: daysInMonth }, (_, i) => {
               const d = i + 1;
               const isSelected = selectedDay === d;
-              const isToday = calState.year === 2026 && calState.month === 9 && d === 16;
+              const realToday = new Date();
+              const isToday = calState.year === realToday.getFullYear() && calState.month === realToday.getMonth() && d === realToday.getDate();
               const dayOfWeek = (firstDayIndex + i) % 7;
               const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 

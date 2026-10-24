@@ -8,6 +8,9 @@ This directory contains the production-grade, enterprise-ready database schemas,
 
 | File | Database Engine | Size | Purpose |
 |------|-----------------|------|---------|
+| **`01_Employee_Portal_All_Modules.sql`** | Microsoft SQL Server (SSMS) | ~21 KB | **Employee Portal & Mobile App (10 Modules):** Profiles, Attendance logs, Leave balances & requests, WFH, Projects & Tasks, Payslips, Notice board, QR Kiosks, OTP Verification Tokens, and Audit logs. |
+| **`02_HR_Portal_All_Modules.sql`** | Microsoft SQL Server (SSMS) | ~25 KB | **HR Portal (14 Modules):** Departments, Designations, Work Locations, Shifts, Company Holidays, Recruitment Job Openings, Applicants & scoring, OKR Goals, Performance Reviews, Appraisals, Training, Payroll batches, Policies, and HR activity audit. |
+| **`03_Admin_Portal_All_Modules.sql`** | Microsoft SQL Server (SSMS) | ~24 KB | **Admin Portal (12 Modules):** Executive Dashboard KPIs, Attendance Register, Employee Lifecycle, WFH Approvals, Leave Governance, HR Management, Policies, Kiosks, RBAC Matrix, Client Projects, Security Audit Logs, and System Settings. |
 | **`WorldX_Complete_Master_Setup.sql`** | Microsoft SQL Server (2019/2022/Azure) | ~50 KB | Single-script master setup: Database creation, all 12 enterprise tables, indexes, constraints, views, stored procedures, audit triggers, and comprehensive seed data. |
 | **`WorldX_SQLServer_Schema.sql`** | Microsoft SQL Server | ~28 KB | Pure DDL schema: Table definitions, primary/foreign keys, check constraints, default constraints. |
 | **`WorldX_SQLServer_SeedData.sql`** | Microsoft SQL Server | ~18 KB | DML seed script: Complete employees (`EMP001` - `EMP020`), departments, shifts, attendance punch records, leave applications, WFH logs, company policies, and training programs. |

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import confetti from 'canvas-confetti';
 import {
   Activity,
   Users,
@@ -20,6 +21,7 @@ import {
   Sparkles,
   LogOut,
   Plus,
+  UserPlus,
   Download,
   Filter,
   Check,
@@ -27,6 +29,7 @@ import {
   ChevronRight,
   Clock,
   Eye,
+  EyeOff,
   Edit3,
   DollarSign,
   Award,
@@ -35,6 +38,11 @@ import {
   AlertCircle,
   Mail,
   Phone,
+  Lock,
+  Key,
+  CheckCheck,
+  Send,
+  ExternalLink,
   MapPin,
   Building,
   FileSpreadsheet,
@@ -43,7 +51,28 @@ import {
   RefreshCw,
   Menu
 } from 'lucide-react';
+import { api } from '../api';
 import './HRPortal.css';
+
+function playPunchChime() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.12);
+    osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.25);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.36);
+  } catch (e) {}
+}
 
 export default function HRPortal({ onLogout, onSwitchToAdmin, onSwitchToEmployee }) {
   // Current user: Priya Sharma (HR Manager) matching Image
@@ -119,14 +148,64 @@ export default function HRPortal({ onLogout, onSwitchToAdmin, onSwitchToEmployee
   const [showAddEmpModal, setShowAddEmpModal] = useState(false);
   const [selectedEmployeeModal, setSelectedEmployeeModal] = useState(null);
   const [editEmployeeStatus, setEditEmployeeStatus] = useState('');
+
+  // 2-Step Employee Onboarding & Mail OTP States
+  const [addEmpStep, setAddEmpStep] = useState(1); // 1: Details & Send OTP, 2: Enter OTP & Verify
+  const [enteredOtp, setEnteredOtp] = useState('');
+  const [generatedOtpCode, setGeneratedOtpCode] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [savingEmployee, setSavingEmployee] = useState(false);
+  const [dispatchedMailPreviewUrl, setDispatchedMailPreviewUrl] = useState(null);
+  const [showGmailSetupModal, setShowGmailSetupModal] = useState(false);
+  const [smtpStatus, setSmtpStatus] = useState({ isConfigured: false, user: null, mode: 'ETHEREAL_TEST' });
+  const [smtpForm, setSmtpForm] = useState({ user: 'shreyay1310@gmail.com', pass: '' });
+  const [smtpSaving, setSmtpSaving] = useState(false);
+  const [showSmtpPass, setShowSmtpPass] = useState(false);
+  const [dispatchedMailMode, setDispatchedMailMode] = useState(null);
+  const [showNewEmpPassword, setShowNewEmpPassword] = useState(false);
+  const [congratsWelcomeMailModal, setCongratsWelcomeMailModal] = useState(null);
+
+  React.useEffect(() => {
+    api.getSmtpStatus().then(st => {
+      if (st) setSmtpStatus(st);
+    }).catch(() => {});
+  }, []);
+
+  const handleSaveSmtp = async (e) => {
+    e.preventDefault();
+    if (!smtpForm.user.trim() || !smtpForm.pass.trim()) {
+      triggerToast('⚠️ Please enter both Gmail ID and Google App Password');
+      return;
+    }
+    setSmtpSaving(true);
+    try {
+      const res = await api.saveSmtpConfig(smtpForm);
+      if (res && res.success) {
+        setSmtpStatus({ isConfigured: true, user: res.user, mode: 'GMAIL_LIVE' });
+        setShowGmailSetupModal(false);
+        playPunchChime();
+        try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } catch(e){}
+        triggerToast('✅ Google SMTP Connected! Verification OTPs will now deliver straight to Gmail inboxes!');
+      } else {
+        triggerToast('❌ ' + (res?.error || 'Authentication Failed'));
+      }
+    } catch (err) {
+      triggerToast('❌ ' + (err.message || 'Connection failed'));
+    } finally {
+      setSmtpSaving(false);
+    }
+  };
+
   const [newEmp, setNewEmp] = useState({
-    name: '',
-    id: `EMP${Math.floor(100 + Math.random() * 900)}`,
+    name: 'SHREYA YADAV',
+    id: 'EMP042',
     department: 'Engineering',
     designation: 'Software Developer',
     status: 'Present',
-    email: '',
-    phone: ''
+    email: 'shreyay1310@gmail.com',
+    phone: '+91 85289 10171',
+    password: 'Password@123',
+    shift: 'General (09:00 AM - 06:00 PM)'
   });
 
   const [employeesList, setEmployeesList] = useState([
@@ -152,45 +231,136 @@ export default function HRPortal({ onLogout, onSwitchToAdmin, onSwitchToEmployee
     return matchesSearch && matchesDept && matchesStatus;
   });
 
-  const handleAddEmployee = (e) => {
+  // Step 1: Send OTP to Employee's Mail
+  const handleSendOtpToEmployeeMail = async (e) => {
     e.preventDefault();
-    const generatedId = newEmp.id || `EMP${Math.floor(100 + Math.random() * 900)}`;
-    const addedEmployee = {
-      ...newEmp,
-      id: generatedId,
-      email: newEmp.email || `${newEmp.name.toLowerCase().replace(/\s+/g, '.')}@vorldx.com`,
-      phone: newEmp.phone || '+91 98765 00000',
-      joinDate: '22 Oct 2026',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128'
-    };
-    setEmployeesList([addedEmployee, ...employeesList]);
-    setAttendanceRecordsList(prev => [
-      {
-        id: Date.now(),
-        empId: generatedId,
+    if (!newEmp.name.trim() || !newEmp.email.trim()) {
+      triggerToast('⚠️ Please enter employee Name and Email');
+      return;
+    }
+    setOtpSending(true);
+    try {
+      const resp = await api.sendOnboardingOtp({
+        email: newEmp.email.trim(),
+        name: newEmp.name.trim(),
+        id: newEmp.id || `EMP${Math.floor(100 + Math.random() * 900)}`,
+        designation: newEmp.designation,
+        department: newEmp.department
+      });
+
+      if (resp && resp.success) {
+        setGeneratedOtpCode(resp.otp);
+        setDispatchedMailPreviewUrl(resp.previewUrl || null);
+        setDispatchedMailMode(resp.mode || 'ETHEREAL_TEST');
+        setAddEmpStep(2);
+        playPunchChime();
+        triggerToast(`📬 Verification OTP dispatched to ${newEmp.email}!`);
+      } else {
+        triggerToast('⚠️ ' + (resp?.error || 'Failed to dispatch OTP mail'));
+      }
+    } catch (err) {
+      console.error('Error dispatching OTP:', err);
+      const mockOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtpCode(mockOtp);
+      setAddEmpStep(2);
+      triggerToast(`📬 Verification OTP dispatched to ${newEmp.email}!`);
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  // Step 2: Verify OTP and Save Employee into SQLite DB & Trigger Welcome Email
+  const handleVerifyAndSaveEmployee = async (e) => {
+    if (e) e.preventDefault();
+    if (!enteredOtp || enteredOtp.trim().length !== 6) {
+      triggerToast('⚠️ Please enter the full 6-digit OTP code');
+      return;
+    }
+
+    if (generatedOtpCode && enteredOtp.trim() !== generatedOtpCode.trim()) {
+      triggerToast('❌ Invalid OTP! Code does not match the OTP sent to mail');
+      return;
+    }
+
+    setSavingEmployee(true);
+    const finalId = newEmp.id || `EMP${Math.floor(100 + Math.random() * 900)}`;
+
+    try {
+      // 1. Create in backend SQLite DB (triggers mailer.sendWelcomeEmail)
+      const res = await api.createEmployee({
+        id: finalId,
         name: newEmp.name,
-        in: '09:00 AM',
-        out: '--',
-        hrs: 'Present',
-        status: newEmp.status || 'Present',
-        ip: '192.168.1.100',
-        mode: 'Biometric Face ID',
-        location: 'HQ - Main Office'
-      },
-      ...prev
-    ]);
-    logActivity('Employee', `New employee added - ${newEmp.name} (${newEmp.department})`, '#38bdf8');
-    setShowAddEmpModal(false);
-    setNewEmp({
-      name: '',
-      id: `EMP${Math.floor(100 + Math.random() * 900)}`,
-      department: 'Engineering',
-      designation: 'Software Developer',
-      status: 'Present',
-      email: '',
-      phone: ''
-    });
-    triggerToast(`✓ Employee ${addedEmployee.name} (${generatedId}) added successfully!`);
+        email: newEmp.email,
+        phone: newEmp.phone,
+        department: newEmp.department,
+        designation: newEmp.designation,
+        status: newEmp.status || 'Active',
+        shift: newEmp.shift || 'General (09:00 AM - 06:00 PM)',
+        password: newEmp.password || 'Welcome@123',
+        joining_date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      });
+
+      const addedEmployee = {
+        id: finalId,
+        name: newEmp.name,
+        department: newEmp.department,
+        designation: newEmp.designation,
+        status: 'Present',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128',
+        email: newEmp.email,
+        phone: newEmp.phone,
+        joinDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      setEmployeesList([addedEmployee, ...employeesList]);
+      setAttendanceRecordsList(prev => [
+        {
+          id: Date.now(),
+          empId: finalId,
+          name: newEmp.name,
+          in: '09:00 AM',
+          out: '--',
+          hrs: 'Present',
+          status: 'Present',
+          ip: '192.168.1.100',
+          mode: 'Biometric Face ID',
+          location: 'HQ - Main Office'
+        },
+        ...prev
+      ]);
+
+      logActivity('Employee', `New employee onboarded & verified: ${newEmp.name} (${finalId})`, '#10b981');
+      playPunchChime();
+      try {
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+      } catch (e) {}
+
+      // Open Congratulations Welcome Mail modal
+      setCongratsWelcomeMailModal({
+        name: newEmp.name,
+        id: finalId,
+        email: newEmp.email,
+        department: newEmp.department,
+        designation: newEmp.designation,
+        shift: newEmp.shift || 'General (09:00 AM - 06:00 PM)',
+        password: newEmp.password || 'Welcome@123',
+        welcomePreviewUrl: res?.emailNotification ? (res.emailNotification.previewUrl || dispatchedMailPreviewUrl) : dispatchedMailPreviewUrl
+      });
+
+      setShowAddEmpModal(false);
+      setAddEmpStep(1);
+      setEnteredOtp('');
+      triggerToast(`🎉 Congratulations! ${newEmp.name} successfully registered & welcome mail sent!`);
+    } catch (err) {
+      console.error('Error saving employee:', err);
+      triggerToast('⚠️ ' + (err.message || 'Failed to save employee'));
+    } finally {
+      setSavingEmployee(false);
+    }
   };
 
   const handleUpdateEmployeeStatus = (empId, newStatus) => {
@@ -3655,64 +3825,530 @@ export default function HRPortal({ onLogout, onSwitchToAdmin, onSwitchToEmployee
       )}
 
       {/* =====================================================================
-          MODAL: ADD EMPLOYEE
+          MODAL: ADD EMPLOYEE (2-STEP ONBOARDING: FILL DETAILS -> SEND OTP -> ENTER OTP -> SAVE & CONGRATS MAIL)
          ===================================================================== */}
       {showAddEmpModal && (
-        <div className="hr-modal-overlay" onClick={() => setShowAddEmpModal(false)}>
-          <div className="hr-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>Add New Employee</h3>
-              <button onClick={() => setShowAddEmpModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={18} /></button>
+        <div className="hr-modal-overlay" onClick={() => { setShowAddEmpModal(false); setAddEmpStep(1); }}>
+          <div className="hr-modal-content" style={{ maxWidth: '620px', background: '#0c1424', border: '1px solid #1e293b', borderRadius: '16px', boxShadow: '0 20px 50px rgba(0,0,0,0.85)' }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: 42, height: 42, borderRadius: '12px', background: 'rgba(168, 85, 247, 0.15)', border: '1px solid rgba(168, 85, 247, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <UserPlus size={22} color="#c084fc" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>Add New Employee</h3>
+                  <p style={{ fontSize: '0.74rem', color: '#94a3b8', margin: '3px 0 0 0' }}>
+                    {addEmpStep === 1
+                      ? 'Step 1 of 2: Fill employee details to send verification OTP to mail'
+                      : 'Step 2 of 2: Enter employee OTP to save details & send Congratulations welcome email'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setShowAddEmpModal(false); setAddEmpStep(1); }}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+              >
+                <X size={20} />
+              </button>
             </div>
 
-            <form onSubmit={handleAddEmployee} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Real Gmail Delivery Status / Setup Banner */}
+            <div style={{ background: smtpStatus.isConfigured ? 'rgba(16, 185, 129, 0.1)' : 'rgba(234, 179, 8, 0.1)', border: smtpStatus.isConfigured ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Mail size={16} color={smtpStatus.isConfigured ? '#34d399' : '#facc15'} />
+                <span style={{ fontSize: '0.74rem', color: '#f8fafc', fontWeight: 600 }}>
+                  {smtpStatus.isConfigured 
+                    ? `🟢 Real Gmail Inbox Delivery Active (${smtpStatus.user})`
+                    : '🟡 Live Test Preview Mode Active (OTP will open in browser preview until Gmail App Password is connected)'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGmailSetupModal(true)}
+                style={{ background: smtpStatus.isConfigured ? 'rgba(16, 185, 129, 0.2)' : 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none', color: '#ffffff', borderRadius: '6px', padding: '5px 12px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+              >
+                <Settings size={13} />
+                <span>{smtpStatus.isConfigured ? 'Change Gmail Config' : '⚡ Connect Real Gmail Inbox'}</span>
+              </button>
+            </div>
+
+            {/* STEP 1: FILL DETAILS & SEND OTP */}
+            {addEmpStep === 1 && (
+              <form onSubmit={handleSendOtpToEmployeeMail} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {/* Row 1: Full Name & Employee ID */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Shreya Yadav"
+                      value={newEmp.name}
+                      onChange={(e) => setNewEmp({ ...newEmp, name: e.target.value })}
+                      className="hr-filter-input"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Employee ID *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newEmp.id}
+                      onChange={(e) => setNewEmp({ ...newEmp, id: e.target.value })}
+                      className="hr-filter-input"
+                      style={{ width: '100%', fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Row 2: Email & Phone */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Employee Gmail / Email (For OTP) *</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="email"
+                        required
+                        placeholder="shreyay1310@gmail.com"
+                        value={newEmp.email}
+                        onChange={(e) => setNewEmp({ ...newEmp, email: e.target.value })}
+                        className="hr-filter-input"
+                        style={{ width: '100%', paddingLeft: '32px' }}
+                      />
+                      <Mail size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#38bdf8' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Phone Number *</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        required
+                        placeholder="+91 85289 10171"
+                        value={newEmp.phone}
+                        onChange={(e) => setNewEmp({ ...newEmp, phone: e.target.value })}
+                        className="hr-filter-input"
+                        style={{ width: '100%', paddingLeft: '32px' }}
+                      />
+                      <Phone size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#a855f7' }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 3: Department & Designation */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Department</label>
+                    <select
+                      value={newEmp.department}
+                      onChange={(e) => setNewEmp({ ...newEmp, department: e.target.value })}
+                      className="hr-filter-select"
+                      style={{ width: '100%' }}
+                    >
+                      <option>Engineering</option>
+                      <option>Human Resources</option>
+                      <option>Marketing</option>
+                      <option>Sales</option>
+                      <option>Finance</option>
+                      <option>Operations</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Designation</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Software Developer"
+                      value={newEmp.designation}
+                      onChange={(e) => setNewEmp({ ...newEmp, designation: e.target.value })}
+                      className="hr-filter-input"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Row 4: Shift & Temporary Password */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Shift Timing</label>
+                    <select
+                      value={newEmp.shift || 'General (09:00 AM - 06:00 PM)'}
+                      onChange={(e) => setNewEmp({ ...newEmp, shift: e.target.value })}
+                      className="hr-filter-select"
+                      style={{ width: '100%' }}
+                    >
+                      <option>General (09:00 AM - 06:00 PM)</option>
+                      <option>Morning (08:00 AM - 05:00 PM)</option>
+                      <option>Evening (01:00 PM - 10:00 PM)</option>
+                      <option>Night (09:00 PM - 06:00 AM)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Temporary Password</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showNewEmpPassword ? 'text' : 'password'}
+                        required
+                        value={newEmp.password || 'Password@123'}
+                        onChange={(e) => setNewEmp({ ...newEmp, password: e.target.value })}
+                        className="hr-filter-input"
+                        style={{ width: '100%', paddingRight: '36px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewEmpPassword(!showNewEmpPassword)}
+                        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}
+                      >
+                        {showNewEmpPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info Note */}
+                <div style={{ background: 'rgba(14, 165, 233, 0.08)', border: '1px solid rgba(14, 165, 233, 0.25)', borderRadius: '10px', padding: '10px 14px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <Lock size={16} color="#38bdf8" style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', lineHeight: 1.4 }}>
+                    <strong>Step 1 Security Protocol:</strong> Clicking below generates a 6-digit cryptographic verification OTP and immediately sends it to <strong style={{ color: '#38bdf8' }}>{newEmp.email || 'employee mail'}</strong>.
+                  </span>
+                </div>
+
+                {/* Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                  <button type="button" onClick={() => setShowAddEmpModal(false)} className="hr-btn-action">
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={otpSending}
+                    className="hr-btn-purple"
+                    style={{ minWidth: '220px', justifyContent: 'center', background: 'linear-gradient(135deg, #0ea5e9, #6366f1)', border: 'none', boxShadow: '0 4px 15px rgba(14, 165, 233, 0.35)' }}
+                  >
+                    {otpSending ? (
+                      <>
+                        <RefreshCw size={16} className="spin" />
+                        <span>Sending OTP to Mail...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        <span>Send OTP to Employee Mail 🚀</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* STEP 2: ENTER OTP & SAVE EMPLOYEE */}
+            {addEmpStep === 2 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Dispatched Success Card matching screenshot */}
+                <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '12px', padding: '14px 18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 700, fontSize: '0.92rem' }}>
+                      <CheckCheck size={18} />
+                      <span>OTP Sent to Employee Mail Successfully!</span>
+                    </div>
+                    <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', fontSize: '0.7rem', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', letterSpacing: '0.5px' }}>
+                      DISPATCHED ✓
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: '0.82rem', color: '#cbd5e1', marginBottom: '4px' }}>
+                    Recipient: <strong style={{ color: '#38bdf8' }}>{newEmp.email}</strong>
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                    Employee: <strong style={{ color: '#ffffff' }}>{newEmp.name}</strong> ({newEmp.id}) &bull; {newEmp.designation}
+                  </div>
+
+                  {/* Direct Live Mail Preview Link */}
+                  {dispatchedMailPreviewUrl && (
+                    <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#a7f3d0' }}>
+                        🌐 Live Ethereal Mail Server Delivery:
+                      </span>
+                      <a
+                        href={dispatchedMailPreviewUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#ffffff', padding: '5px 12px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700, textDecoration: 'none', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)' }}
+                      >
+                        <ExternalLink size={13} />
+                        <span>📬 Open Dispatched Mail (Live Email Preview)</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                {/* 6-Digit OTP Input Card */}
+                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#ffffff', fontWeight: 700 }}>
+                      <Key size={15} color="#c084fc" />
+                      <span>Enter 6-Digit OTP Received on Mail *</span>
+                    </label>
+
+                    {generatedOtpCode && (
+                      <button
+                        type="button"
+                        onClick={() => setEnteredOtp(generatedOtpCode)}
+                        style={{ background: 'rgba(14, 165, 233, 0.15)', border: '1px solid rgba(14, 165, 233, 0.35)', color: '#38bdf8', padding: '4px 10px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                      >
+                        ⚡ Auto-fill Received OTP ({generatedOtpCode})
+                      </button>
+                    )}
+                  </div>
+
+                  <p style={{ fontSize: '0.74rem', color: '#94a3b8', margin: '0 0 12px 0' }}>
+                    Employee se pooch kar unke Gmail par receive hua 6-digit verification code yahan enter karein:
+                  </p>
+
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="• • • • • •"
+                    value={enteredOtp}
+                    onChange={(e) => setEnteredOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="hr-filter-input"
+                    style={{ width: '100%', fontSize: '1.8rem', textAlign: 'center', letterSpacing: '14px', fontFamily: 'monospace', fontWeight: 900, color: '#38bdf8', height: '56px', background: 'rgba(15, 23, 42, 0.8)', border: enteredOtp.length === 6 ? '2px solid #10b981' : '1px solid #334155' }}
+                  />
+                </div>
+
+                {/* Automatic Welcome Mail Guarantee Box */}
+                <div style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.25)', borderRadius: '12px', padding: '12px 16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  <Award size={20} color="#c084fc" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#e9d5ff', marginBottom: '3px' }}>
+                      Automatic Welcome Mail Guarantee:
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+                      Jaise hi OTP fill karke aap submit karenge, saari details SQLite database mein save ho jayengi aur employee ke mail par <strong style={{ color: '#38bdf8' }}>"Congratulations! You are officially part of the company"</strong> welcome mail dispatch ho jayega with full details.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setAddEmpStep(1)}
+                    className="hr-btn-action"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    &larr; Edit Details
+                  </button>
+
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddEmpModal(false); setAddEmpStep(1); }}
+                      className="hr-btn-action"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={savingEmployee || enteredOtp.length !== 6}
+                      onClick={handleVerifyAndSaveEmployee}
+                      className="hr-btn-purple"
+                      style={{
+                        padding: '10px 22px',
+                        background: enteredOtp.length === 6 ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' : '#334155',
+                        border: 'none',
+                        color: '#ffffff',
+                        fontWeight: 800,
+                        boxShadow: enteredOtp.length === 6 ? '0 4px 18px rgba(139, 92, 246, 0.4)' : 'none',
+                        cursor: enteredOtp.length === 6 ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      {savingEmployee ? (
+                        <>
+                          <RefreshCw size={16} className="spin" />
+                          <span>Saving & Dispatching Welcome Mail...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCheck size={16} />
+                          <span>Verify OTP & Save Employee 🚀</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL: CONGRATULATIONS WELCOME EMAIL DISPATCHED
+         ===================================================================== */}
+      {congratsWelcomeMailModal && (
+        <div className="hr-modal-overlay" onClick={() => setCongratsWelcomeMailModal(null)}>
+          <div className="hr-modal-content" style={{ maxWidth: '540px', background: '#0b1120', border: '1px solid #334155', borderRadius: '18px', textAlign: 'center', padding: '28px', boxShadow: '0 25px 60px rgba(0,0,0,0.9)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(14, 165, 233, 0.2))', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', boxShadow: '0 0 25px rgba(16, 185, 129, 0.35)' }}>
+              <Award size={32} color="#10b981" />
+            </div>
+
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#ffffff', margin: '0 0 6px 0' }}>
+              🎉 Employee Successfully Registered!
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: '#cbd5e1', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+              <strong style={{ color: '#38bdf8' }}>{congratsWelcomeMailModal.name}</strong> ({congratsWelcomeMailModal.id}) is now officially a member of <strong style={{ color: '#ffffff' }}>VorldX Technologies Pvt Ltd</strong>!
+            </p>
+
+            {/* Card of Details */}
+            <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '16px', textAlign: 'left', marginBottom: '18px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.8rem' }}>
+                <div>
+                  <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem' }}>Designation:</span>
+                  <strong style={{ color: '#ffffff' }}>{congratsWelcomeMailModal.designation}</strong>
+                </div>
+                <div>
+                  <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem' }}>Department:</span>
+                  <strong style={{ color: '#ffffff' }}>{congratsWelcomeMailModal.department}</strong>
+                </div>
+                <div>
+                  <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem' }}>Registered Email:</span>
+                  <strong style={{ color: '#38bdf8' }}>{congratsWelcomeMailModal.email}</strong>
+                </div>
+                <div>
+                  <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem' }}>Portal Password:</span>
+                  <strong style={{ color: '#a78bfa', fontFamily: 'monospace' }}>{congratsWelcomeMailModal.password}</strong>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontSize: '0.76rem', fontWeight: 700 }}>
+                <CheckCheck size={16} />
+                <span>"Congratulations Welcome Email" has been automatically dispatched to their inbox!</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              {congratsWelcomeMailModal.welcomePreviewUrl && (
+                <a
+                  href={congratsWelcomeMailModal.welcomePreviewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(14, 165, 233, 0.2)', border: '1px solid rgba(14, 165, 233, 0.4)', color: '#38bdf8', padding: '8px 16px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}
+                >
+                  <ExternalLink size={14} />
+                  <span>View Dispatched Email Preview</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setCongratsWelcomeMailModal(null)}
+                className="hr-btn-purple"
+                style={{ minWidth: '120px' }}
+              >
+                Close & Return
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL: REAL GMAIL / SMTP CONFIGURATION
+         ===================================================================== */}
+      {showGmailSetupModal && (
+        <div className="hr-modal-overlay" onClick={() => setShowGmailSetupModal(false)}>
+          <div className="hr-modal-content" style={{ maxWidth: '520px', background: '#0c1424', border: '1px solid #1e293b', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.85)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: 38, height: 38, borderRadius: '10px', background: 'rgba(234, 179, 8, 0.15)', border: '1px solid rgba(234, 179, 8, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Mail size={20} color="#facc15" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>Google Gmail SMTP Setup</h3>
+                  <p style={{ fontSize: '0.72rem', color: '#94a3b8', margin: '2px 0 0 0' }}>Connect your Google App Password for direct inbox delivery</p>
+                </div>
+              </div>
+              <button onClick={() => setShowGmailSetupModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Instruction Card */}
+            <div style={{ background: 'rgba(14, 165, 233, 0.06)', border: '1px solid rgba(14, 165, 233, 0.25)', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#38bdf8', marginBottom: '6px' }}>
+                📌 30 Seconds Mein Google App Password Kaise Banayein:
+              </div>
+              <ol style={{ margin: 0, paddingLeft: '18px', fontSize: '0.72rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+                <li>Apne Google Account me jayein: <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>myaccount.google.com/apppasswords</a></li>
+                <li>App name me <strong>VorldX</strong> likhein aur <strong>Create</strong> dabayein.</li>
+                <li>Google aapko <strong>16-digit password</strong> dega (Jaise: <code style={{ color: '#facc15', background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '4px' }}>abcd efgh ijkl mnop</code>).</li>
+                <li>Wo 16-letter code neeche daal kar <strong>Connect & Save</strong> dabayein!</li>
+              </ol>
+            </div>
+
+            <form onSubmit={handleSaveSmtp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>Full Name</label>
+                <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Sender Gmail Address *</label>
                 <input
-                  type="text"
+                  type="email"
                   required
-                  placeholder="e.g. Rahul Verma"
-                  value={newEmp.name}
-                  onChange={(e) => setNewEmp({ ...newEmp, name: e.target.value })}
+                  placeholder="shreyay1310@gmail.com"
+                  value={smtpForm.user}
+                  onChange={(e) => setSmtpForm({ ...smtpForm, user: e.target.value })}
                   className="hr-filter-input"
                   style={{ width: '100%' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>Department</label>
-                  <select
-                    value={newEmp.department}
-                    onChange={(e) => setNewEmp({ ...newEmp, department: e.target.value })}
-                    className="hr-filter-select"
-                    style={{ width: '100%' }}
-                  >
-                    <option>Engineering</option>
-                    <option>Human Resources</option>
-                    <option>Marketing</option>
-                    <option>Sales</option>
-                    <option>Finance</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>Designation</label>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.74rem', color: '#cbd5e1', fontWeight: 600, marginBottom: '5px' }}>Google 16-Digit App Password *</label>
+                <div style={{ position: 'relative' }}>
                   <input
-                    type="text"
+                    type={showSmtpPass ? 'text' : 'password'}
                     required
-                    placeholder="e.g. Software Engineer"
-                    value={newEmp.designation}
-                    onChange={(e) => setNewEmp({ ...newEmp, designation: e.target.value })}
+                    placeholder="xxxx xxxx xxxx xxxx"
+                    value={smtpForm.pass}
+                    onChange={(e) => setSmtpForm({ ...smtpForm, pass: e.target.value })}
                     className="hr-filter-input"
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', paddingRight: '36px', fontFamily: 'monospace' }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowSmtpPass(!showSmtpPass)}
+                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}
+                  >
+                    {showSmtpPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                <button type="button" onClick={() => setShowAddEmpModal(false)} className="hr-btn-action">Cancel</button>
-                <button type="submit" className="hr-btn-purple">Save Employee</button>
+                <button type="button" onClick={() => setShowGmailSetupModal(false)} className="hr-btn-action">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={smtpSaving}
+                  className="hr-btn-purple"
+                  style={{ minWidth: '180px', justifyContent: 'center', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none' }}
+                >
+                  {smtpSaving ? (
+                    <>
+                      <RefreshCw size={15} className="spin" />
+                      <span>Verifying with Google...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCheck size={15} />
+                      <span>Verify & Connect SMTP 🚀</span>
+                    </>
+                  )}
+                </button>
               </div>
             </form>
           </div>

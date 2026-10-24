@@ -116,6 +116,26 @@ export const api = {
     });
   },
 
+  async sendOnboardingOtp(data) {
+    return request('/auth/send-onboarding-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  },
+
+  async getSmtpStatus() {
+    return request('/auth/smtp-status');
+  },
+
+  async saveSmtpConfig(data) {
+    return request('/auth/save-smtp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  },
+
   // WFO Desktop Terminal & Mobile Personal QR Workflow
   async getNetworkInfo() {
     return request('/wfo/network-info');
@@ -179,15 +199,32 @@ export const api = {
   },
 
   // Attendance
-  async scanAttendance({ employeeId, qrPayload, simulatedTime }) {
+  async scanAttendance({ employeeId, qrPayload, simulatedTime, actionType }) {
     return request('/attendance/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         employee_id: employeeId,
         qr_payload: qrPayload,
-        simulated_time: simulatedTime
+        simulated_time: simulatedTime,
+        action_type: actionType
       })
+    });
+  },
+
+  async resetTodayAttendance(employeeId) {
+    return request('/attendance/reset-today', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employee_id: employeeId })
+    });
+  },
+
+  async manualPunchAttendance(data) {
+    return request('/attendance/manual-punch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
   },
 
@@ -342,6 +379,28 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
+    });
+  },
+
+  async updateEmployee(id, data) {
+    return request(`/admin/employees/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  },
+
+  async deleteEmployee(id) {
+    return request(`/admin/employees/${id}`, {
+      method: 'DELETE'
+    });
+  },
+
+  async toggleEmployeeStatus(id, status) {
+    return request(`/admin/employees/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
     });
   },
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const { db } = require('../db');
 const { seedData } = require('../seed');
+const mailer = require('../utils/mailer');
 
 const router = express.Router();
 
@@ -159,11 +160,12 @@ router.get('/employee/:id/profile', (req, res) => {
   }
 });
 
-// POST /api/admin/employees - Add employee (Screen 3)
+// POST /api/admin/employees - Add employee (Screen 3 & HR Portal)
 router.post('/employees', (req, res) => {
   try {
     const {
-      id, name, email, phone, department, designation, shift, work_type, role = 'Employee', status = 'Active'
+      id, name, email, phone, department, designation, shift, work_type,
+      role = 'Employee', status = 'Active', password, otp, verified
     } = req.body;
 
     if (!id || !name || !email || !department || !designation) {
@@ -171,43 +173,200 @@ router.post('/employees', (req, res) => {
     }
 
     const cleanId = id.trim().toUpperCase();
-    const existing = db.prepare('SELECT id FROM employees WHERE id = ? OR email = ?').get(cleanId, email.trim());
-    if (existing) {
-      return res.status(400).json({ error: 'Employee ID or Email already exists' });
-    }
-
+    const finalPassword = password ? String(password).trim() : 'VorldX@2026';
+    const finalOtp = (otp && String(otp).trim()) || String(Math.floor(100000 + Math.random() * 900000));
+    const isVerified = verified !== undefined ? (verified ? 1 : 0) : 0;
+    const cleanPhone = phone ? String(phone).trim() : '+91 98765 43210';
     const defaultAvatar = `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random()*100000000)}?auto=format&fit=crop&w=256&q=80`;
 
+    const existing = db.prepare('SELECT id FROM employees WHERE id = ?').get(cleanId);
+    if (existing) {
+      db.prepare(`
+        UPDATE employees
+        SET name = ?, email = ?, phone = ?, department = ?, designation = ?,
+            password = ?, verified = ?, status = ?
+        WHERE id = ?
+      `).run(
+        name.trim(), email.trim(), cleanPhone, department.trim(),
+        designation.trim(), finalPassword, isVerified, status || 'Active', cleanId
+      );
+    } else {
+      db.prepare(`
+        INSERT INTO employees (
+          id, name, email, phone, department, designation, shift, work_type,
+          joining_date, status, role, avatar, verified, password
+        ) VALUES (
+          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+      `).run(
+        cleanId,
+        name.trim(),
+        email.trim(),
+        cleanPhone,
+        department.trim(),
+        designation.trim(),
+        shift || 'General (09:00 AM - 06:00 PM)',
+        work_type || 'Office',
+        new Date().toISOString().split('T')[0],
+        status || 'Active',
+        role,
+        defaultAvatar,
+        isVerified,
+        finalPassword
+      );
+    }
+
+    // Persist OTP in verification_tokens
     db.prepare(`
-      INSERT INTO employees (
-        id, name, email, phone, department, designation, shift, work_type, joining_date, status, role, avatar, verified
-      ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1
-      )
+      INSERT INTO verification_tokens (employee_id, otp, expires_at)
+      VALUES (?, ?, datetime('now', '+24 hours'))
+      ON CONFLICT(employee_id) DO UPDATE SET
+        otp = excluded.otp,
+        expires_at = datetime('now', '+24 hours')
+    `).run(cleanId, finalOtp);
+
+    // Audit log
+    db.prepare(`
+      INSERT INTO audit_logs (actor, action, details)
+      VALUES ('HR', 'ONBOARDING_MAIL_DISPATCHED', ?)
+    `).run(`Official onboarding mail with OTP ${finalOtp} sent to ${name.trim()} (${email.trim()}) as ${designation.trim()}`);
+
+    const created = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
+
+    const emailNotification = {
+      from: 'VorldX Human Resources Department <hr@vorldx.com>',
+      to: email.trim(),
+      employee_name: name.trim(),
+      designation: designation.trim(),
+      department: department.trim(),
+      employee_id: cleanId,
+      password: finalPassword,
+      otp: finalOtp,
+      subject: `🎉 Official Welcome & Membership Verification - VorldX Technologies [${cleanId}]`,
+      message: `Dear ${name.trim()},\n\nAb aap officially VorldX Technologies ke member hain!\n\nDesignation: ${designation.trim()}\nDepartment: ${department.trim()}\nEmployee ID: ${cleanId}\nTemporary Password: ${finalPassword}\n\nAapka Official Verification OTP: ${finalOtp}\n\nPlease is OTP ko verify karke apna company portal access activate karein.\n\nWarm Regards,\nCompany HR Operations Team | VorldX Technologies`,
+      sent_at: new Date().toISOString()
+    };
+
+    // Dispatch official welcome mail asynchronously
+    try {
+      mailer.sendWelcomeEmail({
+        to: email.trim(),
+        name: name.trim(),
+        id: cleanId,
+        designation: designation.trim(),
+        department: department.trim(),
+        shift: shift || 'General (09:00 AM - 06:00 PM)',
+        password: finalPassword
+      });
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      employee: created,
+      otp: finalOtp,
+      emailNotification
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create employee: ' + error.message });
+  }
+});
+
+// PUT /api/admin/employees/:id - Edit employee details
+router.put('/employees/:id', (req, res) => {
+  try {
+    const cleanId = req.params.id.trim().toUpperCase();
+    const { name, department, designation, status, email, phone, password, verified } = req.body;
+
+    const existing = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
+    if (!existing) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    db.prepare(`
+      UPDATE employees
+      SET name = COALESCE(?, name),
+          department = COALESCE(?, department),
+          designation = COALESCE(?, designation),
+          status = COALESCE(?, status),
+          email = COALESCE(?, email),
+          phone = COALESCE(?, phone),
+          password = COALESCE(?, password),
+          verified = COALESCE(?, verified)
+      WHERE id = ?
     `).run(
-      cleanId,
-      name.trim(),
-      email.trim(),
-      phone || '9876543210',
-      department,
-      designation,
-      shift || 'General (9:00 AM - 6:00 PM)',
-      work_type || 'Office',
-      new Date().toISOString().split('T')[0],
-      status,
-      role,
-      defaultAvatar
+      name !== undefined ? name.trim() : null,
+      department !== undefined ? department.trim() : null,
+      designation !== undefined ? designation.trim() : null,
+      status !== undefined ? status.trim() : null,
+      email !== undefined ? email.trim() : null,
+      phone !== undefined ? phone.trim() : null,
+      password !== undefined ? password.trim() : null,
+      verified !== undefined ? (verified ? 1 : 0) : null,
+      cleanId
     );
 
     db.prepare(`
       INSERT INTO audit_logs (actor, action, details)
-      VALUES ('HR', 'Added new employee', ?)
-    `).run(`${name} (${cleanId})`);
+      VALUES ('HR', 'EMPLOYEE_UPDATED', ?)
+    `).run(`Updated details for employee ${cleanId}: status=${status || existing.status}`);
 
-    const created = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
-    res.json({ success: true, employee: created });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create employee' });
+    const updated = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
+    res.json({ success: true, employee: updated });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update employee: ' + err.message });
+  }
+});
+
+// DELETE /api/admin/employees/:id - Delete employee
+router.delete('/employees/:id', (req, res) => {
+  try {
+    const cleanId = req.params.id.trim().toUpperCase();
+    const existing = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
+    if (!existing) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    db.prepare('DELETE FROM verification_tokens WHERE employee_id = ?').run(cleanId);
+    db.prepare('DELETE FROM attendance WHERE employee_id = ?').run(cleanId);
+    db.prepare('DELETE FROM wfh_requests WHERE employee_id = ?').run(cleanId);
+    db.prepare('DELETE FROM employees WHERE id = ?').run(cleanId);
+
+    db.prepare(`
+      INSERT INTO audit_logs (actor, action, details)
+      VALUES ('HR', 'EMPLOYEE_DELETED', ?)
+    `).run(`Deleted employee ${existing.name} (${cleanId})`);
+
+    res.json({ success: true, message: `Employee ${cleanId} deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete employee: ' + err.message });
+  }
+});
+
+// PATCH /api/admin/employees/:id/status - Quick Toggle Active/Inactive
+router.patch('/employees/:id/status', (req, res) => {
+  try {
+    const cleanId = req.params.id.trim().toUpperCase();
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+
+    const existing = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
+    if (!existing) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    db.prepare('UPDATE employees SET status = ? WHERE id = ?').run(status.trim(), cleanId);
+
+    db.prepare(`
+      INSERT INTO audit_logs (actor, action, details)
+      VALUES ('HR', 'STATUS_CHANGE', ?)
+    `).run(`Changed status for ${existing.name} (${cleanId}) to ${status.trim()}`);
+
+    const updated = db.prepare('SELECT * FROM employees WHERE id = ?').get(cleanId);
+    res.json({ success: true, employee: updated });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update employee status: ' + err.message });
   }
 });
 

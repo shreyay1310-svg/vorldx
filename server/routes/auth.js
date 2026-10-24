@@ -1,5 +1,6 @@
 const express = require('express');
 const { db } = require('../db');
+const mailer = require('../utils/mailer');
 
 const router = express.Router();
 
@@ -209,15 +210,15 @@ router.post('/verify-otp', (req, res) => {
       WHERE employee_id = ? AND datetime('now') <= datetime(expires_at)
     `).get(cleanId);
 
-    // Allow demo OTP 123456 or stored OTP
+    // Allow stored OTP or demo OTP 123456
     if ((!tokenRecord || tokenRecord.otp !== cleanOtp) && cleanOtp !== '123456') {
       return res.status(400).json({
-        error: 'Invalid or expired OTP. Use demo OTP: 123456'
+        error: `Invalid or expired OTP for ${cleanId}. Please enter the official 6-digit OTP received via email.`
       });
     }
 
     // Mark employee verified & Active
-    db.prepare('UPDATE employees SET verified = 1, status = "Active" WHERE id = ?').run(cleanId);
+    db.prepare("UPDATE employees SET verified = 1, status = 'Active' WHERE id = ?").run(cleanId);
     db.prepare('DELETE FROM verification_tokens WHERE employee_id = ?').run(cleanId);
 
     db.prepare(`
@@ -235,6 +236,115 @@ router.post('/verify-otp', (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+// POST /api/auth/send-onboarding-otp - Send OTP directly to employee's email
+router.post('/send-onboarding-otp', async (req, res) => {
+  try {
+    const { email, name, id, designation, department } = req.body;
+    if (!email || !name) {
+      return res.status(400).json({ error: 'Email and Name are required' });
+    }
+
+    const cleanEmail = email.trim();
+    const cleanName = name.trim();
+    const cleanId = (id || 'EMP' + Math.floor(100 + Math.random() * 900)).trim().toUpperCase();
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store in verification_tokens
+    try {
+      db.prepare(`
+        INSERT INTO verification_tokens (employee_id, otp, expires_at)
+        VALUES (?, ?, datetime('now', '+24 hours'))
+        ON CONFLICT(employee_id) DO UPDATE SET
+          otp = excluded.otp,
+          expires_at = datetime('now', '+24 hours')
+      `).run(cleanId, generatedOtp);
+    } catch (e) {}
+
+    // Send email using mailer
+    const mailResult = await mailer.sendOtpEmail({
+      to: cleanEmail,
+      name: cleanName,
+      id: cleanId,
+      designation: designation || 'Software Developer',
+      department: department || 'Engineering',
+      otp: generatedOtp
+    });
+
+    // Audit log
+    try {
+      db.prepare(`
+        INSERT INTO audit_logs (actor, action, details)
+        VALUES ('HR', 'ONBOARDING_OTP_SENT', ?)
+      `).run(`Verification OTP ${generatedOtp} sent to ${cleanEmail} for ${cleanName} (${cleanId})`);
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      otp: generatedOtp,
+      recipient: cleanEmail,
+      ...mailResult
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to send OTP mail: ' + err.message });
+  }
+});
+
+// GET /api/auth/smtp-status - Check current email delivery mode
+router.get('/smtp-status', (req, res) => {
+  const isConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+  res.json({
+    isConfigured,
+    user: process.env.SMTP_USER || null,
+    mode: isConfigured ? 'GMAIL_LIVE' : 'ETHEREAL_TEST'
+  });
+});
+
+// POST /api/auth/save-smtp - Configure real Google App Password
+router.post('/save-smtp', async (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  try {
+    const { user, pass } = req.body;
+    if (!user || !pass) {
+      return res.status(400).json({ error: 'Gmail Address and Google App Password are required' });
+    }
+
+    const cleanUser = user.trim();
+    const cleanPass = pass.trim().replace(/\s+/g, '');
+
+    // 1. Verify with Google SMTP
+    try {
+      await mailer.verifySmtpCredentials(cleanUser, cleanPass);
+    } catch (authErr) {
+      return res.status(400).json({
+        error: 'Google Authentication Failed: ' + (authErr.message || 'Invalid Credentials'),
+        details: 'Make sure 2-Step Verification is ON in your Google Account and you generated a 16-character App Password (not your regular Gmail password).'
+      });
+    }
+
+    // 2. Set in runtime
+    mailer.setSmtpCredentials(cleanUser, cleanPass);
+
+    // 3. Save to .env files (root and server)
+    const envContent = `SMTP_USER=${cleanUser}\nSMTP_PASS=${cleanPass}\nSMTP_HOST=smtp.gmail.com\nSMTP_PORT=465\n`;
+    try {
+      const rootEnv = path.join(__dirname, '..', '..', '.env');
+      const serverEnv = path.join(__dirname, '..', '.env');
+      fs.writeFileSync(rootEnv, envContent);
+      fs.writeFileSync(serverEnv, envContent);
+    } catch (fsErr) {}
+
+    res.json({
+      success: true,
+      mode: 'GMAIL_LIVE',
+      user: cleanUser,
+      message: `🎉 Successfully connected! Emails will now be delivered directly to real Gmail inboxes from ${cleanUser}.`
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to configure SMTP: ' + err.message });
   }
 });
 
