@@ -273,12 +273,22 @@ router.post('/scan', (req, res) => {
 router.post('/reset-today', (req, res) => {
   try {
     const { employee_id } = req.body;
-    const cleanId = (employee_id || 'EMP005').trim().toUpperCase();
+    const cleanId = (employee_id || 'VX001').trim().toUpperCase();
     const todayStr = new Date().toISOString().split('T')[0];
-    db.prepare('DELETE FROM attendance WHERE employee_id = ? AND date = ?').run(cleanId, todayStr);
+
+    // Delete attendance for today for both VX001, EMP005, and cleanId
+    db.prepare(`
+      DELETE FROM attendance 
+      WHERE (employee_id = ? OR employee_id = 'VX001' OR employee_id = 'EMP005') 
+        AND date = ?
+    `).run(cleanId, todayStr);
+
+    // Reset memory scan so polling does not restore old punch
+    latestKioskScan = null;
+
     return res.json({
       success: true,
-      message: `Today's attendance reset for ${cleanId}`
+      message: `Today's attendance successfully reset for ${cleanId}`
     });
   } catch (error) {
     console.error('Reset error:', error);

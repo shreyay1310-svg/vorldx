@@ -213,6 +213,7 @@ export default function EmployeePortal({
   const [checkInTime, setCheckInTime] = useState('');
   const [checkOutTime, setCheckOutTime] = useState('');
   const [lastPunchAlert, setLastPunchAlert] = useState(null);
+  const [isResettingPunch, setIsResettingPunch] = useState(false);
   const qrCanvasRef = useRef(null);
   const [networkIp, setNetworkIp] = useState('192.168.1.77');
 
@@ -232,6 +233,14 @@ export default function EmployeePortal({
   // Apply real-time scan punch data (from Mobile App scan or Kiosk button)
   const applyScanPunchData = (data) => {
     if (!data) return;
+    if (data.action === 'RESET' || data.reset) {
+      setIsCheckedIn(false);
+      setCheckInTime('');
+      setCheckOutTime('');
+      setTodayAttendance(null);
+      setLastPunchAlert(null);
+      return;
+    }
     const isCheckIn = data.action === 'CHECK_IN';
     const timeStr = isCheckIn ? (data.in_time || data.check_in_time) : (data.out_time || data.check_out_time);
     const dateFormatted = data.date_formatted || data.date || liveClockTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
@@ -281,6 +290,12 @@ export default function EmployeePortal({
           setCheckOutTime('');
           setIsCheckedIn(true);
         }
+      } else {
+        setTodayAttendance(null);
+        setCheckInTime('');
+        setCheckOutTime('');
+        setIsCheckedIn(false);
+        setLastPunchAlert(null);
       }
     } catch (err) {}
   };
@@ -290,15 +305,33 @@ export default function EmployeePortal({
 
     // 1. Cross-component & window custom event sync
     const handleSyncEvent = (e) => {
-      if (e.detail && (e.detail.success || e.detail.employee_id)) {
-        applyScanPunchData(e.detail);
+      if (e.detail) {
+        if (e.detail.action === 'RESET' || e.detail.reset) {
+          setIsCheckedIn(false);
+          setCheckInTime('');
+          setCheckOutTime('');
+          setTodayAttendance(null);
+          setLastPunchAlert(null);
+          return;
+        }
+        if (e.detail.success || e.detail.employee_id) {
+          applyScanPunchData(e.detail);
+        }
       }
     };
     window.addEventListener('vorldx_punch_sync', handleSyncEvent);
 
     // 2. Cross-tab localStorage sync
     const handleStorageEvent = (e) => {
-      if (e.key === 'vorldx_latest_kiosk_punch' && e.newValue) {
+      if (e.key === 'vorldx_latest_kiosk_punch') {
+        if (!e.newValue) {
+          setIsCheckedIn(false);
+          setCheckInTime('');
+          setCheckOutTime('');
+          setTodayAttendance(null);
+          setLastPunchAlert(null);
+          return;
+        }
         try {
           const data = JSON.parse(e.newValue);
           if (data && (data.success || data.employee_id)) {
@@ -314,9 +347,15 @@ export default function EmployeePortal({
     const pollServerKioskScan = async () => {
       try {
         const res = await api.getLatestKioskScan();
-        if (res && res.success && res.scan && res.scan.scanId && res.scan.scanId !== lastHandledScanId) {
-          lastHandledScanId = res.scan.scanId;
-          applyScanPunchData(res.scan);
+        if (res && res.success) {
+          if (!res.scan) {
+            lastHandledScanId = null;
+            return;
+          }
+          if (res.scan.scanId && res.scan.scanId !== lastHandledScanId) {
+            lastHandledScanId = res.scan.scanId;
+            applyScanPunchData(res.scan);
+          }
         }
       } catch (e) {}
     };
@@ -407,26 +446,38 @@ export default function EmployeePortal({
   // Reset today's attendance record for fresh test
   const handleResetTodayPunch = async () => {
     try {
+      setIsResettingPunch(true);
       const empId = currentUser?.id || 'VX001';
-      const res = await api.resetTodayAttendance(empId);
-      if (res && res.success) {
-        setIsCheckedIn(false);
-        setCheckInTime('');
-        setCheckOutTime('');
-        setTodayAttendance(null);
-        setLastPunchAlert(null);
-        try {
-          localStorage.removeItem('vorldx_latest_kiosk_punch');
-        } catch (e) {}
-        triggerToast("✓ Today's attendance reset! Ready for fresh real-time punch.");
-      }
+
+      // 1. Immediately wipe all local UI punch states
+      setIsCheckedIn(false);
+      setCheckInTime('');
+      setCheckOutTime('');
+      setTodayAttendance(null);
+      setLastPunchAlert(null);
+
+      // 2. Clear storage & broadcast reset event to all tabs
+      try {
+        localStorage.removeItem('vorldx_latest_kiosk_punch');
+        window.dispatchEvent(new CustomEvent('vorldx_punch_sync', { detail: { action: 'RESET', reset: true } }));
+      } catch (e) {}
+
+      // 3. Clear database record and server memory scan
+      await api.resetTodayAttendance(empId);
+
+      // 4. Play reset chime
+      playPunchChime();
+
+      triggerToast("✓ Today's attendance reset! Slate is 100% clean. Ready for fresh punch.");
     } catch (err) {
       setIsCheckedIn(false);
       setCheckInTime('');
       setCheckOutTime('');
       setTodayAttendance(null);
       setLastPunchAlert(null);
-      triggerToast("✓ Attendance reset locally! Ready for fresh punch.");
+      triggerToast("✓ Today's punch reset locally! Ready for fresh punch.");
+    } finally {
+      setTimeout(() => setIsResettingPunch(false), 500);
     }
   };
 
@@ -3160,25 +3211,42 @@ For questions regarding this policy, contact hr.compliance@vorldx.com.
                       <button
                         id="btn-reset-today-punch"
                         type="button"
+                        disabled={isResettingPunch}
                         onClick={handleResetTodayPunch}
                         style={{
                           marginTop: '8px',
                           width: '100%',
-                          padding: '6px',
-                          background: 'transparent',
-                          border: '1px dashed rgba(255, 255, 255, 0.15)',
+                          padding: '7px 10px',
+                          background: isResettingPunch ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                          border: isResettingPunch ? '1px solid #38bdf8' : '1px dashed rgba(255, 255, 255, 0.2)',
                           borderRadius: '8px',
-                          color: '#94a3b8',
-                          fontSize: '0.7rem',
-                          cursor: 'pointer',
+                          color: isResettingPunch ? '#38bdf8' : '#94a3b8',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          cursor: isResettingPunch ? 'wait' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '5px'
+                          gap: '6px',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isResettingPunch) {
+                            e.currentTarget.style.borderColor = '#38bdf8';
+                            e.currentTarget.style.color = '#38bdf8';
+                            e.currentTarget.style.background = 'rgba(56, 189, 248, 0.08)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isResettingPunch) {
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                            e.currentTarget.style.color = '#94a3b8';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                          }
                         }}
                       >
-                        <RefreshCw size={12} />
-                        <span>🔄 Reset Today's Punch (Clean Test Slate)</span>
+                        <RefreshCw size={13} style={{ animation: isResettingPunch ? 'spin 0.8s linear infinite' : 'none' }} />
+                        <span>{isResettingPunch ? "Resetting Slate..." : "Reset Today's Punch (Clean Test Slate)"}</span>
                       </button>
                     </>
                   ) : (
