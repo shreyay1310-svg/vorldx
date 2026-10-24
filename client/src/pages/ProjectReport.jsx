@@ -41,21 +41,58 @@ export default function ProjectReport() {
           <span>VorldX Employee Attendance System — Official Project Documentation</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <a
             href="/VorldX_Project_Report.pdf"
             download="VorldX_Project_Report.pdf"
             className="btn btn-primary btn-sm"
-            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}
           >
-            <Download size={15} /> Download PDF Report
+            <Download size={14} /> 20-Page Report (PDF)
           </a>
-          <button
-            onClick={handlePrint}
-            className="btn btn-secondary btn-sm"
+          <a
+            href="/VorldX_RBAC_Presentation_15Slides.pptx"
+            download="VorldX_RBAC_Presentation_15Slides.pptx"
+            className="btn btn-sm"
+            style={{ 
+              textDecoration: 'none', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              fontSize: '0.8rem',
+              background: '#b45309',
+              color: '#ffffff',
+              border: '1px solid #f59e0b'
+            }}
           >
-            <Printer size={15} /> Print / Save as PDF
-          </button>
+            <Download size={14} /> 15-Slide PPTX (PowerPoint)
+          </a>
+          <a
+            href="/VorldX_RBAC_Presentation_15Slides.pdf"
+            download="VorldX_RBAC_Presentation_15Slides.pdf"
+            className="btn btn-sm"
+            style={{ 
+              textDecoration: 'none', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              fontSize: '0.8rem',
+              background: '#4f46e5',
+              color: '#ffffff',
+              border: '1px solid #6366f1'
+            }}
+          >
+            <Download size={14} /> 15-Slide PPT (PDF)
+          </a>
+          <a
+            href="/vorldx_rbac_presentation_15slides.html"
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-secondary btn-sm"
+            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}
+          >
+            <ExternalLink size={14} /> View Slide Deck
+          </a>
         </div>
       </div>
 
